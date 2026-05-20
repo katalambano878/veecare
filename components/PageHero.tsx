@@ -10,7 +10,7 @@ interface PageHeroProps {
 export default function PageHero({ title, subtitle, backgroundImage }: PageHeroProps) {
   return (
     <div
-      className={`relative overflow-hidden flex items-center justify-center min-h-[50vh] md:min-h-[55vh] ${
+      className={`relative overflow-hidden flex items-center justify-center min-h-[65vh] md:min-h-[55vh] ${
         !backgroundImage ? 'bg-brand-cream' : ''
       }`}
     >
@@ -36,10 +36,10 @@ export default function PageHero({ title, subtitle, backgroundImage }: PageHeroP
       )}
 
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24 text-center z-10 flex flex-col items-center">
-        <span className="inline-block py-1 px-4 mb-5 text-brand-mauve text-[10px] tracking-[0.35em] uppercase font-medium border border-brand-mauve/30 rounded-full bg-white/70">
+        <span className="inline-block py-1 px-4 mb-5 text-brand-mauve text-[10px] tracking-widest-xl uppercase font-semibold border border-brand-mauve/30 rounded-full bg-white/70">
           Upscale Vintage
         </span>
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-medium text-brand-espresso mb-6 leading-[1.1]">
+        <h1 className="text-5xl md:text-6xl lg:text-7xl font-display text-brand-espresso mb-6 leading-[1.1] tracking-tight">
           {title}
         </h1>
         {subtitle && (

@@ -27,21 +27,21 @@ export default function ProductSort({ onSortChange, totalProducts }: ProductSort
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+    <div className="bg-white/90 rounded-2xl shadow-luxury border border-brand-nude/50 p-4 mb-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center space-x-4">
-          <p className="text-gray-700">
-            <span className="font-bold text-gray-900">{totalProducts}</span> Products Found
+          <p className="text-brand-cocoa/80">
+            <span className="font-semibold text-brand-espresso">{totalProducts}</span> Products Found
           </p>
         </div>
 
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Sort by:</label>
+            <label className="text-sm font-medium text-brand-cocoa whitespace-nowrap">Sort by:</label>
             <select
               value={sortBy}
               onChange={(e) => handleSortChange(e.target.value)}
-              className="px-4 py-2 pr-8 border-2 border-gray-300 rounded-lg text-sm font-medium text-gray-700 focus:border-blue-700 focus:ring-2 focus:ring-blue-200 bg-white cursor-pointer"
+              className="px-4 py-2 pr-8 border-2 border-brand-nude/70 rounded-xl text-sm font-medium text-brand-cocoa focus:border-brand-espresso focus:ring-2 focus:ring-brand-mauve/30 bg-white cursor-pointer"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -51,11 +51,11 @@ export default function ProductSort({ onSortChange, totalProducts }: ProductSort
             </select>
           </div>
 
-          <div className="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+          <div className="flex items-center border-2 border-brand-nude/70 rounded-xl overflow-hidden">
             <button
               onClick={() => setViewMode('grid')}
               className={`w-10 h-10 flex items-center justify-center transition-colors ${
-                viewMode === 'grid' ? 'bg-blue-700 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                viewMode === 'grid' ? 'bg-brand-espresso text-white' : 'bg-white text-brand-cocoa hover:bg-brand-nude/30'
               }`}
             >
               <i className="ri-grid-line"></i>
@@ -63,7 +63,7 @@ export default function ProductSort({ onSortChange, totalProducts }: ProductSort
             <button
               onClick={() => setViewMode('list')}
               className={`w-10 h-10 flex items-center justify-center transition-colors ${
-                viewMode === 'list' ? 'bg-blue-700 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                viewMode === 'list' ? 'bg-brand-espresso text-white' : 'bg-white text-brand-cocoa hover:bg-brand-nude/30'
               }`}
             >
               <i className="ri-list-check"></i>

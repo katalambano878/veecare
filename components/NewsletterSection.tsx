@@ -33,10 +33,10 @@ export default function NewsletterSection() {
 
         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between p-10 md:p-14 gap-10">
           <div className="text-center lg:text-left max-w-lg">
-            <span className="inline-block text-[10px] uppercase tracking-[0.35em] text-brand-mauve mb-4 font-medium">
+            <span className="inline-block text-[10px] uppercase tracking-widest-xl text-brand-mauve mb-4 font-semibold">
               Community
             </span>
-            <h3 className="text-3xl md:text-4xl font-display text-brand-espresso mb-4 leading-tight">
+            <h3 className="text-4xl md:text-5xl lg:text-6xl font-display text-brand-espresso mb-4 leading-tight tracking-tight">
               Join Our <span className="italic text-brand-mauve">Community</span>
             </h3>
             <p className="text-brand-cocoa/75 text-base leading-relaxed font-light">
@@ -56,7 +56,7 @@ export default function NewsletterSection() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="flex-1 bg-transparent border-none text-brand-cocoa placeholder-brand-cocoa/40 px-6 py-3.5 focus:ring-0 text-base min-w-0 rounded-[1.25rem]"
+                className="flex-1 bg-transparent border-none text-brand-cocoa placeholder-brand-cocoa/40 px-6 py-3.5 focus:ring-0 text-base min-w-0 rounded-[1.25rem] font-light tracking-wide"
               />
               <button
                 type="submit"

@@ -74,7 +74,7 @@ export default function AnnouncementBar() {
     if (visibleBanners.length === 0) {
         // Show default banner if no custom banners
         return (
-            <div className="bg-brand-mauve/80 backdrop-blur-md text-white py-2.5 text-center text-xs tracking-[0.15em] uppercase font-medium border-b border-white/20 shadow-sm relative overflow-hidden">
+            <div className="bg-brand-mauve/80 backdrop-blur-md text-white py-2.5 text-center text-[10px] tracking-widest-xl uppercase font-semibold border-b border-white/20 shadow-sm relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer pointer-events-none" />
                 <p className="relative z-10">Trending arrivals &amp; imported lifestyle picks — <Link href="/shop?sort=newest" className="underline underline-offset-4 text-brand-cream hover:text-brand-nude ml-1 font-bold transition-colors">Shop New</Link></p>
             </div>

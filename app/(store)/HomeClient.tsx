@@ -39,7 +39,7 @@ const HERO_SLIDES = [
     heading: (
       <>
         Trending Fashion <br />
-        <span className="italic font-light text-brand-mauve">&amp; Lifestyle Finds</span>
+        <span className="italic font-light text-brand-champagne">&amp; Lifestyle Finds</span>
       </>
     ),
     subtext:
@@ -53,7 +53,7 @@ const HERO_SLIDES = [
     heading: (
       <>
         Style That <br />
-        <span className="italic font-light text-brand-champagne">Stands Out</span>
+        <span className="italic font-light text-brand-nude">Stands Out</span>
       </>
     ),
     subtext:
@@ -125,8 +125,8 @@ export default function HomeClient() {
     <main className="flex-col min-h-screen">
       {/* Hero — sharp 16:9 lifestyle imagery, left-aligned copy */}
       <section className="relative w-full overflow-hidden bg-brand-cream">
-        <div className="relative w-full aspect-video min-h-[420px] max-h-[92vh]">
-        <div className="absolute top-0 left-0 right-0 z-30 h-0.5 bg-brand-nude/50">
+        <div className="relative w-full aspect-video min-h-[546px] max-md:max-h-none md:min-h-[420px] md:max-h-[92vh]">
+        <div className="absolute top-0 left-0 right-0 z-30 h-0.5 bg-brand-nude/50 hidden md:block">
           <div
             key={currentSlide}
             className="h-full bg-brand-mauve animate-progress origin-left"
@@ -153,13 +153,8 @@ export default function HomeClient() {
               className="hero-slide-media absolute inset-0 w-full h-full"
             />
 
-            {/* Soft left wash — lighter so photography stays sharp */}
             <div
-              className="absolute inset-0 bg-gradient-to-r from-brand-cream via-brand-cream/88 via-[35%] sm:via-[40%] md:via-[46%] to-transparent pointer-events-none"
-              aria-hidden
-            />
-            <div
-              className="absolute inset-0 bg-gradient-to-t from-brand-cream/40 via-transparent to-transparent md:hidden pointer-events-none"
+              className="absolute inset-0 bg-black/30 pointer-events-none"
               aria-hidden
             />
 
@@ -171,7 +166,7 @@ export default function HomeClient() {
                       index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                     }`}
                   >
-                    <span className="inline-block py-2 px-5 mb-5 sm:mb-6 text-brand-espresso text-[10px] sm:text-[11px] tracking-[0.32em] uppercase font-bold glass rounded-full">
+                    <span className="inline-block py-2 px-5 mb-5 sm:mb-6 text-white text-[10px] sm:text-[11px] tracking-[0.32em] uppercase font-bold bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
                       {slide.tag}
                     </span>
                   </div>
@@ -181,7 +176,7 @@ export default function HomeClient() {
                       index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                     }`}
                   >
-                    <h1 className="text-[2.35rem] sm:text-5xl md:text-6xl lg:text-[4.25rem] font-display text-brand-espresso mb-5 sm:mb-6 leading-[1.06] tracking-tight">
+                    <h1 className="text-[2.35rem] sm:text-5xl md:text-6xl lg:text-[4.25rem] font-display text-white mb-5 sm:mb-6 leading-[1.06] tracking-tight drop-shadow-[0_2px_16px_rgba(0,0,0,0.35)]">
                       {slide.heading}
                     </h1>
                   </div>
@@ -191,7 +186,7 @@ export default function HomeClient() {
                       index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                     }`}
                   >
-                    <p className="text-sm sm:text-base md:text-lg text-brand-cocoa/80 max-w-md md:max-w-lg mb-8 sm:mb-10 font-light leading-relaxed">
+                    <p className="text-sm sm:text-base md:text-lg text-white/90 max-w-md md:max-w-lg mb-8 sm:mb-10 font-light leading-relaxed drop-shadow-md">
                       {slide.subtext}
                     </p>
                   </div>
@@ -212,7 +207,7 @@ export default function HomeClient() {
                     </Link>
                     <Link
                       href={slide.cta2.href}
-                      className="btn-luxury-outline text-sm md:text-base justify-center bg-white/90"
+                      className="hidden sm:inline-flex btn-luxury-outline text-sm md:text-base justify-center border-white/40 text-white hover:bg-white hover:text-brand-espresso"
                     >
                       {slide.cta2.text}
                     </Link>
@@ -223,14 +218,14 @@ export default function HomeClient() {
           </div>
         ))}
 
-        <div className="absolute bottom-8 sm:bottom-10 left-5 sm:left-8 lg:left-14 xl:left-16 z-20 flex gap-2.5">
+        <div className="absolute bottom-8 sm:bottom-10 left-5 sm:left-8 lg:left-14 xl:left-16 z-20 hidden md:flex gap-2.5">
           {HERO_SLIDES.map((_, i) => (
             <button
               key={i}
               type="button"
               onClick={() => setCurrentSlide(i)}
               className={`h-1 rounded-full transition-all duration-500 ${
-                currentSlide === i ? 'w-10 bg-brand-espresso' : 'w-5 bg-brand-espresso/30 hover:bg-brand-espresso/50'
+                currentSlide === i ? 'w-10 bg-white' : 'w-5 bg-white/40 hover:bg-white/60'
               }`}
               aria-label={`Go to slide ${i + 1}`}
             />
@@ -255,10 +250,10 @@ export default function HomeClient() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
           <AnimatedSection className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-6">
             <div>
-              <span className="block text-[10px] font-medium tracking-[0.35em] text-brand-mauve mb-3 uppercase">
+              <span className="block text-[10px] font-semibold tracking-widest-xl text-brand-mauve mb-3 uppercase">
                 Shop by category
               </span>
-              <h2 className="font-display text-4xl sm:text-5xl text-brand-espresso leading-[1.1]">
+              <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-brand-espresso leading-[1.1] tracking-tight">
                 Curated <span className="italic text-brand-mauve/80">for you</span>
               </h2>
             </div>
@@ -341,14 +336,15 @@ export default function HomeClient() {
       <section className="py-16 md:py-24 bg-brand-cream">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection className="text-center mb-14">
-            <span className="text-[10px] uppercase tracking-[0.35em] text-brand-mauve mb-3 block">
+            <span className="text-[10px] uppercase tracking-widest-xl font-semibold text-brand-mauve mb-3 block">
               Handpicked
             </span>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl text-brand-espresso mb-3">
+            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-brand-espresso mb-4 tracking-tight">
               Featured Products
             </h2>
-            <p className="text-brand-cocoa/70 text-base max-w-lg mx-auto font-light">
-              Handpicked favorites from our collection.
+            <div className="w-16 h-px bg-brand-champagne mx-auto mb-6" />
+            <p className="text-brand-cocoa/70 text-base max-w-lg mx-auto font-light leading-relaxed">
+              Handpicked favorites from our collection, curated for exceptional quality and timeless style.
             </p>
           </AnimatedSection>
 

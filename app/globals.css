@@ -3,6 +3,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply text-brand-cocoa bg-brand-cream antialiased selection:bg-brand-mauve/30 selection:text-brand-espresso;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight text-brand-espresso;
+  }
+
+  p {
+    @apply leading-relaxed tracking-wide;
+  }
+}
+
 /* ========================================
    ANIMATIONS & EFFECTS
    ======================================== */
@@ -11,7 +25,7 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(40px);
   }
 
   to {
@@ -186,8 +200,8 @@
 /* Initial hidden state for scroll animations */
 .scroll-animate {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .scroll-animate.is-visible {
@@ -197,8 +211,8 @@
 
 .scroll-animate-left {
   opacity: 0;
-  transform: translateX(-30px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translateX(-40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .scroll-animate-left.is-visible {
@@ -208,8 +222,8 @@
 
 .scroll-animate-right {
   opacity: 0;
-  transform: translateX(30px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translateX(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .scroll-animate-right.is-visible {
@@ -220,7 +234,7 @@
 .scroll-animate-scale {
   opacity: 0;
   transform: scale(0.95);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .scroll-animate-scale.is-visible {
@@ -234,12 +248,12 @@
 
 /* Card lift effect */
 .hover-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hover-lift:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-6px);
+  box-shadow: 0 24px 50px -12px rgba(107, 62, 46, 0.15);
 }
 
 /* Card grow effect */
@@ -378,10 +392,10 @@ img {
    ======================================== */
 
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .glass-dark {
@@ -714,34 +728,31 @@ body {
 
 .btn-luxury-primary,
 .btn-brand-primary {
-  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-medium tracking-wide transition-all duration-300;
-  background: linear-gradient(135deg, #6B3E2E 0%, #4A2A1F 100%);
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-semibold tracking-widest-lg transition-all duration-500 uppercase text-xs;
+  background: #2E1F1B;
   color: #FAF6F2;
-  box-shadow: 0 4px 14px rgba(107, 62, 46, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(46, 31, 27, 0.15);
 }
 
 .btn-luxury-primary:hover,
 .btn-brand-primary:hover {
-  background: linear-gradient(135deg, #4A2A1F 0%, #2E1F1B 100%);
-  box-shadow: 0 8px 24px -4px rgba(107, 62, 46, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: #6B3E2E;
+  box-shadow: 0 8px 30px rgba(107, 62, 46, 0.25);
   transform: translateY(-2px);
 }
 
 .btn-luxury-outline {
-  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-medium tracking-wide border transition-all duration-300;
-  border-color: rgba(107, 62, 46, 0.2);
-  color: #6B3E2E;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 14px rgba(107, 62, 46, 0.05);
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-semibold tracking-widest-lg border transition-all duration-500 uppercase text-xs;
+  border-color: rgba(46, 31, 27, 0.15);
+  color: #2E1F1B;
+  background: transparent;
 }
 
 .btn-luxury-outline:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(212, 176, 106, 0.6);
-  color: #2E1F1B;
-  box-shadow: 0 8px 24px -4px rgba(107, 62, 46, 0.12);
+  background: #2E1F1B;
+  border-color: #2E1F1B;
+  color: #FAF6F2;
+  box-shadow: 0 8px 30px rgba(46, 31, 27, 0.15);
   transform: translateY(-2px);
 }
 
@@ -778,11 +789,11 @@ body {
 }
 
 .glass-panel {
-  background: rgba(250, 246, 242, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 8px 32px 0 rgba(107, 62, 46, 0.08);
+  background: rgba(250, 246, 242, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 40px -12px rgba(107, 62, 46, 0.1);
 }
 
 .text-luxury-accent {

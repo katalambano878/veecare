@@ -28,8 +28,8 @@ export default function WhoWeAreSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <AnimatedSection className="order-2 lg:order-1">
-            <span className="text-[10px] uppercase tracking-[0.35em] text-brand-mauve mb-4 block">Our vibe</span>
-            <h2 className="text-3xl md:text-4xl font-display text-brand-espresso mb-6">Who We Are</h2>
+            <span className="text-[10px] uppercase tracking-widest-xl font-semibold text-brand-mauve mb-4 block">Our vibe</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display text-brand-espresso mb-6 tracking-tight">Who We Are</h2>
             <div className="space-y-4 text-base text-brand-cocoa/80 leading-relaxed font-light">
               <p>
                 <strong className="font-medium text-brand-espresso">{APP_TITLE}</strong> is your trendy lifestyle import
@@ -72,6 +72,11 @@ export default function WhoWeAreSection() {
                   />
                 </div>
               ))}
+
+              <div
+                className="absolute inset-0 bg-black/30 pointer-events-none z-[15]"
+                aria-hidden
+              />
 
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
                 {MOCKUP_IMAGES.map((_, index) => (

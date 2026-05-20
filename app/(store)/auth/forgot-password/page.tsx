@@ -43,11 +43,11 @@ export default function ForgotPasswordPage() {
 
   if (isSubmitted) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6">
+      <main className="min-h-screen bg-brand-cream flex items-center justify-center py-12 px-4 sm:px-6">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-            <div className="w-16 h-16 flex items-center justify-center bg-blue-100 rounded-full mx-auto mb-6">
-              <i className="ri-mail-send-line text-3xl text-blue-700"></i>
+            <div className="w-16 h-16 flex items-center justify-center bg-brand-nude/50 rounded-full mx-auto mb-6">
+              <i className="ri-mail-send-line text-3xl text-brand-espresso"></i>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-3">Check Your Email</h1>
             <p className="text-gray-600 mb-6">
@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
             </p>
             <Link
               href="/auth/login"
-              className="inline-block bg-blue-700 hover:bg-blue-800 text-white px-8 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+              className="inline-block bg-brand-espresso hover:bg-brand-cocoa text-white px-8 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
             >
               Back to Sign In
             </Link>
@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6">
+    <main className="min-h-screen bg-brand-cream flex items-center justify-center py-12 px-4 sm:px-6">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Reset Password</h1>
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso ${
                   error ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="you@example.com"
@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isLoading || verifying}
-              className="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="w-full bg-brand-espresso hover:bg-brand-cocoa text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {isLoading || verifying ? (verifying ? 'Verifying...' : 'Sending...') : 'Send Reset Link'}
             </button>
@@ -107,7 +107,7 @@ export default function ForgotPasswordPage() {
 
           <p className="mt-8 text-center text-gray-600">
             Remember your password?{' '}
-            <Link href="/auth/login" className="text-blue-700 hover:text-blue-900 font-semibold whitespace-nowrap">
+            <Link href="/auth/login" className="text-brand-espresso hover:text-brand-espresso font-semibold whitespace-nowrap">
               Sign in
             </Link>
           </p>

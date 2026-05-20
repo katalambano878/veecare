@@ -84,8 +84,8 @@ export default function PWAPrompt() {
                   key={feature.label}
                   className="bg-gray-50 rounded-xl p-3 text-center"
                 >
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <i className={`${feature.icon} text-blue-700 text-lg`} />
+                  <div className="w-10 h-10 bg-brand-nude/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i className={`${feature.icon} text-brand-espresso text-lg`} />
                   </div>
                   <span className="text-xs font-medium text-gray-600">{feature.label}</span>
                 </div>
@@ -95,7 +95,7 @@ export default function PWAPrompt() {
             {/* CTA */}
             <button
               onClick={handleInstall}
-              className="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 px-6 rounded-2xl font-semibold text-base transition-all active:scale-[0.98] shadow-lg shadow-blue-700/20 flex items-center justify-center gap-2"
+              className="w-full bg-brand-espresso hover:bg-brand-cocoa text-white py-4 px-6 rounded-2xl font-semibold text-base transition-all active:scale-[0.98] shadow-lg shadow-brand-espresso/20 flex items-center justify-center gap-2"
             >
               <i className="ri-download-2-line text-xl" />
               Add to Home Screen

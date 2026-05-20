@@ -103,13 +103,13 @@ export default function MobileBottomNav() {
                 >
                   {/* Active indicator pill */}
                   {active && (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-brand-champagne rounded-full transition-all duration-300" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-espresso rounded-full transition-all duration-300" />
                   )}
                   
                   <div className="relative w-7 h-7 flex items-center justify-center">
                     <i
-                      className={`${active ? item.iconActive : item.iconInactive} text-[22px] transition-all duration-200 ${
-                        active ? 'scale-110' : 'group-hover:scale-105'
+                      className={`${active ? item.iconActive : item.iconInactive} text-[22px] transition-all duration-300 ${
+                        active ? 'scale-110 text-brand-espresso' : 'group-hover:scale-105 text-brand-cocoa/50'
                       }`}
                     />
                     
@@ -121,8 +121,8 @@ export default function MobileBottomNav() {
                     )}
                   </div>
                   
-                  <span className={`text-[10px] font-semibold mt-0.5 transition-all duration-200 ${
-                    active ? 'opacity-100' : 'opacity-70'
+                  <span className={`text-[10px] font-medium tracking-wide mt-0.5 transition-all duration-300 ${
+                    active ? 'opacity-100 text-brand-espresso' : 'opacity-70 text-brand-cocoa/60'
                   }`}>
                     {item.label}
                   </span>

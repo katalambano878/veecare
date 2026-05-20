@@ -68,7 +68,7 @@ export default function Header() {
   };
 
   const navLinkClass =
-    'group relative py-2 text-xs uppercase tracking-[0.2em] font-medium text-brand-cocoa transition-colors duration-300 hover:text-brand-espresso';
+    'group relative py-2 text-[11px] uppercase tracking-widest-xl font-semibold text-brand-cocoa/90 transition-colors duration-300 hover:text-brand-espresso';
 
   return (
     <>
@@ -148,26 +148,25 @@ export default function Header() {
                   </Link>
                 )}
 
-                <div className="relative">
-                  <button
-                    className="p-2 text-brand-cocoa hover:text-brand-espresso transition-transform hover:scale-105"
-                    onClick={() => setIsCartOpen(!isCartOpen)}
-                    aria-label="Cart"
-                  >
-                    <i className="ri-shopping-bag-line text-xl"></i>
-                    {cartCount > 0 && (
-                      <span className="absolute top-1 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-brand-champagne text-[10px] font-bold text-brand-espresso">
-                        {cartCount}
-                      </span>
-                    )}
-                  </button>
-                  <MiniCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-                </div>
+                <button
+                  className="relative p-2 text-brand-cocoa hover:text-brand-espresso transition-transform hover:scale-105"
+                  onClick={() => setIsCartOpen(!isCartOpen)}
+                  aria-label="Cart"
+                >
+                  <i className="ri-shopping-bag-line text-xl"></i>
+                  {cartCount > 0 && (
+                    <span className="absolute top-1 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-brand-champagne text-[10px] font-bold text-brand-espresso">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
           </div>
         </nav>
       </header>
+
+      <MiniCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
       {isSearchOpen && (
         <div className="fixed inset-0 bg-brand-cocoa/20 backdrop-blur-md z-50 flex items-start justify-center pt-24 transition-all duration-500 animate-in fade-in">

@@ -243,9 +243,9 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
   const statusLabel = (s: string) => s === 'shipped' ? 'Packaged' : s.charAt(0).toUpperCase() + s.slice(1);
   const statusColors: any = {
     'pending': 'bg-amber-100 text-amber-700 border-amber-200',
-    'processing': 'bg-blue-100 text-blue-700 border-blue-200',
+    'processing': 'bg-brand-nude/50 text-brand-espresso border-brand-nude/70',
     'shipped': 'bg-purple-100 text-purple-700 border-purple-200',
-    'delivered': 'bg-blue-100 text-blue-700 border-blue-200',
+    'delivered': 'bg-brand-nude/50 text-brand-espresso border-brand-nude/70',
     'cancelled': 'bg-red-100 text-red-700 border-red-200',
     'awaiting_payment': 'bg-gray-100 text-gray-700 border-gray-200'
   };
@@ -429,7 +429,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                   <span>GH₵ {order.tax_total?.toFixed(2)}</span>
                 </div>
                 {order.discount_total > 0 && (
-                  <div className="flex justify-between text-blue-700 font-semibold">
+                  <div className="flex justify-between text-brand-espresso font-semibold">
                     <span>Discount</span>
                     <span>-GH₵ {order.discount_total?.toFixed(2)}</span>
                   </div>
@@ -446,7 +446,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               <div className="space-y-4">
                 {timeline.map((event, index) => (
                   <div key={index} className="flex items-start space-x-4">
-                    <div className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${event.completed ? 'bg-blue-700 border-blue-700' : 'bg-white border-gray-300'
+                    <div className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${event.completed ? 'bg-brand-espresso border-brand-espresso' : 'bg-white border-gray-300'
                       }`}>
                       {event.completed ? (
                         <i className="ri-check-line text-white text-xl"></i>
@@ -487,7 +487,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                         onClick={() => {
                           handleUpdateStatus(status);
                         }}
-                        className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${status === currentStatus ? 'bg-blue-50 font-semibold' : ''
+                        className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${status === currentStatus ? 'bg-brand-nude/30 font-semibold' : ''
                           }`}
                       >
                         {statusLabel(status)}
@@ -505,14 +505,14 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                   type="text"
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
                 />
               </div>
 
               <button
                 onClick={() => handleUpdateStatus()}
                 disabled={statusUpdating}
-                className="w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
+                className="w-full mt-4 bg-brand-espresso hover:bg-brand-cocoa text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
               >
                 {statusUpdating ? 'Updating...' : 'Update Status'}
               </button>
@@ -521,7 +521,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Customer</h2>
               <div className="flex items-start space-x-3 mb-4">
-                <div className="w-12 h-12 flex items-center justify-center bg-blue-100 text-blue-700 rounded-full font-semibold uppercase">
+                <div className="w-12 h-12 flex items-center justify-center bg-brand-nude/50 text-brand-espresso rounded-full font-semibold uppercase">
                   {customerName.substring(0, 2)}
                 </div>
                 <div>
@@ -556,7 +556,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status</span>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold whitespace-nowrap capitalize">
+                  <span className="px-3 py-1 bg-brand-nude/50 text-brand-espresso rounded-full text-sm font-semibold whitespace-nowrap capitalize">
                     {order.payment_status}
                   </span>
                 </div>
@@ -578,7 +578,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               <button
                 onClick={handleResendNotification}
                 disabled={resendingNotification}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50 flex items-center justify-center"
+                className="w-full bg-brand-espresso hover:bg-brand-espresso text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50 flex items-center justify-center"
               >
                 {resendingNotification ? (
                   <>
@@ -605,7 +605,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                 placeholder="Add internal notes about this order..."
                 rows={4}
                 maxLength={500}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso resize-none"
               />
               <button
                 onClick={() => handleUpdateStatus()}

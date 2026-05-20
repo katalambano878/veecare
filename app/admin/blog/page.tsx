@@ -95,9 +95,9 @@ export default function AdminBlogPage() {
   ];
 
   const statusColors: any = {
-    'Published': 'bg-blue-100 text-blue-700',
+    'Published': 'bg-brand-nude/50 text-brand-espresso',
     'Draft': 'bg-gray-100 text-gray-700',
-    'Scheduled': 'bg-blue-100 text-blue-700'
+    'Scheduled': 'bg-brand-nude/50 text-brand-espresso'
   };
 
   const handleSelectAll = () => {
@@ -123,7 +123,7 @@ export default function AdminBlogPage() {
           <h1 className="text-3xl font-bold text-gray-900">Blog Posts</h1>
           <p className="text-gray-600 mt-1">Create and manage your blog content</p>
         </div>
-        <Link href="/admin/blog/new" className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap">
+        <Link href="/admin/blog/new" className="bg-brand-espresso hover:bg-brand-cocoa text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap">
           <i className="ri-add-line mr-2"></i>
           New Post
         </Link>
@@ -136,7 +136,7 @@ export default function AdminBlogPage() {
         </div>
         <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">Published</p>
-          <p className="text-2xl font-bold text-blue-700">{posts.filter(p => p.status === 'Published').length}</p>
+          <p className="text-2xl font-bold text-brand-espresso">{posts.filter(p => p.status === 'Published').length}</p>
         </div>
         <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">Total Views</p>
@@ -144,7 +144,7 @@ export default function AdminBlogPage() {
         </div>
         <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">Comments</p>
-          <p className="text-2xl font-bold text-blue-700">{posts.reduce((sum, p) => sum + p.comments, 0)}</p>
+          <p className="text-2xl font-bold text-brand-espresso">{posts.reduce((sum, p) => sum + p.comments, 0)}</p>
         </div>
       </div>
 
@@ -152,20 +152,20 @@ export default function AdminBlogPage() {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <select className="px-4 py-2 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium cursor-pointer">
+              <select className="px-4 py-2 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso font-medium cursor-pointer">
                 <option>All Status</option>
                 <option>Published</option>
                 <option>Draft</option>
                 <option>Scheduled</option>
               </select>
-              <select className="px-4 py-2 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium cursor-pointer">
+              <select className="px-4 py-2 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso font-medium cursor-pointer">
                 <option>All Categories</option>
                 <option>Interior Design</option>
                 <option>Home Styling</option>
                 <option>Sustainability</option>
                 <option>Gift Ideas</option>
               </select>
-              <select className="px-4 py-2 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium cursor-pointer">
+              <select className="px-4 py-2 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso font-medium cursor-pointer">
                 <option>Sort by Date</option>
                 <option>Sort by Views</option>
                 <option>Sort by Comments</option>
@@ -175,7 +175,7 @@ export default function AdminBlogPage() {
               <button
                 onClick={() => setViewMode('grid')}
                 className={`w-10 h-10 flex items-center justify-center transition-colors ${
-                  viewMode === 'grid' ? 'bg-blue-700 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+                  viewMode === 'grid' ? 'bg-brand-espresso text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 <i className="ri-grid-line text-xl"></i>
@@ -183,7 +183,7 @@ export default function AdminBlogPage() {
               <button
                 onClick={() => setViewMode('list')}
                 className={`w-10 h-10 flex items-center justify-center border-l-2 border-gray-300 transition-colors ${
-                  viewMode === 'list' ? 'bg-blue-700 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+                  viewMode === 'list' ? 'bg-brand-espresso text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 <i className="ri-list-check text-xl"></i>
@@ -193,12 +193,12 @@ export default function AdminBlogPage() {
         </div>
 
         {selectedPosts.length > 0 && (
-          <div className="p-4 bg-blue-50 border-b border-blue-200 flex items-center justify-between">
-            <p className="text-blue-800 font-semibold">
+          <div className="p-4 bg-brand-nude/30 border-b border-brand-nude/70 flex items-center justify-between">
+            <p className="text-brand-cocoa font-semibold">
               {selectedPosts.length} post{selectedPosts.length > 1 ? 's' : ''} selected
             </p>
             <div className="flex items-center space-x-2">
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+              <button className="px-4 py-2 bg-brand-espresso hover:bg-brand-cocoa text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
                 Publish
               </button>
               <button className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
@@ -220,7 +220,7 @@ export default function AdminBlogPage() {
                     type="checkbox"
                     checked={selectedPosts.includes(post.id)}
                     onChange={() => handleSelectPost(post.id)}
-                    className="absolute top-3 left-3 w-5 h-5 text-blue-700 border-gray-300 rounded focus:ring-blue-500 cursor-pointer z-10"
+                    className="absolute top-3 left-3 w-5 h-5 text-brand-espresso border-gray-300 rounded focus:ring-brand-mauve/40 cursor-pointer z-10"
                   />
                   <div className="aspect-video bg-gray-100 overflow-hidden">
                     <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
@@ -233,7 +233,7 @@ export default function AdminBlogPage() {
                 </div>
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-semibold text-blue-700">{post.category}</span>
+                    <span className="text-xs font-semibold text-brand-espresso">{post.category}</span>
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[post.status]}`}>
                       {post.status}
                     </span>
@@ -254,11 +254,11 @@ export default function AdminBlogPage() {
                   <div className="flex items-center space-x-2">
                     <Link
                       href={`/admin/blog/${post.id}`}
-                      className="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg text-sm font-medium text-center transition-colors whitespace-nowrap"
+                      className="flex-1 bg-brand-espresso hover:bg-brand-cocoa text-white py-2 rounded-lg text-sm font-medium text-center transition-colors whitespace-nowrap"
                     >
                       Edit Post
                     </Link>
-                    <button className="w-9 h-9 flex items-center justify-center border-2 border-gray-300 text-gray-700 hover:border-blue-600 hover:text-blue-600 rounded-lg transition-colors">
+                    <button className="w-9 h-9 flex items-center justify-center border-2 border-gray-300 text-gray-700 hover:border-brand-espresso hover:text-brand-espresso rounded-lg transition-colors">
                       <i className="ri-eye-line"></i>
                     </button>
                   </div>
@@ -276,7 +276,7 @@ export default function AdminBlogPage() {
                       type="checkbox"
                       checked={selectedPosts.length === posts.length}
                       onChange={handleSelectAll}
-                      className="w-4 h-4 text-blue-700 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                      className="w-4 h-4 text-brand-espresso border-gray-300 rounded focus:ring-brand-mauve/40 cursor-pointer"
                     />
                   </th>
                   <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">Post</th>
@@ -296,7 +296,7 @@ export default function AdminBlogPage() {
                         type="checkbox"
                         checked={selectedPosts.includes(post.id)}
                         onChange={() => handleSelectPost(post.id)}
-                        className="w-4 h-4 text-blue-700 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                        className="w-4 h-4 text-brand-espresso border-gray-300 rounded focus:ring-brand-mauve/40 cursor-pointer"
                       />
                     </td>
                     <td className="py-4 px-4">
@@ -305,7 +305,7 @@ export default function AdminBlogPage() {
                           <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
                         </div>
                         <div>
-                          <Link href={`/admin/blog/${post.id}`} className="font-semibold text-gray-900 hover:text-blue-700">
+                          <Link href={`/admin/blog/${post.id}`} className="font-semibold text-gray-900 hover:text-brand-mauve">
                             {post.title}
                           </Link>
                           <p className="text-sm text-gray-500 mt-1">{post.publishDate}</p>
@@ -325,11 +325,11 @@ export default function AdminBlogPage() {
                       <div className="flex items-center space-x-2">
                         <Link
                           href={`/admin/blog/${post.id}`}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-mauve hover:bg-brand-nude/30 rounded-lg transition-colors"
                         >
                           <i className="ri-edit-line text-lg"></i>
                         </Link>
-                        <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
+                        <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-mauve hover:bg-brand-nude/30 rounded-lg transition-colors">
                           <i className="ri-eye-line text-lg"></i>
                         </button>
                         <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
@@ -350,7 +350,7 @@ export default function AdminBlogPage() {
             <button className="w-10 h-10 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
               <i className="ri-arrow-left-s-line text-xl text-gray-600"></i>
             </button>
-            <button className="w-10 h-10 flex items-center justify-center bg-blue-700 text-white rounded-lg font-semibold">1</button>
+            <button className="w-10 h-10 flex items-center justify-center bg-brand-espresso text-white rounded-lg font-semibold">1</button>
             <button className="w-10 h-10 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
               <i className="ri-arrow-right-s-line text-xl text-gray-600"></i>
             </button>

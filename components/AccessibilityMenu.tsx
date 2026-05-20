@@ -86,7 +86,7 @@ export default function AccessibilityMenu() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed left-0 top-1/2 -translate-y-1/2 bg-blue-700 hover:bg-blue-800 text-white p-3 rounded-r-lg shadow-lg z-[9997] transition-all"
+        className="fixed left-0 top-1/2 -translate-y-1/2 bg-brand-espresso hover:bg-brand-cocoa text-white p-3 rounded-r-lg shadow-lg z-[9997] transition-all"
         aria-label="Accessibility Menu"
       >
         <i className="ri-accessibility-line text-2xl"></i>
@@ -99,8 +99,8 @@ export default function AccessibilityMenu() {
           <div className="fixed left-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-[9999] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-lg">
-                  <i className="ri-accessibility-line text-xl text-blue-700"></i>
+                <div className="w-10 h-10 flex items-center justify-center bg-brand-nude/50 rounded-lg">
+                  <i className="ri-accessibility-line text-xl text-brand-espresso"></i>
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">Accessibility</h2>
               </div>
@@ -122,7 +122,7 @@ export default function AccessibilityMenu() {
                       onClick={() => setSettings({ ...settings, fontSize: size })}
                       className={`py-2 px-4 rounded-lg border-2 font-medium transition-colors whitespace-nowrap ${
                         settings.fontSize === size
-                          ? 'border-blue-700 bg-blue-50 text-blue-700'
+                          ? 'border-brand-espresso bg-brand-nude/30 text-brand-espresso'
                           : 'border-gray-300 text-gray-700 hover:border-gray-400'
                       }`}
                     >
@@ -141,7 +141,7 @@ export default function AccessibilityMenu() {
                       onClick={() => setSettings({ ...settings, contrast })}
                       className={`py-2 px-4 rounded-lg border-2 font-medium transition-colors whitespace-nowrap ${
                         settings.contrast === contrast
-                          ? 'border-blue-700 bg-blue-50 text-blue-700'
+                          ? 'border-brand-espresso bg-brand-nude/30 text-brand-espresso'
                           : 'border-gray-300 text-gray-700 hover:border-gray-400'
                       }`}
                     >
@@ -160,7 +160,7 @@ export default function AccessibilityMenu() {
                       onClick={() => setSettings({ ...settings, lineHeight: height })}
                       className={`py-2 px-4 rounded-lg border-2 font-medium transition-colors whitespace-nowrap capitalize ${
                         settings.lineHeight === height
-                          ? 'border-blue-700 bg-blue-50 text-blue-700'
+                          ? 'border-brand-espresso bg-brand-nude/30 text-brand-espresso'
                           : 'border-gray-300 text-gray-700 hover:border-gray-400'
                       }`}
                     >
@@ -179,7 +179,7 @@ export default function AccessibilityMenu() {
                       onClick={() => setSettings({ ...settings, letterSpacing: spacing })}
                       className={`py-2 px-4 rounded-lg border-2 font-medium transition-colors whitespace-nowrap capitalize ${
                         settings.letterSpacing === spacing
-                          ? 'border-blue-700 bg-blue-50 text-blue-700'
+                          ? 'border-brand-espresso bg-brand-nude/30 text-brand-espresso'
                           : 'border-gray-300 text-gray-700 hover:border-gray-400'
                       }`}
                     >
@@ -198,7 +198,7 @@ export default function AccessibilityMenu() {
                       onClick={() => setSettings({ ...settings, cursorSize: size })}
                       className={`py-2 px-4 rounded-lg border-2 font-medium transition-colors whitespace-nowrap capitalize ${
                         settings.cursorSize === size
-                          ? 'border-blue-700 bg-blue-50 text-blue-700'
+                          ? 'border-brand-espresso bg-brand-nude/30 text-brand-espresso'
                           : 'border-gray-300 text-gray-700 hover:border-gray-400'
                       }`}
                     >
@@ -214,7 +214,7 @@ export default function AccessibilityMenu() {
                   <button
                     onClick={() => setSettings({ ...settings, readableFont: !settings.readableFont })}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      settings.readableFont ? 'bg-blue-700' : 'bg-gray-300'
+                      settings.readableFont ? 'bg-brand-espresso' : 'bg-gray-300'
                     }`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${
@@ -228,7 +228,7 @@ export default function AccessibilityMenu() {
                   <button
                     onClick={() => setSettings({ ...settings, hideImages: !settings.hideImages })}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      settings.hideImages ? 'bg-blue-700' : 'bg-gray-300'
+                      settings.hideImages ? 'bg-brand-espresso' : 'bg-gray-300'
                     }`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${
@@ -242,7 +242,7 @@ export default function AccessibilityMenu() {
                   <button
                     onClick={() => setSettings({ ...settings, highlightLinks: !settings.highlightLinks })}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      settings.highlightLinks ? 'bg-blue-700' : 'bg-gray-300'
+                      settings.highlightLinks ? 'bg-brand-espresso' : 'bg-gray-300'
                     }`}
                   >
                     <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${

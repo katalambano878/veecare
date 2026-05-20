@@ -23,9 +23,13 @@ module.exports = {
           accent: '#D4B06A',
         },
       },
+      letterSpacing: {
+        'widest-lg': '0.2em',
+        'widest-xl': '0.3em',
+      },
       boxShadow: {
-        luxury: '0 4px 24px -4px rgba(107, 62, 46, 0.1)',
-        'luxury-lg': '0 12px 40px -8px rgba(107, 62, 46, 0.14)',
+        luxury: '0 10px 40px -10px rgba(107, 62, 46, 0.08)',
+        'luxury-lg': '0 20px 60px -15px rgba(107, 62, 46, 0.12)',
         soft: '0 8px 30px -12px rgba(197, 138, 148, 0.25)',
       },
       transitionDuration: {

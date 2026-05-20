@@ -191,7 +191,7 @@ export default function ContactPage() {
 
         <div className="grid lg:grid-cols-2 gap-12">
           <div className="bg-white border border-brand-nude/60 rounded-3xl p-6 sm:p-8 shadow-soft">
-            <h2 className="text-2xl sm:text-3xl font-display text-brand-espresso mb-3">Send Us a Message</h2>
+            <h2 className="text-3xl sm:text-4xl font-display text-brand-espresso mb-3 tracking-tight">Send Us a Message</h2>
             <p className="text-brand-cocoa/75 mb-8 font-light leading-relaxed">
               Share your name, phone number, and what you need — we will reply by call or WhatsApp.
             </p>
@@ -288,7 +288,7 @@ export default function ContactPage() {
           </div>
 
           <div>
-            <h2 className="text-2xl sm:text-3xl font-display text-brand-espresso mb-3">Quick Answers</h2>
+            <h2 className="text-3xl sm:text-4xl font-display text-brand-espresso mb-3 tracking-tight">Quick Answers</h2>
             <p className="text-brand-cocoa/75 mb-8 font-light">
               Common questions about orders, delivery, and payments
             </p>

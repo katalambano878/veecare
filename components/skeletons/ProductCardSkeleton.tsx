@@ -2,16 +2,16 @@ export default function ProductCardSkeleton() {
   return (
     <div className="flex flex-col h-full animate-pulse">
       {/* Image Skeleton */}
-      <div className="relative aspect-[3/4] bg-gray-200 rounded-xl mb-4 overflow-hidden">
+      <div className="relative aspect-[3/4] bg-gray-200 rounded-xl sm:rounded-2xl mb-2 sm:mb-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-shimmer" style={{ backgroundSize: '200% 100%' }}></div>
       </div>
 
       {/* Content Skeleton */}
-      <div className="flex flex-col flex-grow space-y-3">
+      <div className="flex flex-col flex-grow space-y-2 sm:space-y-3">
         {/* Title */}
-        <div className="space-y-1.5">
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        <div className="space-y-1 sm:space-y-1.5">
+          <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-3 sm:h-4 bg-gray-200 rounded w-1/2"></div>
         </div>
 
         {/* Color Swatches */}
@@ -28,8 +28,8 @@ export default function ProductCardSkeleton() {
         </div>
 
         {/* Button (Mobile) */}
-        <div className="mt-auto pt-2 lg:hidden">
-          <div className="h-10 bg-gray-100 rounded-lg w-full"></div>
+        <div className="mt-auto pt-1 sm:pt-2 lg:hidden">
+          <div className="h-8 sm:h-10 bg-gray-100 rounded-lg w-full"></div>
         </div>
       </div>
     </div>

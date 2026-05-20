@@ -43,8 +43,6 @@ export default function HorizontalScroll({
   const reducedMotion = useRef(false);
 
   const childArray = Children.toArray(children);
-  const displayChildren =
-    childArray.length > 0 ? [...childArray, ...childArray] : childArray;
 
   const isPointerActive = () => activePointers.current.size > 0;
 
@@ -176,7 +174,7 @@ export default function HorizontalScroll({
       el.removeEventListener('scroll', onScroll);
       pointers.clear();
     };
-  }, [pauseManual, resumeAutoScroll, syncScrollState, displayChildren.length]);
+  }, [pauseManual, resumeAutoScroll, syncScrollState, childArray.length]);
 
   useEffect(() => {
     const el = scrollerRef.current;
@@ -248,7 +246,7 @@ export default function HorizontalScroll({
       document.removeEventListener('visibilitychange', onVisibility);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [autoScrollSpeed, measure, displayChildren.length, isManualControl]);
+  }, [autoScrollSpeed, measure, childArray.length, isManualControl]);
 
   const onMouseEnter = () => {
     if (!canHover.current) return;
@@ -317,7 +315,7 @@ export default function HorizontalScroll({
         className,
       ].join(' ')}
     >
-      {displayChildren.map((child, index) =>
+      {childArray.map((child, index) =>
         React.isValidElement(child)
           ? React.cloneElement(child as React.ReactElement, { key: `hscroll-${index}` })
           : <React.Fragment key={`hscroll-${index}`}>{child}</React.Fragment>

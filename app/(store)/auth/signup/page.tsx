@@ -146,17 +146,17 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6">
+      <main className="min-h-screen bg-brand-cream flex items-center justify-center py-12 px-4 sm:px-6">
         <div className="max-w-md w-full text-center">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i className="ri-mail-send-line text-4xl text-blue-600"></i>
+          <div className="w-20 h-20 bg-brand-nude/50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i className="ri-mail-send-line text-4xl text-brand-espresso"></i>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Check Your Email</h1>
           <p className="text-gray-600 mb-8">
             We've sent a confirmation link to <strong>{formData.email}</strong>.<br />
             Please check your inbox to activate your account.
           </p>
-          <Link href="/auth/login" className="inline-block bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+          <Link href="/auth/login" className="inline-block bg-brand-espresso text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-cocoa transition-colors">
             Back to Login
           </Link>
         </div>
@@ -165,7 +165,7 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6">
+    <main className="min-h-screen bg-brand-cream flex items-center justify-center py-12 px-4 sm:px-6">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Create Account</h1>
@@ -190,7 +190,7 @@ export default function SignupPage() {
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.firstName ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso ${errors.firstName ? 'border-red-500' : 'border-gray-300'
                     }`}
                   placeholder="John"
                 />
@@ -206,7 +206,7 @@ export default function SignupPage() {
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.lastName ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso ${errors.lastName ? 'border-red-500' : 'border-gray-300'
                     }`}
                   placeholder="Doe"
                 />
@@ -224,7 +224,7 @@ export default function SignupPage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.email ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso ${errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="you@example.com"
               />
@@ -241,7 +241,7 @@ export default function SignupPage() {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.phone ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso ${errors.phone ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="+233 XX XXX XXXX"
               />
@@ -259,7 +259,7 @@ export default function SignupPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.password ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso ${errors.password ? 'border-red-500' : 'border-gray-300'
                     }`}
                   placeholder="At least 8 characters"
                 />
@@ -286,7 +286,7 @@ export default function SignupPage() {
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
                     }`}
                   placeholder="Re-enter password"
                 />
@@ -309,15 +309,15 @@ export default function SignupPage() {
                   type="checkbox"
                   checked={formData.acceptTerms}
                   onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
-                  className="w-4 h-4 mt-1 text-blue-600 rounded focus:ring-blue-500"
+                  className="w-4 h-4 mt-1 text-brand-espresso rounded focus:ring-brand-mauve/40"
                 />
                 <span className="text-sm text-gray-700">
                   I agree to the{' '}
-                  <Link href="/terms" className="text-blue-700 hover:text-blue-900 font-medium whitespace-nowrap">
+                  <Link href="/terms" className="text-brand-espresso hover:text-brand-espresso font-medium whitespace-nowrap">
                     Terms & Conditions
                   </Link>
                   {' '}and{' '}
-                  <Link href="/privacy" className="text-blue-700 hover:text-blue-900 font-medium whitespace-nowrap">
+                  <Link href="/privacy" className="text-brand-espresso hover:text-brand-espresso font-medium whitespace-nowrap">
                     Privacy Policy
                   </Link>
                 </span>
@@ -330,7 +330,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading || verifying}
-              className="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap cursor-pointer"
+              className="w-full bg-brand-espresso hover:bg-brand-cocoa text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap cursor-pointer"
             >
               {isLoading || verifying ? (
                 <span className="flex items-center justify-center">
@@ -362,7 +362,7 @@ export default function SignupPage() {
                 disabled
                 className="flex items-center justify-center space-x-2 border-2 border-gray-200 bg-gray-50 py-3 rounded-lg cursor-not-allowed opacity-60"
               >
-                <i className="ri-facebook-fill text-xl text-blue-600 grayscale opacity-50"></i>
+                <i className="ri-facebook-fill text-xl text-brand-espresso grayscale opacity-50"></i>
                 <span className="font-medium text-gray-400">Facebook</span>
               </button>
             </div>
@@ -370,7 +370,7 @@ export default function SignupPage() {
 
           <p className="mt-8 text-center text-gray-600">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-blue-700 hover:text-blue-900 font-semibold whitespace-nowrap">
+            <Link href="/auth/login" className="text-brand-espresso hover:text-brand-espresso font-semibold whitespace-nowrap">
               Sign in
             </Link>
           </p>
