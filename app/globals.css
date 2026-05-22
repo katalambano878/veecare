@@ -5,15 +5,22 @@
 
 @layer base {
   body {
-    @apply text-brand-cocoa bg-brand-cream antialiased selection:bg-brand-mauve/30 selection:text-brand-espresso;
+    @apply font-sans text-brand-cocoa bg-brand-cream antialiased selection:bg-brand-mauve/30 selection:text-brand-espresso;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight text-brand-espresso;
+    @apply font-display font-semibold tracking-tight text-brand-espresso;
   }
 
   p {
-    @apply leading-relaxed tracking-wide;
+    @apply font-sans leading-relaxed tracking-normal;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    @apply font-sans;
   }
 }
 
@@ -714,60 +721,75 @@ img {
 
 /* ========================================
    UPSCALE VINTAGE — LIFESTYLE / SOCIAL-COMMERCE THEME
+   Display: Cormorant Garamond (500–600) · UI: Manrope (400–600)
    ======================================== */
 
 body {
-  background-color: #FAF6F2;
-  color: #2E1F1B;
+  background-color: #FAF7F2;
+  color: #4A403B;
+}
+
+.brand-eyebrow {
+  @apply font-sans text-xs sm:text-sm font-medium tracking-normal text-brand-mauve;
+}
+
+.brand-body {
+  @apply font-sans text-base sm:text-lg text-brand-cocoa/90 leading-relaxed font-normal;
+}
+
+.brand-body-lg {
+  @apply font-sans text-lg sm:text-xl text-brand-cocoa/90 leading-relaxed font-normal;
 }
 
 ::selection {
-  background-color: #E8D7CC;
-  color: #6B3E2E;
+  background-color: #EDE3D7;
+  color: #8A6A58;
 }
 
 .btn-luxury-primary,
 .btn-brand-primary {
-  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-semibold tracking-widest-lg transition-all duration-500 uppercase text-xs;
-  background: #2E1F1B;
-  color: #FAF6F2;
-  box-shadow: 0 4px 20px rgba(46, 31, 27, 0.15);
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-semibold tracking-normal transition-all duration-300;
+  background: #4A403B;
+  color: #FAF7F2;
+  box-shadow: 0 4px 20px rgba(74, 64, 59, 0.15);
 }
 
 .btn-luxury-primary:hover,
 .btn-brand-primary:hover {
-  background: #6B3E2E;
-  box-shadow: 0 8px 30px rgba(107, 62, 46, 0.25);
+  background: #8A6A58;
+  box-shadow: 0 8px 30px rgba(138, 106, 88, 0.25);
   transform: translateY(-2px);
 }
 
-.btn-luxury-outline {
-  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-semibold tracking-widest-lg border transition-all duration-500 uppercase text-xs;
-  border-color: rgba(46, 31, 27, 0.15);
-  color: #2E1F1B;
+.btn-luxury-outline,
+.btn-brand-outline {
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-semibold tracking-normal border transition-all duration-300;
+  border-color: rgba(74, 64, 59, 0.15);
+  color: #4A403B;
   background: transparent;
 }
 
-.btn-luxury-outline:hover {
-  background: #2E1F1B;
-  border-color: #2E1F1B;
-  color: #FAF6F2;
-  box-shadow: 0 8px 30px rgba(46, 31, 27, 0.15);
+.btn-luxury-outline:hover,
+.btn-brand-outline:hover {
+  background: #4A403B;
+  border-color: #4A403B;
+  color: #FAF7F2;
+  box-shadow: 0 8px 30px rgba(74, 64, 59, 0.15);
   transform: translateY(-2px);
 }
 
 .btn-brand-soft {
-  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-medium tracking-wide border transition-all duration-300;
-  border-color: rgba(232, 215, 204, 0.6);
-  color: #6B3E2E;
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-medium tracking-normal border transition-all duration-300;
+  border-color: rgba(237, 227, 215, 0.6);
+  color: #8A6A58;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
 .btn-brand-soft:hover {
-  background: rgba(232, 215, 204, 0.9);
-  border-color: rgba(197, 138, 148, 0.5);
+  background: rgba(237, 227, 215, 0.9);
+  border-color: rgba(166, 160, 137, 0.5);
   transform: translateY(-1px);
 }
 
@@ -777,11 +799,11 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px 0 rgba(107, 62, 46, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(138, 106, 88, 0.05);
 }
 
 .glass-dark {
-  background: rgba(46, 31, 27, 0.75);
+  background: rgba(74, 64, 59, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -789,46 +811,46 @@ body {
 }
 
 .glass-panel {
-  background: rgba(250, 246, 242, 0.85);
+  background: rgba(250, 247, 242, 0.85);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 40px -12px rgba(107, 62, 46, 0.1);
+  box-shadow: 0 12px 40px -12px rgba(138, 106, 88, 0.1);
 }
 
 .text-luxury-accent {
-  color: #D4B06A;
+  color: #C8A46A;
 }
 
 .text-luxury-mauve {
-  color: #C58A94;
+  color: #A6A089;
 }
 
 .bg-luxury-gradient-hero {
-  background: linear-gradient(145deg, #faf6f2 0%, #e8d7cc 35%, rgba(197, 138, 148, 0.28) 70%, rgba(212, 176, 106, 0.22) 100%);
+  background: linear-gradient(145deg, #faf7f2 0%, #ede3d7 35%, rgba(166, 160, 137, 0.28) 70%, rgba(200, 164, 106, 0.22) 100%);
 }
 
 .bg-hero-slide-1 {
-  background: linear-gradient(135deg, #faf6f2 0%, #e8d7cc 40%, rgba(197, 138, 148, 0.35) 100%);
+  background: linear-gradient(135deg, #faf7f2 0%, #ede3d7 40%, rgba(166, 160, 137, 0.35) 100%);
 }
 
 .bg-hero-slide-2 {
-  background: linear-gradient(120deg, #e8d7cc 0%, #faf6f2 50%, rgba(212, 176, 106, 0.3) 100%);
+  background: linear-gradient(120deg, #ede3d7 0%, #faf7f2 50%, rgba(200, 164, 106, 0.3) 100%);
 }
 
 .bg-hero-slide-3 {
-  background: linear-gradient(160deg, #faf6f2 0%, rgba(197, 138, 148, 0.25) 45%, rgba(107, 62, 46, 0.12) 100%);
+  background: linear-gradient(160deg, #faf7f2 0%, rgba(166, 160, 137, 0.25) 45%, rgba(138, 106, 88, 0.12) 100%);
 }
 
 .card-luxury,
 .card-brand {
   @apply rounded-2xl overflow-hidden transition-all duration-500;
-  box-shadow: 0 4px 24px -4px rgba(107, 62, 46, 0.08);
+  box-shadow: 0 4px 24px -4px rgba(138, 106, 88, 0.08);
 }
 
 .card-luxury:hover,
 .card-brand:hover {
-  box-shadow: 0 12px 40px -8px rgba(197, 138, 148, 0.2);
+  box-shadow: 0 12px 40px -8px rgba(166, 160, 137, 0.2);
   transform: translateY(-2px);
 }
 

@@ -44,5 +44,5 @@ NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=your-google-code
 
 ## Hero & about images
 
-| `/public/hero/hero-1.png`, `hero-2.png` | Homepage hero carousel |
+| `/public/hero/lifestyle-hero-1.png` … `lifestyle-hero-3.png` | Homepage hero carousel |
 | `/public/about-mockup-1.png` … `3.png` | Who We Are slider |

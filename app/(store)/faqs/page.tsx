@@ -30,7 +30,7 @@ export default function FAQsPage() {
     {
       category: 'orders',
       question: 'How do I track my order?',
-      answer: 'After your order ships, you\'ll receive a tracking number via email and SMS. Visit our Order Tracking page and enter your order number and email address to see real-time updates on your delivery status.'
+      answer: 'After your order ships, you\'ll receive a tracking number via email and SMS. Visit our Order Tracking page and enter your order number and email address to see live updates on your delivery status.'
     },
     {
       category: 'orders',
@@ -40,7 +40,7 @@ export default function FAQsPage() {
     {
       category: 'shipping',
       question: 'What are your delivery times?',
-      answer: 'Standard delivery takes 2-5 business days within Ghana. Express delivery (next-day) is available for Accra and Kumasi. Orders placed before 2pm are dispatched same day. Remote areas may take 5-7 business days.'
+      answer: 'Standard delivery takes 2 to 5 business days within Ghana. Express delivery (next day) is available for Accra and Kumasi. Orders placed before 2pm are dispatched same day. Remote areas may take 5 to 7 business days.'
     },
     {
       category: 'shipping',
@@ -59,8 +59,8 @@ export default function FAQsPage() {
     },
     {
       category: 'returns',
-      question: 'What is your return policy?',
-      answer: 'We offer a 14-day return policy for unused items in original packaging. Simply initiate a return from your account, print the return label, and ship it back. Refunds are processed within 5-7 business days after we receive the item.'
+      question: 'What is your refund policy?',
+      answer: 'Refunds apply when a defective item was delivered, there was a mix up in your order, you paid for a sold out item, or a package was misplaced in store. Items for exchange must be unworn, undamaged, in original packaging with tags, and requested within 24 hours of purchase. See our full policy on the Returns page.'
     },
     {
       category: 'returns',
@@ -70,12 +70,12 @@ export default function FAQsPage() {
     {
       category: 'returns',
       question: 'Who pays for return shipping?',
-      answer: 'If you\'re returning due to a defect or our error, we cover return shipping. For change-of-mind returns, customers pay return shipping costs (GHS 15 standard rate). Free shipping on returns for defective items.'
+      answer: 'If you\'re returning due to a defect or our error, we cover return shipping. For change of mind returns, customers pay return shipping costs (GHS 15 standard rate). Free shipping on returns for defective items.'
     },
     {
       category: 'returns',
       question: 'Can I exchange an item instead of returning it?',
-      answer: 'Yes! If you need a different size or colour, select "Exchange" when initiating your return. We\'ll send the replacement as soon as we receive your original item. Exchange shipping is FREE.'
+      answer: 'Yes, if your item is unworn, undamaged, blemish free, in original packaging with tags attached, and you request the exchange within 24 hours of purchase. After 24 hours, exchange eligibility is no longer valid. Start a request on our Returns page or contact us on WhatsApp.'
     },
     {
       category: 'payment',
@@ -85,7 +85,7 @@ export default function FAQsPage() {
     {
       category: 'payment',
       question: 'Is it safe to use my credit card on your site?',
-      answer: 'Absolutely. We use industry-standard SSL encryption and partner with Moolre for secure payment processing. We never store your full card details on our servers. All transactions are PCI-DSS compliant.'
+      answer: 'Absolutely. We use industry standard SSL encryption and partner with Moolre for secure payment processing. We never store your full card details on our servers. All transactions are PCI DSS compliant.'
     },
     {
       category: 'payment',
@@ -95,12 +95,12 @@ export default function FAQsPage() {
     {
       category: 'payment',
       question: 'When will my payment be charged?',
-      answer: 'For card and mobile money payments, you\'re charged immediately. We do not accept payment on delivery — payment must be completed before dispatch. If an item is out of stock, we\'ll refund you within 24 hours.'
+      answer: 'For card and mobile money payments, you\'re charged immediately. We do not accept payment on delivery; payment must be completed before dispatch. If an item is out of stock, we\'ll refund you within 24 hours.'
     },
     {
       category: 'payment',
       question: 'How do refunds work?',
-      answer: 'Refunds are processed to your original payment method within 5-7 business days after we receive and inspect your return. For mobile money refunds, ensure you provide correct details. You\'ll receive confirmation via email.'
+      answer: 'Refunds are only approved for the reasons listed in our refund policy (defective delivery, order mix up, sold out after payment, or misplaced package in store). Once approved and items meet our conditions, refunds go to your original payment method. Contact us with your order number for status updates.'
     },
     {
       category: 'account',

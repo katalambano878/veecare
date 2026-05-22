@@ -102,7 +102,7 @@ export default function ContactPage() {
 
   const heroSubtitle =
     pageContent?.subtitle ||
-    'Questions about an order, a reservation, or our latest imports? We are here to help.';
+    'Orders, imports, appliances, or style questions? Reach us by phone, WhatsApp, or in person.';
 
   const waLink = WHATSAPP_LINK;
   const rawPhone = (getSetting('contact_phone') || CONTACT_PHONE).replace(/\s/g, '');
@@ -115,7 +115,7 @@ export default function ContactPage() {
       title: 'Call Us',
       value: contactPhone,
       link: telLink,
-      description: 'Mon–Sat, 9am–6pm',
+      description: 'Mon to Sat, 9am to 6pm',
     },
     {
       icon: 'ri-whatsapp-line',
@@ -129,7 +129,7 @@ export default function ContactPage() {
       title: 'Instagram',
       value: INSTAGRAM_HANDLE,
       link: instagramUrl,
-      description: 'DM us for style picks & orders',
+      description: 'DM us for drops, imports & orders',
     },
     {
       icon: 'ri-map-pin-line',
@@ -149,7 +149,7 @@ export default function ContactPage() {
     {
       question: 'What are your delivery times?',
       answer:
-        'Standard delivery within Ghana usually takes 2–5 business days. Accra and nearby areas may qualify for faster options — we will confirm when you order.',
+        'Standard delivery within Ghana usually takes 2 to 5 business days. Accra and nearby areas may qualify for faster options; we will confirm when you order.',
     },
     {
       question: 'What payment methods do you accept?',
@@ -193,7 +193,7 @@ export default function ContactPage() {
           <div className="bg-white border border-brand-nude/60 rounded-3xl p-6 sm:p-8 shadow-soft">
             <h2 className="text-3xl sm:text-4xl font-display text-brand-espresso mb-3 tracking-tight">Send Us a Message</h2>
             <p className="text-brand-cocoa/75 mb-8 font-light leading-relaxed">
-              Share your name, phone number, and what you need — we will reply by call or WhatsApp.
+              Share your name, phone number, and what you need. We will reply by call or WhatsApp.
             </p>
 
             <form id="contactForm" onSubmit={handleSubmit} className="space-y-6">
@@ -289,7 +289,7 @@ export default function ContactPage() {
 
           <div>
             <h2 className="text-3xl sm:text-4xl font-display text-brand-espresso mb-3 tracking-tight">Quick Answers</h2>
-            <p className="text-brand-cocoa/75 mb-8 font-light">
+            <p className="brand-body mb-8">
               Common questions about orders, delivery, and payments
             </p>
 
@@ -316,8 +316,8 @@ export default function ContactPage() {
                 <i className="ri-customer-service-2-line text-2xl" />
               </div>
               <h3 className="text-2xl font-display mb-3">Need a quick reply?</h3>
-              <p className="text-brand-nude/90 mb-6 leading-relaxed font-light text-sm">
-                For orders, reservations, and style questions, WhatsApp is usually fastest. We are available Mon–Sat, 9am–6pm.
+              <p className="text-brand-nude/95 mb-6 leading-relaxed font-medium text-sm sm:text-base">
+                For orders, reservations, and style questions, WhatsApp is usually fastest. We are available Mon to Sat, 9am to 6pm.
               </p>
               <a
                 href={waLink}
@@ -336,13 +336,11 @@ export default function ContactPage() {
       <section className="bg-white border-t border-brand-nude/50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
-            <span className="block text-[10px] font-medium tracking-[0.35em] text-brand-mauve mb-3 uppercase">
-              In person
-            </span>
+            <span className="brand-eyebrow mb-3 block">In person</span>
             <h2 className="text-2xl sm:text-3xl font-display text-brand-espresso mb-4">Visit Our Space</h2>
-            <p className="text-brand-cocoa/75 mb-8 leading-relaxed font-light">
-              Prefer to see pieces in person or pick up an order? Stop by our location in Accra — we are happy to help
-              with styling, reservations, and curated finds.
+            <p className="brand-body mb-8 max-w-xl mx-auto">
+              Prefer to see pieces in person or pick up an order? Stop by our location in Accra. We are happy to help
+              with orders, reservations, imports, and curated finds.
             </p>
             <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-6 text-brand-cocoa/80 text-sm">
               <a
@@ -356,7 +354,7 @@ export default function ContactPage() {
               </a>
               <div className="inline-flex items-center justify-center gap-2">
                 <i className="ri-time-line text-brand-espresso text-lg" />
-                <span>Mon–Sat: 9am–6pm</span>
+                <span>Mon to Sat: 9am to 6pm</span>
               </div>
             </div>
           </div>

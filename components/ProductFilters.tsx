@@ -156,7 +156,7 @@ export default function ProductFilters({ onFilterChange }: ProductFiltersProps) 
                 className="w-full accent-brand-espresso"
               />
               <p className="text-sm text-brand-cocoa/70">
-                GH₵{priceRange[0]} - GH₵{priceRange[1]}
+                GH₵{priceRange[0]} to GH₵{priceRange[1]}
               </p>
             </div>
           </div>

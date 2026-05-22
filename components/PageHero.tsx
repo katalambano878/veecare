@@ -36,14 +36,14 @@ export default function PageHero({ title, subtitle, backgroundImage }: PageHeroP
       )}
 
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24 text-center z-10 flex flex-col items-center">
-        <span className="inline-block py-1 px-4 mb-5 text-brand-mauve text-[10px] tracking-widest-xl uppercase font-semibold border border-brand-mauve/30 rounded-full bg-white/70">
+        <span className="inline-block py-1.5 px-4 mb-5 text-brand-mauve text-xs sm:text-sm font-medium tracking-normal border border-brand-mauve/30 rounded-full bg-white/70">
           Upscale Vintage
         </span>
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-display text-brand-espresso mb-6 leading-[1.1] tracking-tight">
+        <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-semibold text-brand-espresso mb-6 leading-[1.08] tracking-tight">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-base md:text-lg text-brand-cocoa/80 max-w-2xl mx-auto leading-relaxed font-light">
+          <p className="brand-body-lg max-w-2xl mx-auto text-center">
             {subtitle}
           </p>
         )}

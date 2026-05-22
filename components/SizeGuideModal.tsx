@@ -59,6 +59,10 @@ export default function SizeGuideModal({ isOpen, onClose, category = 'General' }
 
   const guide = sizeGuides[category] || sizeGuides['General'];
 
+  /** Show inch ranges as "32 to 34" instead of "32-34" */
+  const formatMeasurement = (value: string) =>
+    typeof value === 'string' ? value.replace(/(\d+)-(\d+)/g, '$1 to $2') : value;
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
@@ -69,7 +73,7 @@ export default function SizeGuideModal({ isOpen, onClose, category = 'General' }
 
         <div className="relative bg-white rounded-lg w-full max-w-4xl">
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900">Size Guide - {category}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Size Guide: {category}</h2>
             <button
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
@@ -116,7 +120,7 @@ export default function SizeGuideModal({ isOpen, onClose, category = 'General' }
                         const key = measurement.toLowerCase();
                         return (
                           <td key={measurement} className="border border-gray-300 px-4 py-3 text-center text-gray-700">
-                            {row[key]}
+                            {formatMeasurement(row[key])}
                           </td>
                         );
                       })}

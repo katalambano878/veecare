@@ -83,7 +83,7 @@ export default function ResultsSummary({ summary, errors, warnings, onImportMore
             <ul className="max-h-40 overflow-y-auto text-sm text-red-700 space-y-1 border border-red-100 rounded-lg p-3 bg-red-50">
               {errors.slice(0, 20).map((e, i) => (
                 <li key={i}>
-                  Row {e.row}: {e.field} — {e.message}
+                  Row {e.row}: {e.field}: {e.message}
                 </li>
               ))}
               {errors.length > 20 && (
@@ -99,7 +99,7 @@ export default function ResultsSummary({ summary, errors, warnings, onImportMore
             <ul className="max-h-32 overflow-y-auto text-sm text-amber-700 space-y-1 border border-amber-100 rounded-lg p-3 bg-amber-50">
               {warnings.slice(0, 10).map((e, i) => (
                 <li key={i}>
-                  Row {e.row}: {e.field} — {e.message}
+                  Row {e.row}: {e.field}: {e.message}
                 </li>
               ))}
               {warnings.length > 10 && (

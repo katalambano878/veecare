@@ -4,7 +4,7 @@ export default function ShippingPage() {
   const deliveryOptions = [
     {
       type: 'Standard Delivery',
-      time: '2-5 Business Days',
+      time: '2 to 5 business days',
       cost: 'GHS 20',
       description: 'Perfect for regular orders with no rush',
       icon: 'ri-truck-line'
@@ -27,27 +27,27 @@ export default function ShippingPage() {
 
   const zones = [
     {
-      zone: 'Zone 1 - Accra Metro',
+      zone: 'Zone 1: Accra Metro',
       areas: 'East Legon, Osu, Labone, Airport, Dzorwulu, Cantonments, Adabraka, Tema',
-      standard: '1-2 days',
+      standard: '1 to 2 days',
       express: 'Next day'
     },
     {
-      zone: 'Zone 2 - Greater Accra',
+      zone: 'Zone 2: Greater Accra',
       areas: 'Madina, Legon, Haatso, Achimota, Dansoman, Spintex, Teshie, Kasoa',
-      standard: '2-3 days',
+      standard: '2 to 3 days',
       express: 'Next day'
     },
     {
-      zone: 'Zone 3 - Major Cities',
+      zone: 'Zone 3: Major Cities',
       areas: 'Kumasi, Takoradi, Cape Coast, Tamale, Sunyani, Ho, Koforidua',
-      standard: '3-4 days',
-      express: '1-2 days'
+      standard: '3 to 4 days',
+      express: '1 to 2 days'
     },
     {
-      zone: 'Zone 4 - Other Areas',
+      zone: 'Zone 4: Other Areas',
       areas: 'All other locations within Ghana',
-      standard: '4-5 days',
+      standard: '4 to 5 days',
       express: 'Not available'
     }
   ];

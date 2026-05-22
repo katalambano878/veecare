@@ -181,10 +181,17 @@ export default function TermsPage() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">6. Returns & Refunds</h2>
             <p className="text-gray-600 leading-relaxed mb-4">
-              We offer a 14-day return policy for most products. See our Returns Policy for complete details on eligibility, process, and conditions.
+              Refunds and exchanges are governed by our official refund policy on the{' '}
+              <a href="/returns#refund-policy" className="text-brand-espresso font-semibold hover:underline">
+                Returns & Refunds
+              </a>{' '}
+              page. Refunds may be approved for defective delivery, order mix ups, payment for sold out items, or misplaced in store packages.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              Exchanges require items to be unworn, undamaged, in original packaging with tags, and requested within 24 hours of purchase.
             </p>
             <p className="text-gray-600 leading-relaxed">
-              Refunds are processed within 5-7 business days of receiving your return. Refunds are issued to the original payment method.
+              Items received outside these criteria cannot be returned or exchanged. Approved refunds are issued to the original payment method.
             </p>
           </section>
 
@@ -212,7 +219,7 @@ export default function TermsPage() {
             <ul className="space-y-2 text-gray-600 mb-6">
               <li className="flex items-start gap-2">
                 <i className="ri-checkbox-circle-line text-brand-espresso mt-1"></i>
-                <span>Does not violate any laws or third-party rights</span>
+                <span>Does not violate any laws or third party rights</span>
               </li>
               <li className="flex items-start gap-2">
                 <i className="ri-checkbox-circle-line text-brand-espresso mt-1"></i>
@@ -267,7 +274,7 @@ export default function TermsPage() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">10. Indemnification</h2>
             <p className="text-gray-600 leading-relaxed">
-              You agree to indemnify and hold harmless YOUR_APP_TITLE, its affiliates, officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from your use of the website, violation of these terms, or infringement of any third-party rights.
+              You agree to indemnify and hold harmless YOUR_APP_TITLE, its affiliates, officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from your use of the website, violation of these terms, or infringement of any third party rights.
             </p>
           </section>
 

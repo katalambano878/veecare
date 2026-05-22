@@ -24,24 +24,22 @@ export default function NewsletterSection() {
   };
 
   return (
-    <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 mb-16 md:mb-20">
+    <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 mt-10 md:mt-4 mb-16 md:mb-20">
       <div className="glass-panel rounded-[2.5rem] overflow-hidden relative">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-24 -right-24 w-72 h-72 bg-brand-mauve/20 rounded-full blur-[70px]" />
           <div className="absolute bottom-0 -left-16 w-56 h-56 bg-brand-champagne/25 rounded-full blur-[50px]" />
         </div>
 
-        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between p-10 md:p-14 gap-10">
+        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between p-8 sm:p-10 md:p-14 gap-8 md:gap-10">
           <div className="text-center lg:text-left max-w-lg">
-            <span className="inline-block text-[10px] uppercase tracking-widest-xl text-brand-mauve mb-4 font-semibold">
-              Community
-            </span>
-            <h3 className="text-4xl md:text-5xl lg:text-6xl font-display text-brand-espresso mb-4 leading-tight tracking-tight">
+            <span className="brand-eyebrow mb-4 inline-block">Community</span>
+            <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-espresso mb-4 leading-tight tracking-tight font-semibold">
               Join Our <span className="italic text-brand-mauve">Community</span>
             </h3>
-            <p className="text-brand-cocoa/75 text-base leading-relaxed font-light">
-              Be the first to know about new arrivals, trending finds, imported lifestyle products, and exclusive
-              updates.
+            <p className="brand-body text-left lg:text-left max-w-lg">
+              Get first access to trending lifestyle drops, import-ready arrivals, home appliances, fashion, and
+              exclusive updates, straight to your inbox.
             </p>
           </div>
 
@@ -73,7 +71,7 @@ export default function NewsletterSection() {
             {submitStatus === 'success' && (
               <p className="mt-3 text-sm text-brand-mauve text-center lg:text-left animate-fade-in">
                 <i className="ri-checkbox-circle-line mr-1" />
-                You&apos;re on the list — welcome!
+                You&apos;re on the list. Welcome!
               </p>
             )}
           </div>

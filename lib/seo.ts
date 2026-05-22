@@ -33,10 +33,10 @@ export const SEO_ASSETS = {
 } as const;
 
 export const DEFAULT_TITLE =
-  'Upscale Vintage | Fashion, Bags & Imported Lifestyle Finds in Ghana';
+  'Upscale Vintage | Trending Lifestyle & Import Plug in Ghana';
 
 export const DEFAULT_DESCRIPTION =
-  'Shop curated fashion, designer bags, accessories, and imported lifestyle picks at Upscale Vintage. Trending arrivals, soft glam essentials, and social-commerce style delivered across Ghana.';
+  'Upscale Vintage: your trending lifestyle destination and import plug in Ghana. Shop fashion, home appliances, bags, accessories, and curated imports online.';
 
 export const DEFAULT_KEYWORDS = [
   BRAND_NAME,
@@ -45,10 +45,11 @@ export const DEFAULT_KEYWORDS = [
   'imported fashion Ghana',
   'designer bags Ghana',
   'lifestyle imports Accra',
-  'women fashion Ghana',
+  'trending lifestyle Ghana',
+  'import plug Ghana',
+  'home appliances online Ghana',
   'trending fashion online',
   'accessories online Ghana',
-  'soft glam fashion',
   'social commerce fashion',
   'buy fashion online Ghana',
   'imported lifestyle products',
@@ -82,24 +83,24 @@ const PAGE_SEO: Record<
     path: '/',
   },
   shop: {
-    title: 'Shop Fashion, Bags & Lifestyle Finds',
+    title: 'Shop Trending Lifestyle & Imports',
     description:
-      'Browse curated fashion, handbags, accessories, beauty picks, and imported lifestyle products. New arrivals and featured pieces updated regularly.',
-    keywords: ['shop fashion Ghana', 'buy bags online', 'lifestyle shop Accra'],
+      'Browse fashion, home appliances, bags, accessories, beauty, and import-ready lifestyle products. New arrivals and featured picks updated regularly.',
+    keywords: ['shop fashion Ghana', 'home appliances Ghana', 'import plug Accra', 'lifestyle shop Accra'],
     path: '/shop',
   },
   categories: {
     title: 'Shop by Category',
     description:
-      'Explore Upscale Vintage categories: fashion picks, bags, accessories, lifestyle finds, imports, and more. Curated collections for everyday glam.',
-    keywords: ['fashion categories', 'shop by category Ghana'],
+      'Explore Upscale Vintage categories: fashion, home appliances, bags, accessories, lifestyle finds, imports, and more. Curated for every shopper.',
+    keywords: ['fashion categories', 'home appliances category', 'shop by category Ghana'],
     path: '/categories',
   },
   about: {
     title: 'About Us | Our Story & Mission',
     description:
-      'Upscale Vintage is a trendy lifestyle import brand in Accra. Discover our story, mission, and passion for curated fashion and social-commerce style.',
-    keywords: ['about Upscale Vintage', 'fashion brand Ghana story'],
+      'Upscale Vintage is your trending lifestyle destination and import plug in Accra: fashion, appliances, and curated arrivals for all.',
+    keywords: ['about Upscale Vintage', 'trending lifestyle brand Ghana', 'import plug Ghana'],
     path: '/about',
   },
   contact: {
@@ -134,8 +135,9 @@ const PAGE_SEO: Record<
     path: '/shipping',
   },
   returns: {
-    title: 'Returns & Refunds',
-    description: 'Return and refund policy for Upscale Vintage purchases.',
+    title: 'Returns & Refunds | Refund Policy',
+    description:
+      'Upscale Vintage refund policy: eligible refunds, 24 hour exchange window, and how to start a return in Ghana.',
     path: '/returns',
   },
   privacy: {
@@ -222,7 +224,7 @@ export function buildPageMetadata(
           url: absoluteImage(ogImage),
           width: 1200,
           height: 630,
-          alt: `${BRAND_NAME} — ${TAGLINE}`,
+          alt: `${BRAND_NAME}: ${TAGLINE}`,
           type: 'image/png',
         },
         {

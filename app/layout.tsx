@@ -15,7 +15,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-  themeColor: '#6B3E2E',
+  themeColor: '#8A6A58',
 };
 
 export const metadata = buildRootMetadata();
@@ -33,12 +33,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="theme-color" content="#6B3E2E" />
+        <meta name="theme-color" content="#8A6A58" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Upscale" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-TileColor" content="#6B3E2E" />
+        <meta name="msapplication-TileColor" content="#8A6A58" />
         <meta name="msapplication-TileImage" content={SEO_ASSETS.icon192} />
         <meta name="msapplication-config" content="/favicon/browserconfig.xml" />
         <meta name="msapplication-tap-highlight" content="no" />
@@ -56,7 +56,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
 
         {structuredData.map((schema) => (
           <script

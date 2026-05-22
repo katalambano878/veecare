@@ -78,19 +78,21 @@ const articles: any = {
       <h3>Step 3: Ship Your Return</h3>
       <p>Drop off your package at any authorized shipping location. You can find locations near you on our returns page.</p>
       
-      <h3>Step 4: Get Your Refund</h3>
-      <p>Once we receive your return, we'll process it within 3-5 business days. Your refund will be issued to your original payment method.</p>
+      <h3>Step 4: Get your refund or exchange</h3>
+      <p>We review your request against our <a href="/returns#refund-policy">refund policy</a>. Approved refunds go to your original payment method.</p>
       
-      <h2>Return Policy Details</h2>
+      <h2>Refund policy summary</h2>
+      <p>Refunds may apply when:</p>
       <ul>
-        <li>You have 30 days from delivery to start a return</li>
-        <li>Items must be unused and in original packaging</li>
-        <li>Return shipping is free for defective items</li>
-        <li>Standard returns have a small shipping fee</li>
+        <li>A defective or damaged item was delivered</li>
+        <li>There was a mix up in your order</li>
+        <li>You paid for an item that was already sold out</li>
+        <li>A package was misplaced in store</li>
       </ul>
+      <p>Exchanges require items to be unworn, undamaged, blemish free, in original packaging with tags, and requested within <strong>24 hours of purchase</strong>.</p>
       
-      <h2>Exchange Instead?</h2>
-      <p>Looking for a different size or color? You can choose to exchange your item instead of returning it for a refund.</p>
+      <h2>Exchange instead?</h2>
+      <p>Choose exchange in the returns portal only if you meet the conditions above. After 24 hours, exchange eligibility is no longer valid.</p>
     `
   }
 };

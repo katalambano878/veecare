@@ -201,7 +201,7 @@ function ShopContent() {
     <main className="min-h-screen bg-brand-cream">
       <PageHero
         title="Shop All Products"
-        subtitle="Browse our range of perfumes and fragrances"
+        subtitle="Trending lifestyle and import-ready picks: fashion, home appliances, bags, accessories, and more."
         
       />
 
@@ -416,7 +416,7 @@ function ShopContent() {
                         <i className="ri-inbox-line text-4xl text-brand-cocoa/40"></i>
                       </div>
                       <h3 className="text-2xl font-display text-brand-espresso mb-2">No Products Found</h3>
-                      <p className="text-brand-cocoa/70 mb-8 font-light">Try adjusting your filters to find what you're looking for</p>
+                      <p className="text-brand-cocoa/80 mb-8 font-medium text-base">Try adjusting your filters to find what you&apos;re looking for</p>
                       <button
                         onClick={() => {
                           setSelectedCategory('all');

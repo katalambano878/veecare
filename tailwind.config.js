@@ -4,23 +4,22 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Outfit', 'system-ui', 'sans-serif'],
-        serif: ['"Playfair Display"', 'Georgia', 'serif'],
-        display: ['"Cormorant Garamond"', '"Playfair Display"', 'serif'],
+        sans: ['Manrope', 'system-ui', 'sans-serif'],
+        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
       },
       colors: {
         brand: {
-          espresso: '#6B3E2E',
-          nude: '#E8D7CC',
-          champagne: '#D4B06A',
-          mauve: '#C58A94',
-          rose: '#C58A94',
-          cream: '#FAF6F2',
-          cocoa: '#2E1F1B',
-          DEFAULT: '#6B3E2E',
-          light: '#E8D7CC',
-          dark: '#2E1F1B',
-          accent: '#D4B06A',
+          espresso: '#8A6A58',
+          nude: '#EDE3D7',
+          champagne: '#C8A46A',
+          mauve: '#A6A089',
+          rose: '#A6A089',
+          cream: '#FAF7F2',
+          cocoa: '#4A403B',
+          DEFAULT: '#8A6A58',
+          light: '#EDE3D7',
+          dark: '#4A403B',
+          accent: '#C8A46A',
         },
       },
       letterSpacing: {
@@ -28,9 +27,9 @@ module.exports = {
         'widest-xl': '0.3em',
       },
       boxShadow: {
-        luxury: '0 10px 40px -10px rgba(107, 62, 46, 0.08)',
-        'luxury-lg': '0 20px 60px -15px rgba(107, 62, 46, 0.12)',
-        soft: '0 8px 30px -12px rgba(197, 138, 148, 0.25)',
+        luxury: '0 10px 40px -10px rgba(138, 106, 88, 0.08)',
+        'luxury-lg': '0 20px 60px -15px rgba(138, 106, 88, 0.12)',
+        soft: '0 8px 30px -12px rgba(166, 160, 137, 0.25)',
       },
       transitionDuration: {
         luxury: '500ms',

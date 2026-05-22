@@ -94,12 +94,12 @@ export default function ProductCard({
 
         <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-2 z-10">
           {badge && (
-            <span className="glass text-brand-espresso border border-white/50 text-[8px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest font-bold px-2 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full shadow-sm">
+            <span className="glass text-brand-espresso border border-white/50 text-[10px] sm:text-xs font-semibold tracking-normal px-2 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full shadow-sm">
               {badge}
             </span>
           )}
           {discount > 0 && (
-            <span className="bg-red-50/90 backdrop-blur-md text-red-700 border border-red-200/50 text-[8px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest font-bold px-2 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full shadow-sm">
+            <span className="bg-red-50/90 backdrop-blur-md text-red-700 border border-red-200/50 text-[10px] sm:text-xs font-semibold tracking-normal px-2 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full shadow-sm">
               -{discount}%
             </span>
           )}
@@ -107,7 +107,7 @@ export default function ProductCard({
 
         {!inStock && (
           <div className="absolute inset-0 glass flex items-center justify-center z-20">
-            <span className="glass-dark text-white px-5 py-2.5 rounded-full text-xs tracking-widest uppercase font-medium">Out of Stock</span>
+            <span className="glass-dark text-white px-5 py-2.5 rounded-full text-xs font-medium tracking-normal">Out of stock</span>
           </div>
         )}
 

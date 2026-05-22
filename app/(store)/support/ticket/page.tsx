@@ -214,7 +214,7 @@ export default function SupportTicketPage() {
                     />
                     <div className="text-center">
                       <p className="font-semibold text-gray-900">Low</p>
-                      <p className="text-xs text-gray-600">3-5 days</p>
+                      <p className="text-xs text-gray-600">3 to 5 days</p>
                     </div>
                   </label>
                   <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-all ${
@@ -229,7 +229,7 @@ export default function SupportTicketPage() {
                     />
                     <div className="text-center">
                       <p className="font-semibold text-gray-900">Normal</p>
-                      <p className="text-xs text-gray-600">1-2 days</p>
+                      <p className="text-xs text-gray-600">1 to 2 days</p>
                     </div>
                   </label>
                   <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-all ${

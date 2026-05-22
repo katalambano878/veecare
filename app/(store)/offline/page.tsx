@@ -59,7 +59,7 @@ export default function OfflinePage() {
         </div>
 
         {/* Content */}
-        <h1 className="font-serif text-3xl font-bold text-gray-900 mb-3">
+        <h1 className="font-display text-3xl font-semibold text-brand-espresso mb-3">
           You&apos;re Offline
         </h1>
         <p className="text-gray-500 mb-8 leading-relaxed">

@@ -699,7 +699,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                         <div className="space-y-8">
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900">Product Variants</h3>
-                                <p className="text-gray-600 mt-1">Select colors and sizes below — variants are generated automatically</p>
+                                <p className="text-gray-600 mt-1">Select colors and sizes below. Variants are generated automatically.</p>
                             </div>
 
                             {/* STEP 1: Colors */}

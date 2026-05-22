@@ -231,7 +231,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
       <div className="min-h-screen bg-brand-cream py-12 flex justify-center items-center">
         <div className="text-center">
           <i className="ri-loader-4-line text-4xl text-brand-espresso animate-spin mb-4 block"></i>
-          <p className="text-brand-cocoa/60 font-light">Loading product...</p>
+                <p className="text-brand-cocoa/60 font-normal">Loading product...</p>
         </div>
       </div>
     );
@@ -316,7 +316,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                     quality={80}
                   />
                   {discount > 0 && (
-                    <span className="absolute top-5 right-5 glass text-brand-espresso border border-white/50 text-[10px] uppercase tracking-widest-lg font-bold px-4 py-2 rounded-full">
+                    <span className="absolute top-5 right-5 glass text-brand-espresso border border-white/50 text-xs font-semibold tracking-normal px-4 py-2 rounded-full">
                       Save {discount}%
                     </span>
                   )}
@@ -348,7 +348,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               <div className="lg:pt-2">
                 <div className="flex items-start justify-between gap-4 mb-5">
                   <div>
-                    <span className="text-[10px] uppercase tracking-widest-xl font-semibold text-brand-mauve mb-3 block">
+                    <span className="brand-eyebrow mb-3 block">
                       {product.category}
                     </span>
                     <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display text-brand-espresso mb-3 leading-[1.1] tracking-tight">
@@ -389,7 +389,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   )}
                 </div>
 
-                <p className="text-brand-cocoa/80 leading-relaxed mb-8 font-light">{product.description}</p>
+                <p className="text-brand-cocoa/80 leading-relaxed mb-8 font-normal">{product.description}</p>
 
                 {/* Color Selector */}
                 {hasVariants && product.colors.length > 0 && (
@@ -460,7 +460,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                       <div className="mb-8">
                         <label className="block font-medium text-brand-espresso mb-3">
                           Variant: {selectedVariant ? (
-                            <span className="text-brand-mauve font-normal">{selectedVariant.name} — GH₵{selectedVariant.price?.toFixed(2)}</span>
+                            <span className="text-brand-mauve font-normal">{selectedVariant.name} · GH₵{selectedVariant.price?.toFixed(2)}</span>
                           ) : (
                             <span className="text-red-500 font-normal text-sm">Please select a variant</span>
                           )}
@@ -502,7 +502,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                       <div className="mb-8">
                         <label className="block font-medium text-brand-espresso mb-3">
                           Size / Type: {selectedVariant ? (
-                            <span className="text-brand-mauve font-normal">{selectedVariant.name} — GH₵{selectedVariant.price?.toFixed(2)}</span>
+                            <span className="text-brand-mauve font-normal">{selectedVariant.name} · GH₵{selectedVariant.price?.toFixed(2)}</span>
                           ) : (
                             <span className="text-red-500 font-normal text-sm">Please select</span>
                           )}
@@ -625,7 +625,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   </div>
                   <div className="flex items-center text-brand-cocoa/80">
                     <i className="ri-arrow-left-right-line text-xl text-brand-espresso mr-3"></i>
-                    <span>30-day easy returns and exchanges</span>
+                    <span>30 day easy returns and exchanges</span>
                   </div>
                   <div className="flex items-center text-brand-cocoa/80">
                     <i className="ri-shield-check-line text-xl text-brand-espresso mr-3"></i>
@@ -651,7 +651,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`pb-4 font-medium uppercase tracking-widest text-xs transition-colors relative whitespace-nowrap cursor-pointer ${activeTab === tab
+                    className={`pb-4 font-sans font-medium tracking-normal text-sm transition-colors relative whitespace-nowrap cursor-pointer ${activeTab === tab
                       ? 'text-brand-espresso border-b-2 border-brand-espresso'
                       : 'text-brand-cocoa/60 hover:text-brand-espresso'
                       }`}
@@ -701,7 +701,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           <section className="py-20 bg-white border-t border-brand-nude/40" data-product-shop>
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
               <div className="text-center mb-12">
-                <p className="text-brand-mauve uppercase tracking-widest text-xs mb-3">Curated For You</p>
+                <p className="brand-eyebrow mb-3">Curated for you</p>
                 <h2 className="font-display text-3xl lg:text-4xl font-semibold text-brand-espresso mb-4">You May Also Like</h2>
                 <p className="text-lg text-brand-cocoa/70">Handpicked pieces that pair beautifully with this item</p>
               </div>

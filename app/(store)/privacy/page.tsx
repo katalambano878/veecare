@@ -33,7 +33,7 @@ export default function PrivacyPage() {
               </li>
               <li className="flex items-start gap-2">
                 <i className="ri-checkbox-circle-line text-brand-espresso mt-1"></i>
-                <span><strong>Payment Details:</strong> Payment method information (securely processed by third-party providers)</span>
+                <span><strong>Payment Details:</strong> Payment method information (securely processed by third party providers)</span>
               </li>
               <li className="flex items-start gap-2">
                 <i className="ri-checkbox-circle-line text-brand-espresso mt-1"></i>

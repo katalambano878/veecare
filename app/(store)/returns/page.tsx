@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import PageHero from '@/components/PageHero';
+import RefundPolicySection from '@/components/RefundPolicySection';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { REFUND_POLICY } from '@/lib/brand';
 
 const mockOrders = [
   {
@@ -15,21 +17,24 @@ const mockOrders = [
         id: 1,
         name: 'Premium Leather Crossbody Bag',
         price: 289,
-        image: 'https://readdy.ai/api/search-image?query=elegant%20premium%20leather%20crossbody%20bag%20in%20deep%20forest%20green%20color%20on%20clean%20minimal%20white%20studio%20background%20with%20soft%20natural%20lighting%20showcasing%20luxury%20craftsmanship&width=400&height=400&seq=return1&orientation=squarish',
-        returnable: true
+        image:
+          'https://readdy.ai/api/search-image?query=elegant%20premium%20leather%20crossbody%20bag&width=400&height=400&seq=return1&orientation=squarish',
+        returnable: true,
       },
       {
         id: 2,
         name: 'Minimalist Ceramic Vase Set',
         price: 159,
-        image: 'https://readdy.ai/api/search-image?query=modern%20minimalist%20ceramic%20vase%20set%20in%20matte%20cream%20and%20charcoal%20colors%20on%20pristine%20white%20background%20elegant%20home%20decor%20sophisticated%20styling&width=400&height=400&seq=return2&orientation=squarish',
-        returnable: true
-      }
-    ]
-  }
+        image:
+          'https://readdy.ai/api/search-image?query=modern%20minimalist%20ceramic%20vase%20set&width=400&height=400&seq=return2&orientation=squarish',
+        returnable: true,
+      },
+    ],
+  },
 ];
 
-export default function ReturnsPortalPage() {
+export default function ReturnsPage() {
+  usePageTitle('Returns & Refunds');
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [orderNumber, setOrderNumber] = useState('');
@@ -38,18 +43,9 @@ export default function ReturnsPortalPage() {
   const [returnReasons, setReturnReasons] = useState<Record<number, string>>({});
   const [returnType, setReturnType] = useState<'refund' | 'exchange'>('refund');
   const [isLoading, setIsLoading] = useState(false);
-  const [foundOrder, setFoundOrder] = useState<any>(null);
+  const [foundOrder, setFoundOrder] = useState<(typeof mockOrders)[0] | null>(null);
 
-  const reasons = [
-    'Wrong size/fit',
-    'Wrong item received',
-    'Defective/damaged item',
-    'Not as described',
-    'Changed my mind',
-    'Better price elsewhere',
-    'No longer needed',
-    'Other'
-  ];
+  const reasons = [...REFUND_POLICY.refundReasons, 'Other (describe in notes to support)'];
 
   const handleFindOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,10 +58,8 @@ export default function ReturnsPortalPage() {
   };
 
   const toggleItemSelection = (itemId: number) => {
-    setSelectedItems(prev =>
-      prev.includes(itemId)
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
+    setSelectedItems((prev) =>
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
     );
   };
 
@@ -78,139 +72,143 @@ export default function ReturnsPortalPage() {
   };
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-4xl mx-auto px-4">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Returns Portal</h1>
-          <p className="text-gray-600 mb-8">Start your return or exchange process</p>
+    <div className="min-h-screen bg-brand-cream">
+      <PageHero
+        title="Returns & Refunds"
+        subtitle="Read our refund policy below, then start a return or exchange request with your order details."
+      />
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-16 space-y-14">
+        <RefundPolicySection />
+
+        <div id="returns-portal">
+          <div className="text-center mb-8">
+            <span className="brand-eyebrow mb-3 block">Start a request</span>
+            <h2 className="text-2xl sm:text-3xl font-display font-semibold text-brand-espresso tracking-tight">
+              Returns portal
+            </h2>
+            <p className="brand-body mt-3 max-w-lg mx-auto">
+              Enter your order number and email to begin. Exchanges must meet the 24 hour window in our policy above.
+            </p>
+          </div>
 
           <div className="mb-8">
             <div className="flex items-center justify-between">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex items-center flex-1">
-                  <div className={`w-10 h-10 flex items-center justify-center rounded-full font-bold ${
-                    i <= step ? 'bg-brand-espresso text-white' : 'bg-gray-200 text-gray-500'
-                  }`}>
-                    {i < step ? <i className="ri-check-line"></i> : i}
+                  <div
+                    className={`w-10 h-10 flex items-center justify-center rounded-full font-bold text-sm ${
+                      i <= step ? 'bg-brand-espresso text-brand-cream' : 'bg-brand-nude text-brand-cocoa/50'
+                    }`}
+                  >
+                    {i < step ? <i className="ri-check-line" /> : i}
                   </div>
                   {i < 3 && (
-                    <div className={`flex-1 h-1 mx-4 ${
-                      i < step ? 'bg-brand-espresso' : 'bg-gray-200'
-                    }`}></div>
+                    <div
+                      className={`flex-1 h-1 mx-2 sm:mx-4 ${i < step ? 'bg-brand-espresso' : 'bg-brand-nude'}`}
+                    />
                   )}
                 </div>
               ))}
             </div>
-            <div className="flex justify-between mt-2">
-              <span className="text-sm font-semibold text-gray-900">Find Order</span>
-              <span className="text-sm font-semibold text-gray-900">Select Items</span>
-              <span className="text-sm font-semibold text-gray-900">Submit</span>
+            <div className="flex justify-between mt-2 text-xs sm:text-sm font-medium text-brand-cocoa/80">
+              <span>Find order</span>
+              <span>Select items</span>
+              <span>Submit</span>
             </div>
           </div>
 
           {step === 1 && (
-            <div className="bg-white rounded-xl shadow-sm p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Find Your Order</h2>
+            <div className="bg-white rounded-2xl border border-brand-nude shadow-soft p-6 sm:p-8">
+              <h3 className="text-xl font-display font-semibold text-brand-espresso mb-6">Find your order</h3>
               <form onSubmit={handleFindOrder} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Order Number *
-                  </label>
+                  <label className="block text-sm font-semibold text-brand-espresso mb-2">Order number *</label>
                   <input
                     type="text"
                     value={orderNumber}
                     onChange={(e) => setOrderNumber(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
+                    className="w-full px-4 py-3 border border-brand-nude rounded-xl bg-brand-cream text-brand-cocoa focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-mauve"
                     placeholder="ORD-2024-156"
                     required
                   />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Email Address *
-                  </label>
+                  <label className="block text-sm font-semibold text-brand-espresso mb-2">Email address *</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
+                    className="w-full px-4 py-3 border border-brand-nude rounded-xl bg-brand-cream text-brand-cocoa focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-mauve"
                     placeholder="you@example.com"
                     required
                   />
                 </div>
-
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-brand-espresso hover:bg-brand-cocoa text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="w-full btn-luxury-primary py-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Finding Order...' : 'Find Order'}
+                  {isLoading ? 'Finding order…' : 'Find order'}
                 </button>
               </form>
 
-              <div className="mt-8 p-4 bg-brand-nude/30 border border-brand-nude/70 rounded-lg">
-                <div className="flex items-start space-x-3">
-                  <i className="ri-information-line text-xl text-brand-espresso mt-0.5"></i>
-                  <div className="text-sm text-brand-espresso">
-                    <p className="font-semibold mb-1">Return Policy Highlights</p>
-                    <ul className="space-y-1">
-                      <li>• Returns accepted within 30 days of delivery</li>
-                      <li>• Items must be unused with original tags</li>
-                      <li>• Free return shipping for defective items</li>
-                      <li>• Refunds processed within 5-7 business days</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              <p className="brand-body text-sm mt-6 text-brand-cocoa/80">
+                Prefer to talk first?{' '}
+                <Link href="/contact" className="font-semibold text-brand-espresso hover:text-brand-mauve">
+                  Contact us
+                </Link>{' '}
+                with your order number before sending anything back.
+              </p>
             </div>
           )}
 
           {step === 2 && foundOrder && (
-            <div className="bg-white rounded-xl shadow-sm p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Select Items to Return</h2>
-              
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600">
-                  Order #{foundOrder.id} • Placed on {foundOrder.date}
+            <div className="bg-white rounded-2xl border border-brand-nude shadow-soft p-6 sm:p-8">
+              <h3 className="text-xl font-display font-semibold text-brand-espresso mb-6">Select items to return</h3>
+
+              <div className="mb-6 p-4 bg-brand-nude/30 rounded-xl border border-brand-nude">
+                <p className="text-sm font-medium text-brand-cocoa/80">
+                  Order #{foundOrder.id} · Placed on {foundOrder.date}
                 </p>
               </div>
 
               <div className="space-y-4 mb-8">
-                {foundOrder.items.map((item: any) => (
-                  <div key={item.id} className="border-2 border-gray-200 rounded-lg p-4">
-                    <div className="flex items-start space-x-4">
+                {foundOrder.items.map((item) => (
+                  <div key={item.id} className="border border-brand-nude rounded-xl p-4">
+                    <div className="flex items-start gap-4">
                       <input
                         type="checkbox"
                         checked={selectedItems.includes(item.id)}
                         onChange={() => toggleItemSelection(item.id)}
-                        className="mt-1 w-5 h-5 text-brand-espresso rounded border-gray-300 focus:ring-brand-mauve/40"
+                        className="mt-1 w-5 h-5 text-brand-espresso rounded border-brand-nude focus:ring-brand-mauve/40"
                       />
-                      <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover object-top" />
+                      <div className="w-20 h-20 shrink-0 bg-brand-nude/40 rounded-lg overflow-hidden">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900 mb-1">{item.name}</p>
-                        <p className="text-lg font-bold text-gray-900 mb-3">GH₵{item.price.toFixed(2)}</p>
-                        
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-brand-espresso mb-1">{item.name}</p>
+                        <p className="text-lg font-semibold text-brand-espresso mb-3">
+                          GH₵{item.price.toFixed(2)}
+                        </p>
                         {selectedItems.includes(item.id) && (
-                          <div className="mt-4">
-                            <label className="block text-sm font-semibold text-gray-900 mb-2">
-                              Reason for return *
+                          <div className="mt-2">
+                            <label className="block text-sm font-semibold text-brand-espresso mb-2">
+                              Reason *
                             </label>
                             <select
                               value={returnReasons[item.id] || ''}
-                              onChange={(e) => setReturnReasons({
-                                ...returnReasons,
-                                [item.id]: e.target.value
-                              })}
-                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso pr-8"
+                              onChange={(e) =>
+                                setReturnReasons({ ...returnReasons, [item.id]: e.target.value })
+                              }
+                              className="w-full px-4 py-2 border border-brand-nude rounded-xl bg-brand-cream focus:ring-2 focus:ring-brand-mauve/40"
                               required
                             >
                               <option value="">Select a reason</option>
                               {reasons.map((reason) => (
-                                <option key={reason} value={reason}>{reason}</option>
+                                <option key={reason} value={reason}>
+                                  {reason}
+                                </option>
                               ))}
                             </select>
                           </div>
@@ -222,51 +220,52 @@ export default function ReturnsPortalPage() {
               </div>
 
               <div className="mb-8">
-                <label className="block text-sm font-semibold text-gray-900 mb-3">
-                  What would you like to do? *
-                </label>
-                <div className="grid grid-cols-2 gap-4">
+                <label className="block text-sm font-semibold text-brand-espresso mb-3">What would you like? *</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button
                     type="button"
                     onClick={() => setReturnType('refund')}
-                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${
                       returnType === 'refund'
-                        ? 'border-brand-espresso bg-brand-nude/30'
-                        : 'border-gray-300 hover:border-gray-400'
+                        ? 'border-brand-espresso bg-brand-nude/40'
+                        : 'border-brand-nude hover:border-brand-mauve/40'
                     }`}
                   >
-                    <i className="ri-refund-line text-2xl text-brand-espresso mb-2"></i>
-                    <p className="font-semibold text-gray-900">Get a Refund</p>
-                    <p className="text-sm text-gray-600 mt-1">Money back to original payment</p>
+                    <i className="ri-refund-line text-2xl text-brand-espresso mb-2" />
+                    <p className="font-semibold text-brand-espresso">Refund</p>
+                    <p className="text-sm text-brand-cocoa/75 mt-1 font-medium">When policy conditions apply</p>
                   </button>
-
                   <button
                     type="button"
                     onClick={() => setReturnType('exchange')}
-                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${
                       returnType === 'exchange'
-                        ? 'border-brand-espresso bg-brand-nude/30'
-                        : 'border-gray-300 hover:border-gray-400'
+                        ? 'border-brand-espresso bg-brand-nude/40'
+                        : 'border-brand-nude hover:border-brand-mauve/40'
                     }`}
                   >
-                    <i className="ri-exchange-line text-2xl text-brand-espresso mb-2"></i>
-                    <p className="font-semibold text-gray-900">Exchange Item</p>
-                    <p className="text-sm text-gray-600 mt-1">Get a different size or color</p>
+                    <i className="ri-exchange-line text-2xl text-brand-espresso mb-2" />
+                    <p className="font-semibold text-brand-espresso">Exchange</p>
+                    <p className="text-sm text-brand-cocoa/75 mt-1 font-medium">Within 24 hours of purchase</p>
                   </button>
                 </div>
               </div>
 
-              <div className="flex space-x-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <button
+                  type="button"
                   onClick={() => setStep(1)}
-                  className="flex-1 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors whitespace-nowrap"
+                  className="flex-1 py-4 border-2 border-brand-nude text-brand-espresso rounded-xl font-semibold hover:bg-brand-nude/30 transition-colors"
                 >
                   Back
                 </button>
                 <button
+                  type="button"
                   onClick={() => setStep(3)}
-                  disabled={selectedItems.length === 0 || !selectedItems.every(id => returnReasons[id])}
-                  className="flex-1 py-4 bg-brand-espresso hover:bg-brand-cocoa text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  disabled={
+                    selectedItems.length === 0 || !selectedItems.every((id) => returnReasons[id])
+                  }
+                  className="flex-1 py-4 btn-luxury-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue
                 </button>
@@ -274,69 +273,75 @@ export default function ReturnsPortalPage() {
             </div>
           )}
 
-          {step === 3 && (
-            <div className="bg-white rounded-xl shadow-sm p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Review & Submit</h2>
+          {step === 3 && foundOrder && (
+            <div className="bg-white rounded-2xl border border-brand-nude shadow-soft p-6 sm:p-8">
+              <h3 className="text-xl font-display font-semibold text-brand-espresso mb-6">Review & submit</h3>
 
               <div className="mb-8">
-                <h3 className="font-semibold text-gray-900 mb-4">Return Summary</h3>
+                <h4 className="font-semibold text-brand-espresso mb-4">Return summary</h4>
                 <div className="space-y-3">
                   {foundOrder.items
-                    .filter((item: any) => selectedItems.includes(item.id))
-                    .map((item: any) => (
-                      <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    .filter((item) => selectedItems.includes(item.id))
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between p-4 bg-brand-nude/25 rounded-xl border border-brand-nude/60"
+                      >
                         <div>
-                          <p className="font-semibold text-gray-900">{item.name}</p>
-                          <p className="text-sm text-gray-600">Reason: {returnReasons[item.id]}</p>
+                          <p className="font-semibold text-brand-espresso">{item.name}</p>
+                          <p className="text-sm text-brand-cocoa/75 font-medium">
+                            {returnType === 'exchange' ? 'Exchange' : 'Refund'} · {returnReasons[item.id]}
+                          </p>
                         </div>
-                        <p className="font-bold text-gray-900">GH₵{item.price.toFixed(2)}</p>
+                        <p className="font-semibold text-brand-espresso">GH₵{item.price.toFixed(2)}</p>
                       </div>
                     ))}
                 </div>
               </div>
 
-              <div className="mb-8 p-6 border-2 border-brand-nude/70 bg-brand-nude/30 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-4">Next Steps</h3>
-                <ol className="space-y-2 text-sm text-gray-700">
-                  <li className="flex items-start space-x-2">
-                    <span className="font-bold">1.</span>
-                    <span>Print your prepaid return label (sent to your email)</span>
+              <div className="mb-8 p-6 border border-brand-mauve/25 bg-brand-mauve/10 rounded-xl">
+                <h4 className="font-semibold text-brand-espresso mb-4">Next steps</h4>
+                <ol className="space-y-2 brand-body text-sm">
+                  <li>
+                    <span className="font-semibold text-brand-espresso">1.</span> Our team will confirm your request
+                    matches the refund policy.
                   </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="font-bold">2.</span>
-                    <span>Pack items securely in original packaging</span>
+                  <li>
+                    <span className="font-semibold text-brand-espresso">2.</span> Pack items unworn, with tags and
+                    original packaging.
                   </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="font-bold">3.</span>
-                    <span>Attach the label and drop off at any shipping location</span>
+                  <li>
+                    <span className="font-semibold text-brand-espresso">3.</span> Bring to store or follow instructions
+                    we send by WhatsApp or email.
                   </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="font-bold">4.</span>
-                    <span>Track your return status in your account</span>
+                  <li>
+                    <span className="font-semibold text-brand-espresso">4.</span> Exchanges must be within 24 hours of
+                    purchase.
                   </li>
                 </ol>
               </div>
 
-              <div className="flex space-x-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <button
+                  type="button"
                   onClick={() => setStep(2)}
-                  className="flex-1 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors whitespace-nowrap"
+                  className="flex-1 py-4 border-2 border-brand-nude text-brand-espresso rounded-xl font-semibold hover:bg-brand-nude/30 transition-colors"
                 >
                   Back
                 </button>
                 <button
+                  type="button"
                   onClick={handleSubmitReturn}
                   disabled={isLoading}
-                  className="flex-1 py-4 bg-brand-espresso hover:bg-brand-cocoa text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="flex-1 py-4 btn-luxury-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Submitting...' : 'Submit Return Request'}
+                  {isLoading ? 'Submitting…' : 'Submit return request'}
                 </button>
               </div>
             </div>
           )}
         </div>
-      </main>
-      <Footer />
-    </>
+      </div>
+    </div>
   );
 }

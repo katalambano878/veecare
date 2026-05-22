@@ -10,15 +10,15 @@ import HorizontalScroll from '@/components/HorizontalScroll';
 import NewsletterSection from '@/components/NewsletterSection';
 import WhoWeAreSection from '@/components/WhoWeAreSection';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { HERO_IMAGES } from '@/lib/brand';
+import { HERO_IMAGES, HERO_IMAGE_VERSION } from '@/lib/brand';
 
 const CATEGORY_TINTS = [
-  'from-[#C58A94]/80 via-[#E8D7CC]/60 to-[#FAF6F2]',
-  'from-[#D4B06A]/70 via-[#E8D7CC]/50 to-[#C58A94]/40',
-  'from-[#E8D7CC] via-[#FAF6F2] to-[#C58A94]/30',
-  'from-[#6B3E2E]/50 via-[#C58A94]/40 to-[#D4B06A]/30',
-  'from-[#C58A94]/90 via-[#E8D7CC]/70 to-[#FAF6F2]',
-  'from-[#6B3E2E]/60 via-[#2E1F1B]/40 to-[#D4B06A]/25',
+  'from-[#A6A089]/80 via-[#EDE3D7]/60 to-[#FAF7F2]',
+  'from-[#C8A46A]/70 via-[#EDE3D7]/50 to-[#A6A089]/40',
+  'from-[#EDE3D7] via-[#FAF7F2] to-[#A6A089]/30',
+  'from-[#8A6A58]/50 via-[#A6A089]/40 to-[#C8A46A]/30',
+  'from-[#A6A089]/90 via-[#EDE3D7]/70 to-[#FAF7F2]',
+  'from-[#8A6A58]/60 via-[#4A403B]/40 to-[#C8A46A]/25',
 ] as const;
 
 type StoreCategory = {
@@ -39,11 +39,11 @@ const HERO_SLIDES = [
     heading: (
       <>
         Trending Fashion <br />
-        <span className="italic font-light text-brand-champagne">&amp; Lifestyle Finds</span>
+        <span className="italic font-medium text-brand-champagne">&amp; Lifestyle Finds</span>
       </>
     ),
     subtext:
-      'Shop stylish fashion, accessories, imported lifestyle products, and curated finds designed for modern everyday glam.',
+      'Your trending lifestyle destination and import plug: fashion, home appliances, accessories, and curated arrivals for every style.',
     cta: { text: 'Shop Collection', href: '/shop' },
     cta2: { text: 'Explore Arrivals', href: '/shop?sort=newest' },
   },
@@ -57,9 +57,23 @@ const HERO_SLIDES = [
       </>
     ),
     subtext:
-      'From fashion pieces to statement accessories, discover curated arrivals inspired by modern trends and lifestyle culture.',
+      'From fashion and bags to home appliances and import-ready picks: discover what is trending and what is worth sourcing.',
     cta: { text: 'View Collection', href: '/shop' },
     cta2: { text: 'Discover More', href: '/categories' },
+  },
+  {
+    tag: 'Import Lifestyle',
+    image: HERO_IMAGES[2],
+    heading: (
+      <>
+        Modern Imports <br />
+        <span className="italic font-medium text-brand-champagne">For Every Home</span>
+      </>
+    ),
+    subtext:
+      'Fashion, appliances, cars, and curated lifestyle picks in one modern imported platform built for Ghana and beyond.',
+    cta: { text: 'Shop New Arrivals', href: '/shop?sort=newest' },
+    cta2: { text: 'Browse Categories', href: '/categories' },
   },
 ];
 
@@ -123,7 +137,7 @@ export default function HomeClient() {
 
   return (
     <main className="flex-col min-h-screen">
-      {/* Hero — sharp 16:9 lifestyle imagery, left-aligned copy */}
+      {/* Hero: sharp 16:9 lifestyle imagery, left-aligned copy */}
       <section className="relative w-full overflow-hidden bg-brand-cream">
         <div className="relative w-full aspect-video min-h-[546px] max-md:max-h-none md:min-h-[420px] md:max-h-[92vh]">
         <div className="absolute top-0 left-0 right-0 z-30 h-0.5 bg-brand-nude/50 hidden md:block">
@@ -144,7 +158,7 @@ export default function HomeClient() {
           >
             {/* Native img: avoids Next optimizer + zoom animation blur on PNG heroes */}
             <img
-              src={slide.image}
+              src={`${slide.image}?v=${HERO_IMAGE_VERSION}`}
               alt=""
               width={1024}
               height={576}
@@ -166,7 +180,7 @@ export default function HomeClient() {
                       index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                     }`}
                   >
-                    <span className="inline-block py-2 px-5 mb-5 sm:mb-6 text-white text-[10px] sm:text-[11px] tracking-[0.32em] uppercase font-bold bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
+                    <span className="inline-block py-2 px-5 mb-5 sm:mb-6 text-white text-xs sm:text-sm font-medium tracking-normal bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
                       {slide.tag}
                     </span>
                   </div>
@@ -176,7 +190,7 @@ export default function HomeClient() {
                       index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                     }`}
                   >
-                    <h1 className="text-[2.35rem] sm:text-5xl md:text-6xl lg:text-[4.25rem] font-display text-white mb-5 sm:mb-6 leading-[1.06] tracking-tight drop-shadow-[0_2px_16px_rgba(0,0,0,0.35)]">
+                    <h1 className="text-[2.35rem] sm:text-5xl md:text-6xl lg:text-[4.25rem] font-display font-semibold text-white mb-5 sm:mb-6 leading-[1.06] tracking-tight drop-shadow-[0_2px_16px_rgba(0,0,0,0.35)]">
                       {slide.heading}
                     </h1>
                   </div>
@@ -186,7 +200,7 @@ export default function HomeClient() {
                       index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                     }`}
                   >
-                    <p className="text-sm sm:text-base md:text-lg text-white/90 max-w-md md:max-w-lg mb-8 sm:mb-10 font-light leading-relaxed drop-shadow-md">
+                    <p className="text-base sm:text-lg md:text-xl text-white/95 max-w-md md:max-w-lg mb-8 sm:mb-10 font-medium leading-relaxed drop-shadow-md">
                       {slide.subtext}
                     </p>
                   </div>
@@ -234,7 +248,7 @@ export default function HomeClient() {
 
         <div className="absolute bottom-10 right-5 md:right-12 z-20 hidden lg:block pointer-events-none">
           <p
-            className="text-brand-cocoa/35 text-[10px] font-light tracking-[0.4em] uppercase"
+            className="text-brand-cocoa/40 text-xs font-medium tracking-normal"
             style={{ writingMode: 'vertical-rl' }}
           >
             Upscale Vintage
@@ -250,9 +264,7 @@ export default function HomeClient() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
           <AnimatedSection className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-6">
             <div>
-              <span className="block text-[10px] font-semibold tracking-widest-xl text-brand-mauve mb-3 uppercase">
-                Shop by category
-              </span>
+              <span className="brand-eyebrow mb-3 block">Shop by category</span>
               <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-brand-espresso leading-[1.1] tracking-tight">
                 Curated <span className="italic text-brand-mauve/80">for you</span>
               </h2>
@@ -305,7 +317,7 @@ export default function HomeClient() {
                         aria-hidden
                       />
                       <div className="absolute inset-x-0 bottom-0 p-6 md:p-8 flex flex-col justify-end z-10">
-                        <span className="text-[10px] uppercase tracking-[0.3em] text-brand-champagne mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 drop-shadow-md">
+                        <span className="text-xs font-medium text-brand-champagne mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 drop-shadow-md">
                           Shop now
                         </span>
                         <h3 className="font-display text-2xl md:text-3xl text-white leading-tight mb-2 drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]">
@@ -313,7 +325,7 @@ export default function HomeClient() {
                         </h3>
                         <div className="h-px w-10 bg-white/60 mb-3 group-hover:w-full transition-all duration-700 ease-out" />
                         {category.description && (
-                          <p className="text-white/90 text-xs tracking-wide font-light line-clamp-2 drop-shadow-md">
+                          <p className="text-white/95 text-sm sm:text-base font-medium line-clamp-2 drop-shadow-md">
                             {category.description}
                           </p>
                         )}
@@ -336,15 +348,13 @@ export default function HomeClient() {
       <section className="py-16 md:py-24 bg-brand-cream">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection className="text-center mb-14">
-            <span className="text-[10px] uppercase tracking-widest-xl font-semibold text-brand-mauve mb-3 block">
-              Handpicked
-            </span>
+            <span className="brand-eyebrow mb-3 block">Handpicked</span>
             <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-brand-espresso mb-4 tracking-tight">
               Featured Products
             </h2>
             <div className="w-16 h-px bg-brand-champagne mx-auto mb-6" />
-            <p className="text-brand-cocoa/70 text-base max-w-lg mx-auto font-light leading-relaxed">
-              Handpicked favorites from our collection, curated for exceptional quality and timeless style.
+            <p className="brand-body max-w-xl mx-auto text-center">
+              Trending lifestyle picks and import-ready favorites: fashion, appliances, accessories, and more.
             </p>
           </AnimatedSection>
 

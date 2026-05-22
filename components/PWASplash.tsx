@@ -35,7 +35,7 @@ export default function PWASplash() {
           className="w-56 max-w-[85vw] h-auto object-contain"
         />
       </div>
-      <h1 className="text-brand-espresso text-lg font-bold font-serif mb-2 tracking-wide">{APP_TITLE}</h1>
+      <h1 className="font-display text-xl font-semibold text-brand-espresso mb-2">{APP_TITLE}</h1>
       <p className="text-brand-cocoa/70 text-sm font-medium mb-8">{TAGLINE}</p>
       <div className="pwa-splash-dots flex gap-1.5">
         <span className="w-2 h-2 bg-brand-champagne rounded-full" />

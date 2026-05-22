@@ -68,7 +68,7 @@ export default function Header() {
   };
 
   const navLinkClass =
-    'group relative py-2 text-[11px] uppercase tracking-widest-xl font-semibold text-brand-cocoa/90 transition-colors duration-300 hover:text-brand-espresso';
+    'group relative py-2 text-sm font-medium tracking-normal text-brand-cocoa/85 transition-colors duration-300 hover:text-brand-espresso';
 
   return (
     <>
@@ -173,7 +173,7 @@ export default function Header() {
           <div className="glass-panel rounded-3xl w-full max-w-2xl mx-4 animate-in slide-in-from-top-4 duration-500">
             <div className="p-8">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-display text-brand-espresso">Search</h3>
+                <h3 className="text-2xl font-display font-semibold text-brand-espresso">Search</h3>
                 <button
                   onClick={() => setIsSearchOpen(false)}
                   className="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 text-brand-cocoa/60 hover:text-brand-espresso hover:bg-white transition-all"
@@ -237,7 +237,7 @@ export default function Header() {
                 </Link>
               ))}
               <div className="h-px bg-brand-nude my-3" />
-              <p className="px-4 text-[10px] uppercase tracking-[0.25em] text-brand-cocoa/50 mb-1">Discover</p>
+              <p className="px-4 text-xs font-medium text-brand-cocoa/50 mb-1">Discover</p>
               {NAV_LINKS_OPTIONAL.map((link) => (
                 <Link
                   key={link.href}

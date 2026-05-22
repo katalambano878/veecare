@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import {
   APP_TITLE,
+  FOOTER_TAGLINE,
   LOGO_PATH,
   LOGO_CLASS_HEADER,
   CONTACT_ADDRESS,
@@ -24,7 +25,7 @@ const HELP_LINKS = [
   { label: 'Contact', href: '/contact' },
   { label: 'Track Order', href: '/order-tracking' },
   { label: 'Shipping', href: '/shipping' },
-  { label: 'Returns', href: '/returns' },
+  { label: 'Returns & refunds', href: '/returns' },
   { label: 'FAQs', href: '/faqs' },
 ];
 
@@ -56,8 +57,8 @@ export default function Footer() {
                 className={`${LOGO_CLASS_HEADER} h-8 sm:h-9 w-auto max-w-[140px] object-contain`}
               />
             </Link>
-            <p className="text-xs sm:text-sm text-brand-cocoa/70 leading-snug line-clamp-2 sm:max-w-xs">
-              Curated fashion &amp; lifestyle finds — Accra, Ghana.
+            <p className="text-sm sm:text-base text-brand-cocoa/80 font-medium leading-snug line-clamp-3 sm:max-w-sm">
+              {FOOTER_TAGLINE}
             </p>
           </div>
 
@@ -96,7 +97,7 @@ export default function Footer() {
           aria-label="Footer navigation"
         >
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-brand-mauve font-semibold mb-2.5">Shop</p>
+            <p className="text-xs font-semibold text-brand-mauve mb-2.5">Shop</p>
             <ul className="space-y-1.5">
               {SHOP_LINKS.map((link) => (
                 <li key={link.href}>
@@ -111,7 +112,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-brand-mauve font-semibold mb-2.5">Help</p>
+            <p className="text-xs font-semibold text-brand-mauve mb-2.5">Help</p>
             <ul className="space-y-1.5">
               {HELP_LINKS.map((link) => (
                 <li key={link.href}>
@@ -126,7 +127,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-brand-mauve font-semibold mb-2.5">Legal</p>
+            <p className="text-xs font-semibold text-brand-mauve mb-2.5">Legal</p>
             <ul className="space-y-1.5">
               {LEGAL_LINKS.map((link) => (
                 <li key={link.href}>
@@ -166,7 +167,7 @@ export default function Footer() {
         {/* Copyright */}
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-[11px] text-brand-cocoa/55">
           <p>&copy; {new Date().getFullYear()} {siteName}</p>
-          <p className="font-display italic text-brand-espresso/70 text-xs">Everyday glam. Curated finds.</p>
+          <p className="font-display font-medium italic text-brand-espresso/80 text-sm">Trending lifestyle. Import plug.</p>
         </div>
       </div>
     </footer>

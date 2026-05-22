@@ -7,10 +7,13 @@ import PageHero from '@/components/PageHero';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import {
   APP_TITLE,
+  BRAND_INTRO,
+  BRAND_INTRO_SECONDARY,
   CONTACT_ADDRESS,
   CONTACT_PHONE_DISPLAY,
   WHATSAPP_LINK,
   LOGO_PATH,
+  TAGLINE,
 } from '@/lib/brand';
 
 export default function AboutPage() {
@@ -22,23 +25,23 @@ export default function AboutPage() {
 
   const values = [
     {
-      title: 'Curated Finds',
+      title: 'Trending Lifestyle',
       description:
-        'Every piece is handpicked for modern style: fashion, bags, accessories, and lifestyle favorites chosen with a trendy eye.',
+        'We track what is hot: fashion, bags, accessories, beauty, and everyday picks, so your cart always feels current.',
     },
     {
-      title: 'Imported Picks',
+      title: 'Import Plug',
       description:
-        'Access stylish imports and trending arrivals you will not see everywhere. Fresh drops for everyday glam.',
+        'Sourced arrivals and special imports you will not find on every corner. Fresh drops, bold energy, real curation.',
     },
     {
-      title: 'Modern Femininity',
+      title: 'Home & Living',
       description:
-        'A brand built for women who love soft glam, confidence, and aspirational lifestyle culture.',
+        'Home appliances and lifestyle essentials alongside style: one destination for how you dress and how you live.',
     },
     {
       title: 'Delivered With Care',
-      description: `Based in ${CONTACT_ADDRESS}, we serve fashion and lifestyle lovers across Ghana with friendly, reliable service.`,
+      description: `Based in ${CONTACT_ADDRESS}, we serve shoppers across Ghana with friendly, reliable service, with no gatekeeping.`,
     },
   ];
 
@@ -49,7 +52,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-brand-cream">
       <PageHero
         title="More Than A Brand"
-        subtitle="A trendy lifestyle import destination. Feminine, modern, and curated for stylish everyday living."
+        subtitle={TAGLINE}
       />
 
       <section className="py-20 bg-brand-cream overflow-hidden">
@@ -57,16 +60,9 @@ export default function AboutPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-display text-brand-espresso mb-6 tracking-tight">Who We Are</h2>
-              <div className="space-y-4 text-lg text-brand-cocoa/80 leading-relaxed font-light">
-                <p>
-                  <strong className="text-brand-espresso">{siteName}</strong> is your fashion and lifestyle import
-                  plug. A modern social commerce brand for trendy women who want stylish finds, accessories, and
-                  aspirational everyday glam.
-                </p>
-                <p>
-                  We are not a generic marketplace or thrift vibe. Every collection feels curated, fresh, and
-                  designed to make you feel like you always have access to the best imported lifestyle products.
-                </p>
+              <div className="space-y-5 brand-body">
+                <p>{BRAND_INTRO.replace('Upscale Vintage', siteName)}</p>
+                <p>{BRAND_INTRO_SECONDARY}</p>
                 <div className="pt-4">
                   <Link
                     href="#our-story"
@@ -85,7 +81,7 @@ export default function AboutPage() {
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-luxury max-w-xs border border-brand-nude">
                 <p className="font-display text-brand-espresso">Trending style</p>
-                <p className="text-sm text-brand-cocoa/60 font-light mt-1">Fashion &amp; lifestyle finds</p>
+                <p className="text-sm text-brand-cocoa/80 font-medium mt-1">Lifestyle · Imports · Appliances</p>
               </div>
             </div>
           </div>
@@ -118,15 +114,15 @@ export default function AboutPage() {
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display text-brand-espresso mb-6 tracking-tight">
                 How It All Started
               </h2>
-              <div className="space-y-6 text-lg text-brand-cocoa/80 leading-relaxed font-light">
+              <div className="space-y-6 brand-body">
                 <p>
-                  <strong className="text-brand-espresso">{siteName}</strong> began with a simple idea: make stylish
-                  imported fashion and lifestyle products feel accessible, exciting, and personal, like shopping your
-                  favorite creator&apos;s picks.
+                  <strong className="font-semibold text-brand-espresso">{siteName}</strong> began with a simple idea:
+                  make trending lifestyle and import-ready products feel accessible, exciting, and personal, like
+                  shopping your favorite creator&apos;s picks, open to everyone.
                 </p>
                 <p>
-                  From statement accessories and bags to lifestyle favorites and special imported arrivals, we build
-                  collections around what&apos;s trending and what our community loves.
+                  From fashion and bags to home appliances, accessories, and special imports, we build collections
+                  around what is trending and what our community asks for next.
                 </p>
                 <p>
                   Reach us on <strong>{CONTACT_PHONE_DISPLAY}</strong> or{' '}
@@ -142,8 +138,8 @@ export default function AboutPage() {
                 <img src={LOGO_PATH} alt={siteName} className="w-2/3 h-auto object-contain" />
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-brand-espresso/85 to-transparent p-8">
                   <p className="text-brand-cream font-display text-xl">{siteName}</p>
-                  <p className="text-brand-nude/90 text-sm tracking-wide">
-                    Fashion · Lifestyle · Imported finds
+                  <p className="text-brand-nude/90 text-sm font-medium tracking-wide">
+                    Trending lifestyle · Import plug · Home appliances
                   </p>
                 </div>
               </div>
@@ -156,16 +152,16 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-12 animate-fade-in-up">
             <div className="bg-white p-10 rounded-3xl border border-brand-nude shadow-sm">
               <h3 className="text-3xl font-display text-brand-espresso mb-4">Curated For You</h3>
-              <p className="text-brand-cocoa/80 text-lg leading-relaxed font-light">
-                We bring together fashion picks, accessories, lifestyle products, and imported finds in one stylish
-                shopping experience. Always fresh, always curated.
+              <p className="brand-body">
+                We bring together trending lifestyle picks, import-ready arrivals, home appliances, fashion, and
+                accessories in one bold shopping experience. Always fresh, always curated.
               </p>
             </div>
             <div className="bg-brand-nude/30 p-10 rounded-3xl border border-brand-nude">
               <h3 className="text-3xl font-display text-brand-espresso mb-4">Community First</h3>
-              <p className="text-brand-cocoa/80 text-lg leading-relaxed font-light">
-                We grow with our customers, sharing trending arrivals, exclusive updates, and lifestyle favorites
-                that feel social, modern, and genuinely exciting.
+              <p className="brand-body">
+                We grow with our community, sharing drops, exclusive updates, and lifestyle favorites that feel
+                social, modern, and genuinely exciting for every shopper.
               </p>
             </div>
           </div>
@@ -176,8 +172,9 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-display text-brand-espresso mb-4">Why Shop With Us?</h2>
-            <p className="text-xl text-brand-cocoa/70 max-w-2xl mx-auto font-light">
-              Stylish finds, imported energy, and a shopping experience built for modern everyday glam.
+            <p className="brand-body-lg max-w-2xl mx-auto text-center">
+              Two jobs, one brand: trending lifestyle curation and your import plug, plus home appliances when you
+              need them.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -187,7 +184,7 @@ export default function AboutPage() {
                 className="bg-brand-cream p-8 rounded-2xl border border-brand-nude hover:shadow-soft transition-all duration-300 hover:-translate-y-1"
               >
                 <h3 className="text-xl font-display text-brand-espresso mb-3">{value.title}</h3>
-                <p className="text-brand-cocoa/75 leading-relaxed font-light">{value.description}</p>
+                <p className="brand-body text-base">{value.description}</p>
               </div>
             ))}
           </div>
@@ -197,8 +194,9 @@ export default function AboutPage() {
       <div className="bg-brand-espresso py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-brand-cream">
           <h2 className="text-4xl md:text-5xl font-display mb-8">Ready to explore?</h2>
-          <p className="text-xl text-brand-nude/90 mb-10 leading-relaxed max-w-2xl mx-auto font-light">
-            Discover trending fashion, accessories, and imported lifestyle picks curated for you.
+          <p className="brand-body-lg text-brand-nude/95 mb-10 max-w-2xl mx-auto text-center">
+            Discover trending lifestyle, import-ready picks, home appliances, fashion, and accessories, curated for
+            you.
           </p>
           <Link href="/shop" className="btn-luxury-primary text-base px-10 py-4 inline-flex items-center">
             Shop Collection

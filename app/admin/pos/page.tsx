@@ -728,7 +728,7 @@ export default function POSPage() {
                                             <option value="">Walk-in Customer / New Guest</option>
                                             {filteredCustomers.map(c => (
                                                 <option key={c.id} value={c.id}>
-                                                    {c.full_name || 'No Name'} — {c.phone || c.email}
+                                                    {c.full_name || 'No Name'} · {c.phone || c.email}
                                                 </option>
                                             ))}
                                         </select>

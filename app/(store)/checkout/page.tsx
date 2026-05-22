@@ -544,7 +544,7 @@ export default function CheckoutPage() {
                         />
                         <div>
                           <p className="font-semibold text-gray-900">Store Pickup</p>
-                          <p className="text-sm text-gray-600">Pick up from our store — Ready in 24 hours</p>
+                          <p className="text-sm text-gray-600">Pick up from our store. Ready in 24 hours.</p>
                         </div>
                       </div>
                       <p className="font-bold text-brand-espresso">FREE</p>
