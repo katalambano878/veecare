@@ -2,7 +2,9 @@ import type { Viewport } from "next";
 import Script from "next/script";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import DeferredRemixIcon from "@/components/DeferredRemixIcon";
 import { SHORT_NAME } from "@/lib/brand";
+import { fontDisplay, fontSans } from "@/lib/fonts";
 import {
   buildRootMetadata,
   organizationJsonLd,
@@ -50,18 +52,6 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href={SEO_ASSETS.appleTouchIcon} />
         <link rel="manifest" href="/favicon/site.webmanifest" />
 
-        <link
-          href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css"
-          rel="stylesheet"
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-
         {structuredData.map((schema) => (
           <script
             key={schema['@type'] as string}
@@ -97,7 +87,10 @@ export default function RootLayout({
         />
       )}
 
-      <body className="antialiased font-sans overflow-x-hidden pwa-body">
+      <body
+        className={`${fontSans.variable} ${fontDisplay.variable} antialiased font-sans overflow-x-hidden pwa-body`}
+      >
+        <DeferredRemixIcon />
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[10000] focus:px-6 focus:py-3 focus:bg-brand-espresso focus:text-brand-cream focus:rounded-lg focus:font-semibold focus:shadow-lg"

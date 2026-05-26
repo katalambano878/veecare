@@ -739,6 +739,12 @@ img {
   animation: pageSlideIn 0.3s ease-out forwards;
 }
 
+@media (max-width: 1023px) {
+  .pwa-page-enter {
+    animation: none;
+  }
+}
+
 /* ========================================
    PWA - SPLASH SCREEN FALLBACK
    ======================================== */

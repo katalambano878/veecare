@@ -1,72 +1,41 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
 import ProductCard, { type ColorVariant, getColorHex } from '@/components/ProductCard';
 import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
 import AnimatedSection, { AnimatedGrid } from '@/components/AnimatedSection';
 import HorizontalScroll from '@/components/HorizontalScroll';
-import NewsletterSection from '@/components/NewsletterSection';
 import HomeHero from '@/components/home/HomeHero';
-import SelfCareBenefits from '@/components/home/SelfCareBenefits';
-import TestimonialsSection from '@/components/home/TestimonialsSection';
-import SocialProofSection from '@/components/home/SocialProofSection';
-import WhatsAppCta from '@/components/home/WhatsAppCta';
-import HomeFaqSection from '@/components/home/HomeFaqSection';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { HOME_CATEGORIES } from '@/lib/brand';
+import type { HomeCategory, HomeProduct } from '@/lib/home-data';
+
+const SelfCareBenefits = dynamic(() => import('@/components/home/SelfCareBenefits'), { ssr: true });
+const TestimonialsSection = dynamic(() => import('@/components/home/TestimonialsSection'), { ssr: true });
+const SocialProofSection = dynamic(() => import('@/components/home/SocialProofSection'), { ssr: true });
+const WhatsAppCta = dynamic(() => import('@/components/home/WhatsAppCta'), { ssr: true });
+const HomeFaqSection = dynamic(() => import('@/components/home/HomeFaqSection'), { ssr: true });
+const NewsletterSection = dynamic(() => import('@/components/NewsletterSection'), { ssr: true });
 
 const CATEGORY_CARD_CLASS =
   'flex-shrink-0 w-[72vw] max-w-[300px] sm:w-[280px] md:w-[300px] lg:w-[320px]';
 
-type StoreCategory = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  image_url: string | null;
+type HomeClientProps = {
+  initialFeaturedProducts?: HomeProduct[];
+  initialCategories?: HomeCategory[];
 };
 
-export default function HomeClient() {
+export default function HomeClient({
+  initialFeaturedProducts = [],
+  initialCategories = [],
+}: HomeClientProps) {
   usePageTitle('');
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<StoreCategory[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchHomeData() {
-      const [productsResult, categoriesResult] = await Promise.all([
-        supabase
-          .from('products')
-          .select('*, product_variants(*), product_images(*)')
-          .eq('status', 'active')
-          .eq('featured', true)
-          .order('created_at', { ascending: false })
-          .limit(8),
-        supabase
-          .from('categories')
-          .select('id, name, slug, description, image_url')
-          .eq('status', 'active')
-          .is('parent_id', null)
-          .order('position', { ascending: true })
-          .limit(12),
-      ]);
-
-      if (!productsResult.error) {
-        setFeaturedProducts(productsResult.data || []);
-      }
-      setProductsLoading(false);
-
-      if (!categoriesResult.error) {
-        setCategories(categoriesResult.data || []);
-      }
-      setCategoriesLoading(false);
-    }
-
-    fetchHomeData();
-  }, []);
+  const featuredProducts = initialFeaturedProducts;
+  const categories = initialCategories;
+  const productsLoading = false;
+  const categoriesLoading = false;
 
   const fallbackCategories = HOME_CATEGORIES.map((c) => ({
     id: c.id,
@@ -249,13 +218,13 @@ export default function HomeClient() {
                     slug={product.slug}
                     name={product.name}
                     price={product.price}
-                    originalPrice={product.compare_at_price}
+                    originalPrice={product.compare_at_price ?? undefined}
                     image={primaryImage || ''}
                     rating={product.rating_avg || 5}
                     reviewCount={product.review_count || 0}
                     badge={product.featured ? 'Featured' : undefined}
-                    inStock={effectiveStock > 0}
-                    maxStock={effectiveStock || 50}
+                    inStock={(effectiveStock ?? 0) > 0}
+                    maxStock={effectiveStock ?? 50}
                     moq={product.moq || 1}
                     hasVariants={hasVariants}
                     minVariantPrice={minVariantPrice}

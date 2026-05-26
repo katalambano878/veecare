@@ -6,7 +6,6 @@ import MiniCart from './MiniCart';
 import { useCart } from '@/context/CartContext';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useCMS } from '@/context/CMSContext';
-import AnnouncementBar from './AnnouncementBar';
 import Logo from '@/components/Logo';
 import { APP_TITLE, NAV_LINKS, NAV_LINKS_OPTIONAL } from '@/lib/brand';
 
@@ -36,20 +35,35 @@ export default function Header() {
       };
     }
 
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+    let subscription: { unsubscribe: () => void } | undefined;
+    let idleId: number | undefined;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+
+    const initAuth = () => {
+      void (async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+      })();
+
+      const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(
+        (_event, session) => {
+          setUser(session?.user ?? null);
+        }
+      );
+      subscription = authSub;
     };
 
-    checkUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = window.requestIdleCallback(initAuth, { timeout: 2000 });
+    } else {
+      timerId = setTimeout(initAuth, 300);
+    }
 
     return () => {
       window.removeEventListener('wishlistUpdated', updateWishlistCount);
-      subscription.unsubscribe();
+      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+      if (timerId !== undefined) clearTimeout(timerId);
+      subscription?.unsubscribe();
     };
   }, []);
 
@@ -65,8 +79,6 @@ export default function Header() {
 
   return (
     <>
-      <AnnouncementBar />
-
       <header className="fixed top-0 inset-x-0 z-50 transition-all duration-500 pt-2 px-4 sm:pt-4 sm:px-6 lg:px-8">
         <div className="glass mx-auto max-w-[1440px] rounded-2xl shadow-glass border border-white/40">
           <div className="absolute inset-0 bg-brand-cream/20 rounded-2xl -z-10" />

@@ -10,8 +10,6 @@ export default function MobileBottomNav() {
   const pathname = usePathname();
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [isStandalone, setIsStandalone] = useState(false);
 
   const isActive = (path: string) => {
@@ -20,27 +18,11 @@ export default function MobileBottomNav() {
   };
 
   useEffect(() => {
-    // Detect standalone PWA mode
-    const standalone = window.matchMedia('(display-mode: standalone)').matches
-      || (window.navigator as any).standalone === true;
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
     setIsStandalone(standalone);
   }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      // Hide on scroll down, show on scroll up (only when scrolled far enough)
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setIsVisible(false);
-      } else {
-        setIsVisible(true);
-      }
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
 
   const navItems = [
     {
@@ -79,16 +61,17 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 ease-out ${
-        isVisible ? 'translate-y-0' : 'translate-y-full'
-      }`}
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] safe-area-bottom"
       aria-label="Mobile navigation"
     >
-      {/* Frosted glass background */}
       <div className="relative">
-        <div className="glass-panel border-t border-white/60 shadow-[0_-8px_30px_rgba(107,62,46,0.05)] rounded-t-3xl overflow-hidden">
+        <div className="glass-panel border-t border-white/60 shadow-[0_-8px_30px_rgba(107,62,46,0.08)] rounded-t-3xl overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-brand-nude/10 via-transparent to-brand-nude/10" />
-          <div className={`grid grid-cols-5 relative z-10 ${isStandalone ? 'pb-6' : 'pb-2'} pt-2`}>
+          <div
+            className={`grid grid-cols-5 relative z-10 pt-2 ${
+              isStandalone ? 'pb-6' : 'pb-[max(0.5rem,env(safe-area-inset-bottom))]'
+            }`}
+          >
             {navItems.map((item) => {
               const active = isActive(item.href);
               return (
@@ -101,29 +84,31 @@ export default function MobileBottomNav() {
                   aria-label={item.label}
                   aria-current={active ? 'page' : undefined}
                 >
-                  {/* Active indicator pill */}
                   {active && (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-espresso rounded-full transition-all duration-300" />
                   )}
-                  
+
                   <div className="relative w-7 h-7 flex items-center justify-center">
                     <i
                       className={`${active ? item.iconActive : item.iconInactive} text-[22px] transition-all duration-300 ${
-                        active ? 'scale-110 text-brand-espresso' : 'group-hover:scale-105 text-brand-cocoa/50'
+                        active
+                          ? 'scale-110 text-brand-espresso'
+                          : 'group-hover:scale-105 text-brand-cocoa/50'
                       }`}
                     />
-                    
-                    {/* Badge */}
+
                     {item.badge !== undefined && item.badge > 0 && (
                       <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] bg-brand-espresso text-brand-cream text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-scale-in">
                         {item.badge > 99 ? '99+' : item.badge}
                       </span>
                     )}
                   </div>
-                  
-                  <span className={`text-[10px] font-medium tracking-wide mt-0.5 transition-all duration-300 ${
-                    active ? 'opacity-100 text-brand-espresso' : 'opacity-70 text-brand-cocoa/60'
-                  }`}>
+
+                  <span
+                    className={`text-[10px] font-medium tracking-wide mt-0.5 transition-all duration-300 ${
+                      active ? 'opacity-100 text-brand-espresso' : 'opacity-70 text-brand-cocoa/60'
+                    }`}
+                  >
                     {item.label}
                   </span>
                 </Link>
