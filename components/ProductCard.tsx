@@ -82,24 +82,24 @@ export default function ProductCard({
   const formatPrice = (val: number) => `GH\u20B5${val.toFixed(2)}`;
 
   return (
-    <div className="group bg-transparent rounded-lg h-full flex flex-col hover-lift">
-      <Link href={`/product/${slug}`} className="relative block aspect-[3/4] overflow-hidden rounded-xl sm:rounded-2xl bg-brand-nude/20 mb-2 sm:mb-4 shadow-sm group-hover:shadow-luxury-lg transition-all duration-500 border border-brand-nude/30">
+    <div className="group glass-card rounded-[1.5rem] sm:rounded-[2rem] h-full flex flex-col hover-lift border border-white/60 shadow-glass hover:shadow-glass-strong bg-white/40">
+      <Link href={`/product/${slug}`} className="relative block aspect-[3/4] overflow-hidden rounded-t-[1.5rem] sm:rounded-t-[2rem] rounded-b-xl bg-brand-nude/20 mb-2 sm:mb-4">
         <LazyImage
           src={image}
           alt={name}
-          className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-[1200ms] ease-out"
+          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-[1200ms] ease-out"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-espresso/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden lg:block" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-espresso/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden lg:block pointer-events-none mix-blend-multiply" />
 
-        <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-2 z-10">
+        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-1.5 sm:gap-2 z-10">
           {badge && (
-            <span className="glass text-brand-espresso border border-white/50 text-[10px] sm:text-xs font-semibold tracking-normal px-2 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full shadow-sm">
+            <span className="glass text-brand-espresso border border-white/60 text-[9px] sm:text-xs font-semibold tracking-wider uppercase px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-glass backdrop-blur-md">
               {badge}
             </span>
           )}
           {discount > 0 && (
-            <span className="bg-red-50/90 backdrop-blur-md text-red-700 border border-red-200/50 text-[10px] sm:text-xs font-semibold tracking-normal px-2 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full shadow-sm">
+            <span className="glass text-brand-rose border border-brand-rose/20 text-[9px] sm:text-xs font-bold tracking-wider px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-glass backdrop-blur-md bg-white/70">
               -{discount}%
             </span>
           )}
@@ -107,15 +107,15 @@ export default function ProductCard({
 
         {!inStock && (
           <div className="absolute inset-0 glass flex items-center justify-center z-20">
-            <span className="glass-dark text-white px-5 py-2.5 rounded-full text-xs font-medium tracking-normal">Out of stock</span>
+            <span className="glass-dark text-white px-6 py-3 rounded-full text-xs font-semibold tracking-wider uppercase shadow-glass-strong border border-white/20">Out of stock</span>
           </div>
         )}
 
         {inStock && (
           <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out hidden lg:block z-20">
             {hasVariants ? (
-              <span className="w-full glass text-brand-espresso hover:bg-white/90 py-3.5 rounded-xl font-medium shadow-lg transition-all flex items-center justify-center space-x-2 text-sm border border-white/60">
-                <i className="ri-list-check"></i>
+              <span className="w-full glass-panel text-brand-espresso hover:text-brand-berry py-3.5 rounded-2xl font-semibold tracking-wide shadow-glass-strong hover:shadow-glass-hover transition-all flex items-center justify-center space-x-2 text-sm border border-white/80 hover:-translate-y-0.5">
+                <i className="ri-list-check text-lg"></i>
                 <span>Select Options</span>
               </span>
             ) : (
@@ -124,9 +124,9 @@ export default function ProductCard({
                   e.preventDefault();
                   addToCart({ id, name, price, image, quantity: moq, slug, maxStock, moq });
                 }}
-                className="w-full glass text-brand-espresso hover:bg-white/90 py-3.5 rounded-xl font-medium shadow-lg transition-all flex items-center justify-center space-x-2 text-sm border border-white/60"
+                className="w-full glass-panel text-brand-espresso hover:text-brand-berry py-3.5 rounded-2xl font-semibold tracking-wide shadow-glass-strong hover:shadow-glass-hover transition-all flex items-center justify-center space-x-2 text-sm border border-white/80 hover:-translate-y-0.5"
               >
-                <i className="ri-shopping-cart-2-line"></i>
+                <i className="ri-shopping-cart-2-line text-lg"></i>
                 <span>{moq > 1 ? `Add ${moq} to Cart` : 'Quick Add'}</span>
               </button>
             )}
@@ -134,9 +134,9 @@ export default function ProductCard({
         )}
       </Link>
 
-      <div className="flex flex-col flex-grow px-0.5 sm:px-0">
+      <div className="flex flex-col flex-grow px-3 sm:px-5 pb-4 sm:pb-5">
         <Link href={`/product/${slug}`}>
-          <h3 className="font-display text-sm sm:text-lg md:text-xl leading-snug sm:leading-tight text-brand-espresso mb-1 sm:mb-1.5 group-hover:text-brand-mauve transition-colors duration-300 line-clamp-2 tracking-tight">
+          <h3 className="font-display text-[0.95rem] sm:text-lg md:text-xl font-medium leading-snug text-brand-cocoa mb-1 group-hover:text-brand-espresso transition-colors duration-300 line-clamp-2">
             {name}
           </h3>
         </Link>
@@ -167,22 +167,22 @@ export default function ProductCard({
 
         <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 mb-1 sm:mb-2">
           {hasVariants && minVariantPrice ? (
-            <span className="text-xs sm:text-base text-brand-espresso font-medium tracking-wide">From {formatPrice(minVariantPrice)}</span>
+            <span className="text-sm sm:text-base text-brand-espresso font-medium tracking-wide">From {formatPrice(minVariantPrice)}</span>
           ) : (
-            <span className="text-xs sm:text-base text-brand-espresso font-medium tracking-wide">{formatPrice(price)}</span>
+            <span className="text-sm sm:text-base text-brand-espresso font-medium tracking-wide">{formatPrice(price)}</span>
           )}
           {originalPrice && (
             <span className="text-[10px] sm:text-sm text-brand-cocoa/40 line-through font-light tracking-wide">{formatPrice(originalPrice)}</span>
           )}
         </div>
 
-        <div className="mt-auto pt-1 sm:pt-2 lg:hidden">
+        <div className="mt-auto pt-2.5 sm:pt-4 lg:hidden">
           {hasVariants ? (
             <Link
               href={`/product/${slug}`}
-              className="w-full border border-brand-nude/80 text-brand-espresso py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-medium hover:bg-brand-nude/30 active:bg-brand-nude/50 transition-colors flex items-center justify-center gap-1"
+              className="w-full glass text-brand-espresso py-2 sm:py-3 rounded-xl text-[11px] sm:text-sm font-semibold tracking-wide hover:shadow-glass-hover active:bg-brand-nude/50 transition-all flex items-center justify-center gap-1.5 border border-white/60 shadow-glass"
             >
-              <i className="ri-list-check text-xs sm:text-sm"></i>
+              <i className="ri-list-check text-[13px] sm:text-base"></i>
               <span className="truncate">Options</span>
             </Link>
           ) : (
@@ -192,8 +192,9 @@ export default function ProductCard({
                 addToCart({ id, name, price, image, quantity: moq, slug, maxStock, moq });
               }}
               disabled={!inStock}
-              className="w-full border border-brand-nude/80 text-brand-espresso py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-medium hover:bg-brand-nude/30 active:bg-brand-nude/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full glass text-brand-espresso py-2 sm:py-3 rounded-xl text-[11px] sm:text-sm font-semibold tracking-wide hover:shadow-glass-hover active:bg-brand-nude/50 transition-all flex items-center justify-center gap-1.5 border border-white/60 shadow-glass disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              <i className="ri-shopping-cart-2-line text-[13px] sm:text-base"></i>
               {moq > 1 ? `Add ${moq}` : 'Add to Cart'}
             </button>
           )}

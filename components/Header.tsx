@@ -7,16 +7,10 @@ import { useCart } from '@/context/CartContext';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useCMS } from '@/context/CMSContext';
 import AnnouncementBar from './AnnouncementBar';
-import {
-  APP_TITLE,
-  LOGO_PATH,
-  LOGO_CLASS_HEADER,
-  NAV_LINKS,
-  NAV_LINKS_OPTIONAL,
-} from '@/lib/brand';
+import Logo from '@/components/Logo';
+import { APP_TITLE, NAV_LINKS, NAV_LINKS_OPTIONAL } from '@/lib/brand';
 
 export default function Header() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [wishlistCount, setWishlistCount] = useState(0);
@@ -26,7 +20,6 @@ export default function Header() {
   const { getSetting } = useCMS();
 
   const siteName = getSetting('site_name') || APP_TITLE;
-  const headerLogo = getSetting('site_logo') || LOGO_PATH;
 
   useEffect(() => {
     const updateWishlistCount = () => {
@@ -74,28 +67,17 @@ export default function Header() {
     <>
       <AnnouncementBar />
 
-      <header className="glass sticky top-0 z-50 transition-all duration-500 border-b-0">
-        <div className="absolute inset-0 bg-brand-cream/40 -z-10" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-nude/80 to-transparent" />
-        <div className="safe-area-top" />
-        <nav aria-label="Main navigation" className="relative">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="h-20 grid grid-cols-[auto_1fr_auto] items-center gap-4">
+      <header className="fixed top-0 inset-x-0 z-50 transition-all duration-500 pt-2 px-4 sm:pt-4 sm:px-6 lg:px-8">
+        <div className="glass mx-auto max-w-[1440px] rounded-2xl shadow-glass border border-white/40">
+          <div className="absolute inset-0 bg-brand-cream/20 rounded-2xl -z-10" />
+          <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/60 pointer-events-none" />
+          <nav aria-label="Main navigation" className="relative">
+            <div className="px-4 sm:px-6 lg:px-8">
+              <div className="h-16 md:h-20 grid grid-cols-[auto_1fr_auto] items-center gap-4">
 
               <div className="flex items-center gap-4">
-                <button
-                  className="lg:hidden p-2 -ml-2 text-brand-cocoa hover:text-brand-espresso transition-colors"
-                  onClick={() => setIsMobileMenuOpen(true)}
-                  aria-label="Open menu"
-                >
-                  <i className="ri-menu-line text-2xl"></i>
-                </button>
-                <Link href="/" className="flex items-center select-none" aria-label="Go to homepage">
-                  <img
-                    src={headerLogo}
-                    alt={siteName}
-                    className={`${LOGO_CLASS_HEADER} max-w-[160px] md:max-w-[200px]`}
-                  />
+                <Link href="/" className="flex items-center select-none" aria-label={`${siteName} — home`}>
+                  <Logo className="h-10 md:h-11 w-auto max-w-[160px] md:max-w-[200px]" priority />
                 </Link>
               </div>
 
@@ -103,7 +85,7 @@ export default function Header() {
                 {NAV_LINKS.map((link) => (
                   <Link key={link.href} href={link.href} className={navLinkClass}>
                     {link.label}
-                    <span className="absolute inset-x-0 bottom-0 h-px scale-x-0 bg-brand-champagne transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                    <span className="absolute inset-x-0 bottom-0 h-px scale-x-0 bg-brand-rose transition-transform duration-300 ease-out group-hover:scale-x-100" />
                   </Link>
                 ))}
               </div>
@@ -164,7 +146,10 @@ export default function Header() {
             </div>
           </div>
         </nav>
+        </div>
       </header>
+      {/* Spacer for fixed glass header */}
+      <div className="h-[4.5rem] md:h-24 shrink-0" aria-hidden />
 
       <MiniCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
@@ -204,75 +189,7 @@ export default function Header() {
         </div>
       )}
 
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] lg:hidden">
-          <div
-            className="absolute inset-0 bg-brand-cocoa/50 backdrop-blur-sm"
-            onClick={() => setIsMobileMenuOpen(false)}
-            aria-hidden="true"
-          />
-          <div className="absolute top-0 left-0 bottom-0 w-[85%] max-w-sm bg-brand-cream shadow-luxury-lg flex flex-col animate-in slide-in-from-left duration-300">
-            <div className="p-5 border-b border-brand-nude flex items-center justify-between">
-              <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-                <img src={headerLogo} alt={siteName} className="h-9 w-auto object-contain max-w-[140px]" />
-              </Link>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 -mr-2 text-brand-cocoa/60 hover:text-brand-espresso"
-                aria-label="Close menu"
-              >
-                <i className="ri-close-line text-2xl"></i>
-              </button>
-            </div>
-
-            <nav className="flex-1 overflow-y-auto p-5 space-y-1">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="block px-4 py-3.5 text-base font-medium text-brand-cocoa hover:bg-brand-nude/50 rounded-xl transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="h-px bg-brand-nude my-3" />
-              <p className="px-4 text-xs font-medium text-brand-cocoa/50 mb-1">Discover</p>
-              {NAV_LINKS_OPTIONAL.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="block px-4 py-3 text-sm text-brand-cocoa/80 hover:bg-brand-nude/40 rounded-xl transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="h-px bg-brand-nude my-3" />
-              {[
-                { label: 'Track Order', href: '/order-tracking' },
-                { label: 'Wishlist', href: '/wishlist' },
-                { label: 'My Account', href: '/account' },
-              ].map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="block px-4 py-3 text-sm text-brand-cocoa/70 hover:bg-brand-nude/30 rounded-xl transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="p-5 border-t border-brand-nude">
-              <p className="text-xs text-brand-cocoa/50 text-center tracking-wide">
-                &copy; {new Date().getFullYear()} {siteName}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mobile slide-out menu removed; primary navigation lives in header + page sections */}
     </>
   );
 }

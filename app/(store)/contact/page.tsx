@@ -14,6 +14,10 @@ import {
   WHATSAPP_LINK,
   INSTAGRAM_HANDLE,
   INSTAGRAM_URL,
+  TIKTOK_HANDLE,
+  TIKTOK_URL,
+  SNAPCHAT_HANDLE,
+  SNAPCHAT_URL,
 } from '@/lib/brand';
 
 export default function ContactPage() {
@@ -102,7 +106,7 @@ export default function ContactPage() {
 
   const heroSubtitle =
     pageContent?.subtitle ||
-    'Orders, imports, appliances, or style questions? Reach us by phone, WhatsApp, or in person.';
+    'Questions about products, orders, or delivery? Reach Vee Care by phone, WhatsApp, or social media.';
 
   const waLink = WHATSAPP_LINK;
   const rawPhone = (getSetting('contact_phone') || CONTACT_PHONE).replace(/\s/g, '');
@@ -129,14 +133,28 @@ export default function ContactPage() {
       title: 'Instagram',
       value: INSTAGRAM_HANDLE,
       link: instagramUrl,
-      description: 'DM us for drops, imports & orders',
+      description: 'DM us for orders & product questions',
+    },
+    {
+      icon: 'ri-tiktok-line',
+      title: 'TikTok',
+      value: TIKTOK_HANDLE,
+      link: TIKTOK_URL,
+      description: 'Watch & shop with us',
+    },
+    {
+      icon: 'ri-snapchat-line',
+      title: 'Snapchat',
+      value: SNAPCHAT_HANDLE,
+      link: SNAPCHAT_URL,
+      description: 'Chat & order on Snapchat',
     },
     {
       icon: 'ri-map-pin-line',
-      title: 'Visit Us',
+      title: 'Location',
       value: contactAddress,
       link: mapsLink,
-      description: 'Hatso · Agbogba · Accra',
+      description: 'Online store · Accra, Ghana',
     },
   ];
 
@@ -144,7 +162,7 @@ export default function ContactPage() {
     {
       question: 'How do I place or reserve an order?',
       answer:
-        'Browse the shop, add items to your cart, or message us on WhatsApp or Instagram. For imported or pre-order pieces, use Reserve Your Order on the homepage or contact us directly.',
+        'Browse the shop, add items to your cart, or message us on WhatsApp, Instagram, TikTok, or Snapchat. We will confirm availability and delivery details for you.',
     },
     {
       question: 'What are your delivery times?',
@@ -170,7 +188,7 @@ export default function ContactPage() {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {contactMethods.map((method, index) => (
             <a
               key={index}

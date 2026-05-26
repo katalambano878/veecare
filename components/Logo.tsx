@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
 import { BRAND_NAME, LOGO_PATH, LOGO_CLASS_HEADER } from '@/lib/brand';
 
@@ -8,12 +11,32 @@ type LogoProps = {
   priority?: boolean;
 };
 
+export function LogoMark({ className = '' }: { className?: string }) {
+  return (
+    <span
+      className={`font-display font-semibold tracking-tight text-brand-berry ${className}`}
+    >
+      Vee Care
+    </span>
+  );
+}
+
 export default function Logo({
   className = LOGO_CLASS_HEADER,
-  width = 200,
-  height = 80,
+  width = 220,
+  height = 100,
   priority = false,
 }: LogoProps) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <span className={className} title={BRAND_NAME}>
+        <LogoMark />
+      </span>
+    );
+  }
+
   return (
     <Image
       src={LOGO_PATH}
@@ -22,7 +45,13 @@ export default function Logo({
       height={height}
       className={className}
       priority={priority}
-      style={{ width: 'auto', height: '100%', maxHeight: '3rem' }}
+      onError={() => setFailed(true)}
+      style={{
+        width: 'auto',
+        height: '100%',
+        maxHeight: '3.25rem',
+        objectFit: 'contain',
+      }}
     />
   );
 }

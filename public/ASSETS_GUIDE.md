@@ -1,48 +1,43 @@
-# Brand assets — Upscale Vintage
+# Vee Care — brand assets
 
-## Regenerate OG + favicons from logo
+## Hero image (priority)
+
+Add an editorial wellness photograph:
+
+**Path:** `/public/hero/hero-main.jpg`
+
+**Direction:**
+- Ghanaian/African woman, soft natural light
+- Warm beige and blush tones
+- Feminine wellness products, soft fabrics, subtle florals
+- Calm, modern, emotionally safe — not hospital, pharmacy, or glam salon
+- Leave space on the left for text (desktop layout)
+
+## Logo
+
+**Path:** `/public/logo.png` (transparent PNG)
+
+Source: `public/logo-source.png` — regenerate transparency with:
+
+```bash
+node scripts/prepare-logo.mjs
+```
+
+## Regenerate favicons & OG
 
 ```bash
 npm run generate:seo
 ```
 
-Requires `public/logo.png` (your Upscale Vintage logo). This creates:
+Requires `public/logo.png`.
 
-| Path | Use |
+## Palette reference
+
+| Role | Hex |
 |------|-----|
-| `/public/og-image.png` | Facebook, LinkedIn, WhatsApp link preview (1200×630) |
-| `/public/twitter-card.png` | Twitter/X large card |
-| `/public/og-image-square.png` | Square social fallback |
-| `/public/favicon/` | Full favicon pack (see below) |
-| `/app/favicon.ico` | Next.js browser tab icon |
-| `/app/icon.png` | Next.js metadata icon |
-| `/app/apple-icon.png` | iOS home screen |
-
-### Favicon folder (`/public/favicon/`)
-
-| File | Size |
-|------|------|
-| `favicon.ico` | Multi-size ICO |
-| `favicon-16x16.png` | Browser tab |
-| `favicon-32x32.png` | Browser tab HD |
-| `favicon-48x48.png` | Windows |
-| `apple-touch-icon.png` | 180×180 iOS |
-| `android-chrome-192x192.png` | PWA |
-| `android-chrome-512x512.png` | PWA splash |
-| `site.webmanifest` | PWA manifest fragment |
-
-## SEO
-
-All titles, meta descriptions, Open Graph, and JSON-LD are defined in **`lib/seo.ts`** (not CMS). Update copy there, then redeploy.
-
-Set production URL in `.env.local`:
-
-```
-NEXT_PUBLIC_APP_URL=https://upscalevintage.com
-NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=your-google-code
-```
-
-## Hero & about images
-
-| `/public/hero/lifestyle-hero-1.png` … `lifestyle-hero-3.png` | Homepage hero carousel |
-| `/public/about-mockup-1.png` … `3.png` | Who We Are slider |
+| Soft Rose Pink | `#E88BA8` |
+| Warm Blush Nude | `#F6E6E8` |
+| Muted Berry Pink | `#C95D7B` |
+| Soft Lavender Nude | `#DCC9D6` |
+| Warm Ivory | `#FFF9F7` |
+| Soft Cocoa Brown | `#5B4B4B` |

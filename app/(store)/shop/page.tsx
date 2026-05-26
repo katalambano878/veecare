@@ -73,10 +73,11 @@ function ShopContent() {
               .from('products')
               .select(`
                 *,
-                categories!inner(name, slug),
+                categories(name, slug),
                 product_images!product_id(url, position),
                 product_variants(id, name, price, quantity, option1, option2, image_url)
               `, { count: 'exact' })
+              .eq('status', 'active')
               .order('position', { foreignTable: 'product_images', ascending: true });
 
             // Search
@@ -137,7 +138,7 @@ function ShopContent() {
 
             return query as any;
           },
-          2 * 60 * 1000 // Cache for 2 minutes
+          60 * 1000 // Cache for 1 minute (admin revalidate clears sooner)
         );
 
         if (error) throw error;
@@ -198,44 +199,46 @@ function ShopContent() {
   const totalPages = Math.ceil(totalProducts / productsPerPage);
 
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <main className="min-h-screen bg-brand-cream relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-rose/10 rounded-full blur-[120px] pointer-events-none mix-blend-multiply" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-lavender/20 rounded-full blur-[100px] pointer-events-none mix-blend-multiply" />
       <PageHero
         title="Shop All Products"
-        subtitle="Trending lifestyle and import-ready picks: fashion, home appliances, bags, accessories, and more."
+        subtitle="Feminine care, hygiene, and wellness essentials — curated with a calm, crystalline touch for everyday confidence."
         
       />
 
       {/* Mobile Filter Toggle */}
-      <div className="lg:hidden bg-white/80 border-b border-brand-nude/50 py-4 px-4 sticky top-[72px] z-20">
+      <div className="lg:hidden glass-panel border-b border-white/50 py-4 px-4 sticky top-[72px] z-20 shadow-glass backdrop-blur-xl">
         <div className="flex justify-between items-center">
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="flex items-center space-x-2 text-brand-espresso font-medium"
+            className="flex items-center space-x-2 text-brand-espresso font-semibold tracking-wide"
           >
             <i className="ri-filter-3-line text-xl"></i>
             <span>Filters & Sort</span>
           </button>
-          <span className="text-sm text-brand-cocoa/60">{totalProducts} Products</span>
+          <span className="text-sm font-medium tracking-wide text-brand-cocoa/70">{totalProducts} Products</span>
         </div>
       </div>
 
-      <section className="py-12">
+      <section className="py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col lg:flex-row gap-8">
-            <aside className={`${isFilterOpen ? 'fixed inset-0 z-50 bg-white overflow-y-auto' : 'hidden'} lg:block lg:w-64 lg:flex-shrink-0`}>
-              <div className="lg:sticky lg:top-24">
-                <div className="bg-white lg:bg-transparent p-6 lg:p-0">
+            <aside className={`${isFilterOpen ? 'fixed inset-0 z-50 glass-panel overflow-y-auto backdrop-blur-xl' : 'hidden'} lg:block lg:w-72 lg:flex-shrink-0`}>
+              <div className="lg:sticky lg:top-28">
+                <div className="p-6 lg:p-0">
                   <div className="flex items-center justify-between mb-6 lg:hidden">
                     <h2 className="font-display text-xl font-semibold text-brand-espresso">Filters</h2>
                     <button
                       onClick={() => setIsFilterOpen(false)}
-                      className="w-10 h-10 flex items-center justify-center text-brand-cocoa"
+                      className="w-10 h-10 flex items-center justify-center rounded-xl glass text-brand-cocoa hover:text-brand-espresso shadow-glass"
                     >
                       <i className="ri-close-line text-2xl"></i>
                     </button>
                   </div>
 
-                  <div className="space-y-8">
+                  <div className="glass-panel rounded-[2rem] p-6 lg:p-8 border border-white/60 shadow-glass-strong space-y-8">
                     {/* Categories */}
                     <div>
                       <h3 className="font-semibold text-brand-espresso mb-4">Categories</h3>
@@ -246,9 +249,9 @@ function ShopContent() {
                             setPage(1);
                             setIsFilterOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 rounded-xl transition-colors ${selectedCategory === 'all'
-                            ? 'bg-brand-nude/50 text-brand-espresso font-medium'
-                            : 'text-brand-cocoa hover:bg-brand-nude/30'
+                          className={`w-full text-left px-4 py-2.5 rounded-xl transition-all duration-300 ${selectedCategory === 'all'
+                            ? 'glass text-brand-espresso font-semibold shadow-glass border border-white/60'
+                            : 'text-brand-cocoa hover:glass hover:shadow-glass border border-transparent'
                             }`}
                         >
                           All Products
@@ -269,9 +272,9 @@ function ShopContent() {
                                   setPage(1);
                                   // Don't close filter immediately if exploring hierarchy
                                 }}
-                                className={`w-full text-left px-4 py-2 rounded-xl transition-colors flex justify-between items-center ${isSelected
-                                  ? 'bg-brand-nude/40 text-brand-espresso font-medium'
-                                  : 'text-brand-cocoa hover:bg-brand-nude/30'
+                                className={`w-full text-left px-4 py-2.5 rounded-xl transition-all duration-300 flex justify-between items-center ${isSelected
+                                  ? 'glass text-brand-espresso font-semibold shadow-glass border border-white/60'
+                                  : 'text-brand-cocoa hover:glass hover:shadow-glass border border-transparent'
                                   }`}
                               >
                                 <span>{parent.name}</span>
@@ -279,7 +282,7 @@ function ShopContent() {
 
                               {/* Subcategories */}
                               {subcategories.length > 0 && (
-                                <div className="ml-4 border-l-2 border-brand-nude/50 pl-2 space-y-1">
+                                <div className="ml-4 border-l-2 border-brand-rose/20 pl-2 space-y-1">
                                   {subcategories.map(child => (
                                     <button
                                       key={child.id}
@@ -288,9 +291,9 @@ function ShopContent() {
                                         setPage(1);
                                         setIsFilterOpen(false);
                                       }}
-                                      className={`w-full text-left px-4 py-1.5 rounded-xl text-sm transition-colors ${selectedCategory === child.slug
-                                        ? 'text-brand-espresso font-medium bg-brand-nude/40'
-                                        : 'text-brand-cocoa/70 hover:text-brand-espresso hover:bg-brand-nude/30'
+                                      className={`w-full text-left px-4 py-2 rounded-xl text-sm transition-all duration-300 ${selectedCategory === child.slug
+                                        ? 'glass text-brand-espresso font-semibold shadow-glass'
+                                        : 'text-brand-cocoa/70 hover:glass hover:text-brand-espresso'
                                         }`}
                                     >
                                       {child.name}
@@ -305,8 +308,8 @@ function ShopContent() {
                     </div>
 
                     {/* Price Range */}
-                    <div className="border-t border-brand-nude/50 pt-8">
-                      <h3 className="font-semibold text-brand-espresso mb-4">Max Price: GH₵{priceRange[1]}</h3>
+                    <div className="border-t border-white/50 pt-8">
+                      <h3 className="font-semibold text-brand-espresso mb-4 tracking-wide uppercase text-xs">Max Price: GH₵{priceRange[1]}</h3>
                       <div className="space-y-4">
                         <input
                           type="range"
@@ -318,7 +321,7 @@ function ShopContent() {
                             setPriceRange([0, parseInt(e.target.value)]);
                             setPage(1);
                           }}
-                          className="w-full h-2 bg-brand-nude/50 rounded-lg appearance-none cursor-pointer accent-brand-espresso"
+                          className="w-full h-2 rounded-full appearance-none cursor-pointer accent-brand-berry bg-brand-blush/50"
                         />
                         <div className="flex items-center justify-between text-sm text-brand-cocoa/60">
                           <span>GH₵0</span>
@@ -328,8 +331,8 @@ function ShopContent() {
                     </div>
 
                     {/* Rating */}
-                    <div className="border-t border-brand-nude/50 pt-8">
-                      <h3 className="font-semibold text-brand-espresso mb-4">Rating</h3>
+                    <div className="border-t border-white/40 pt-8">
+                      <h3 className="font-semibold text-brand-espresso mb-4 tracking-wide">Rating</h3>
                       <div className="space-y-2">
                         {[4, 3, 2, 1].map(rating => (
                           <button
@@ -338,9 +341,9 @@ function ShopContent() {
                               setSelectedRating(rating === selectedRating ? 0 : rating);
                               setPage(1);
                             }}
-                            className={`w-full text-left px-4 py-2 rounded-xl transition-colors ${selectedRating === rating
-                              ? 'bg-brand-nude/50 text-brand-espresso'
-                              : 'text-brand-cocoa hover:bg-brand-nude/30'
+                            className={`w-full text-left px-4 py-2.5 rounded-xl transition-all duration-300 ${selectedRating === rating
+                              ? 'glass-panel text-brand-espresso shadow-glass border border-white/60'
+                              : 'text-brand-cocoa hover:glass'
                               }`}
                           >
                             <div className="flex items-center space-x-2">
@@ -359,10 +362,9 @@ function ShopContent() {
 
                     <button
                       onClick={() => {
-                        // Re-fetch handled by effect dependencies
                         setIsFilterOpen(false);
                       }}
-                      className="w-full btn-luxury-primary py-3"
+                      className="w-full btn-wellness-primary py-3.5 shadow-glass hover:shadow-glass-hover"
                     >
                       Show Results
                     </button>
@@ -372,20 +374,20 @@ function ShopContent() {
             </aside>
 
             <div className="flex-1">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-                <p className="text-brand-cocoa/80">
-                  Showing <span className="font-medium text-brand-espresso">{products.length}</span> of <span className="font-medium text-brand-espresso">{totalProducts}</span> products
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 glass px-6 py-4 rounded-2xl shadow-glass border border-white/60">
+                <p className="text-brand-cocoa/80 text-sm sm:text-base font-medium">
+                  Showing <span className="font-semibold text-brand-espresso">{products.length}</span> of <span className="font-semibold text-brand-espresso">{totalProducts}</span> products
                 </p>
 
-                <div className="flex items-center space-x-3">
-                  <label className="text-sm text-brand-cocoa/80 whitespace-nowrap">Sort by:</label>
+                <div className="flex items-center space-x-3 w-full sm:w-auto">
+                  <label className="text-sm font-semibold tracking-wide text-brand-espresso/80 whitespace-nowrap uppercase">SORT BY</label>
                   <select
                     value={sortBy}
                     onChange={(e) => {
                       setSortBy(e.target.value);
                       setPage(1);
                     }}
-                    className="px-4 py-2 pr-8 border border-brand-nude/50 rounded-lg focus:ring-2 focus:ring-brand-mauve focus:border-brand-mauve text-sm bg-white cursor-pointer text-brand-espresso"
+                    className="flex-1 sm:flex-none px-4 py-2.5 pr-10 border border-white/60 rounded-xl focus:ring-2 focus:ring-brand-rose focus:border-brand-rose text-sm font-medium glass-panel cursor-pointer text-brand-espresso shadow-sm appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23C95D7B%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[right_12px_center] bg-no-repeat"
                   >
                     <option value="popular">Most Popular</option>
                     <option value="new">Newest</option>
@@ -397,26 +399,26 @@ function ShopContent() {
               </div>
 
               {loading ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-6 md:gap-8">
                   {[...Array(6)].map((_, i) => (
                     <ProductCardSkeleton key={i} />
                   ))}
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8" data-product-shop>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 md:gap-8" data-product-shop>
                     {products.map(product => (
                       <ProductCard key={product.id} {...product} />
                     ))}
                   </div>
 
                   {products.length === 0 && (
-                    <div className="text-center py-20">
-                      <div className="w-20 h-20 flex items-center justify-center mx-auto mb-6 bg-brand-nude/20 rounded-full">
-                        <i className="ri-inbox-line text-4xl text-brand-cocoa/40"></i>
+                    <div className="text-center py-20 glass-card rounded-[2.5rem] border border-white/60 shadow-glass">
+                      <div className="w-20 h-20 flex items-center justify-center mx-auto mb-6 glass rounded-2xl shadow-glass">
+                        <i className="ri-inbox-line text-4xl text-brand-berry/60"></i>
                       </div>
                       <h3 className="text-2xl font-display text-brand-espresso mb-2">No Products Found</h3>
-                      <p className="text-brand-cocoa/80 mb-8 font-medium text-base">Try adjusting your filters to find what you&apos;re looking for</p>
+                      <p className="text-brand-cocoa/70 mb-8 font-medium text-base max-w-md mx-auto">Try adjusting your filters to find what you&apos;re looking for</p>
                       <button
                         onClick={() => {
                           setSelectedCategory('all');
@@ -424,7 +426,7 @@ function ShopContent() {
                           setSelectedRating(0);
                           setPage(1);
                         }}
-                        className="btn-luxury-outline"
+                        className="glass-panel inline-flex items-center px-8 py-3.5 rounded-full font-semibold text-brand-espresso hover:text-brand-berry transition-all hover:shadow-glass-hover border border-white/60"
                       >
                         Clear All Filters
                       </button>
@@ -436,24 +438,23 @@ function ShopContent() {
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="mt-16 flex justify-center">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3 glass px-6 py-3 rounded-2xl shadow-glass border border-white/60">
                     <button
                       onClick={() => setPage(p => Math.max(1, p - 1))}
                       disabled={page === 1}
-                      className="w-10 h-10 flex items-center justify-center border border-brand-nude/50 rounded-lg hover:bg-brand-nude/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-brand-espresso"
+                      className="w-10 h-10 flex items-center justify-center glass rounded-xl hover:shadow-glass-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed text-brand-espresso"
                     >
                       <i className="ri-arrow-left-s-line text-xl"></i>
                     </button>
 
-                    {/* Simple page numbers - condensed for brevity */}
-                    <span className="px-4 font-medium text-brand-cocoa/80">
+                    <span className="px-4 font-semibold tracking-wide text-brand-cocoa/80 text-sm">
                       Page {page} of {totalPages}
                     </span>
 
                     <button
                       onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                       disabled={page === totalPages}
-                      className="w-10 h-10 flex items-center justify-center border border-brand-nude/50 rounded-lg hover:bg-brand-nude/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-brand-espresso"
+                      className="w-10 h-10 flex items-center justify-center glass rounded-xl hover:shadow-glass-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed text-brand-espresso"
                     >
                       <i className="ri-arrow-right-s-line text-xl"></i>
                     </button>

@@ -54,7 +54,11 @@ export default function ProductsPage() {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching products:', error);
+        alert(`Could not load products: ${error.message}. Check you are logged in as admin.`);
+        return;
+      }
 
       if (data) {
         // Transform data for UI

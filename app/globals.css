@@ -139,6 +139,16 @@
   }
 }
 
+@keyframes hero-progress {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
 /* ========================================
    ANIMATION UTILITY CLASSES
    ======================================== */
@@ -395,21 +405,137 @@ img {
 }
 
 /* ========================================
-   GLASSMORPHISM
+   GOD LEVEL CRYSTALLINE UI
    ======================================== */
 
 .glass {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.05) 100%);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.5);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-left-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 10px 40px -10px rgba(0, 0, 0, 0.08), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.6), 
+    inset 0 0 20px rgba(255, 255, 255, 0.15);
 }
 
 .glass-dark {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(60, 50, 50, 0.5) 0%, rgba(30, 20, 20, 0.7) 100%);
+  backdrop-filter: blur(20px) saturate(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  border-left-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 24px 60px -15px rgba(201, 93, 123, 0.15), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.8), 
+    inset 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+.glass-card {
+  @apply rounded-[2rem] transition-all duration-500;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-left-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 
+    0 12px 32px -8px rgba(201, 93, 123, 0.1), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.glass-card:hover {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%);
+  transform: translateY(-6px);
+  box-shadow: 
+    0 24px 48px -12px rgba(232, 139, 168, 0.25), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.8), 
+    inset 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+/* Crystalline store canvas — ambient mesh without the muddy grain */
+.store-canvas {
+  position: relative;
+  background-color: #FAFAFA;
+  isolation: isolate;
+}
+
+.store-canvas::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.9) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(232, 139, 168, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 60% at 80% 15%, rgba(220, 201, 214, 0.2) 0%, transparent 55%),
+    radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.8) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 50% at 50% 100%, rgba(201, 93, 123, 0.08) 0%, transparent 65%),
+    linear-gradient(135deg, #FAFAFA 0%, #F5F0F2 50%, #FAFAFA 100%);
+}
+
+.store-canvas > * {
+  position: relative;
+  z-index: 1;
+}
+
+.crystal-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+  mix-blend-mode: normal;
+  opacity: 0.6;
+}
+
+.crystal-shimmer {
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.8) 40%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0.8) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Enhancing existing buttons for a sleeker crystalline look */
+.btn-wellness-primary,
+.btn-luxury-primary,
+.btn-brand-primary {
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-semibold tracking-wide transition-all duration-300;
+  background: linear-gradient(135deg, #C95D7B 0%, #B24D6A 100%);
+  color: #FFF9F7;
+  box-shadow: 
+    0 8px 24px -4px rgba(201, 93, 123, 0.4), 
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(201, 93, 123, 0.6);
+  border-top-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-wellness-primary:hover,
+.btn-luxury-primary:hover,
+.btn-brand-primary:hover {
+  background: linear-gradient(135deg, #D87691 0%, #C95D7B 100%);
+  box-shadow: 
+    0 12px 32px -6px rgba(232, 139, 168, 0.5), 
+    inset 0 1px 2px rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
 }
 
 /* ========================================
@@ -637,6 +763,7 @@ img {
   align-items: center;
   justify-content: center;
   background: #F8F4F1;
+  pointer-events: none;
   animation: splashFadeOut 0.5s ease-out 1.5s forwards;
 }
 
@@ -686,17 +813,29 @@ img {
   animation: kenBurns 8s ease-out forwards;
 }
 
-/* Hero — crisp photography (no zoom blur) */
-.hero-slide-media {
+/* Hero slider — 9:16 mobile assets, 16:9 desktop assets */
+.hero-slide-image {
   object-fit: cover;
-  object-position: 72% center;
-  transform: none !important;
-  will-change: auto;
+  object-position: center top;
 }
 
-@media (min-width: 768px) {
-  .hero-slide-media {
+.hero-slide-image--mobile {
+  object-fit: cover;
+  object-position: center top;
+}
+
+@media (min-width: 1024px) {
+  .hero-slide-image--desktop {
+    object-fit: cover;
     object-position: right center;
+  }
+
+  .hero-slide-image--desktop.hero-slide-image--active {
+    transform: scale(1);
+  }
+
+  .hero-slide-image--desktop.hero-slide-image--inactive {
+    transform: scale(1.05);
   }
 }
 
@@ -719,138 +858,115 @@ img {
   text-orientation: mixed;
 }
 
-/* ========================================
-   UPSCALE VINTAGE — LIFESTYLE / SOCIAL-COMMERCE THEME
-   Display: Cormorant Garamond (500–600) · UI: Manrope (400–600)
-   ======================================== */
+/* Ensure the older button styles from before the glass update are removed or overwritten nicely. We'll replace the existing button section to avoid duplicates. */
 
 body {
-  background-color: #FAF7F2;
-  color: #4A403B;
+  background-color: #FFF9F7;
+  color: #5B4B4B;
 }
 
 .brand-eyebrow {
-  @apply font-sans text-xs sm:text-sm font-medium tracking-normal text-brand-mauve;
+  @apply font-sans text-xs sm:text-sm font-medium tracking-wide text-brand-berry;
 }
 
 .brand-body {
-  @apply font-sans text-base sm:text-lg text-brand-cocoa/90 leading-relaxed font-normal;
+  @apply font-sans text-base sm:text-lg text-brand-cocoa/85 leading-relaxed font-normal;
 }
 
 .brand-body-lg {
-  @apply font-sans text-lg sm:text-xl text-brand-cocoa/90 leading-relaxed font-normal;
+  @apply font-sans text-lg sm:text-xl text-brand-cocoa/85 leading-relaxed font-normal;
 }
 
 ::selection {
-  background-color: #EDE3D7;
-  color: #8A6A58;
+  background-color: #F6E6E8;
+  color: #C95D7B;
 }
 
-.btn-luxury-primary,
-.btn-brand-primary {
-  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-semibold tracking-normal transition-all duration-300;
-  background: #4A403B;
-  color: #FAF7F2;
-  box-shadow: 0 4px 20px rgba(74, 64, 59, 0.15);
-}
+/* Old duplicate button styles removed */
 
-.btn-luxury-primary:hover,
-.btn-brand-primary:hover {
-  background: #8A6A58;
-  box-shadow: 0 8px 30px rgba(138, 106, 88, 0.25);
-  transform: translateY(-2px);
-}
-
+.btn-wellness-soft,
 .btn-luxury-outline,
 .btn-brand-outline {
-  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-semibold tracking-normal border transition-all duration-300;
-  border-color: rgba(74, 64, 59, 0.15);
-  color: #4A403B;
-  background: transparent;
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-medium tracking-normal border transition-all duration-300;
+  border-color: rgba(220, 201, 214, 0.9);
+  color: #5B4B4B;
+  background: rgba(255, 249, 247, 0.9);
 }
 
+.btn-wellness-soft:hover,
 .btn-luxury-outline:hover,
 .btn-brand-outline:hover {
-  background: #4A403B;
-  border-color: #4A403B;
-  color: #FAF7F2;
-  box-shadow: 0 8px 30px rgba(74, 64, 59, 0.15);
-  transform: translateY(-2px);
+  background: #F6E6E8;
+  border-color: #E88BA8;
+  color: #C95D7B;
+  transform: translateY(-1px);
 }
 
 .btn-brand-soft {
   @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-medium tracking-normal border transition-all duration-300;
-  border-color: rgba(237, 227, 215, 0.6);
-  color: #8A6A58;
-  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(246, 230, 232, 0.9);
+  color: #C95D7B;
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
 .btn-brand-soft:hover {
-  background: rgba(237, 227, 215, 0.9);
-  border-color: rgba(166, 160, 137, 0.5);
+  background: #F6E6E8;
+  border-color: #DCC9D6;
   transform: translateY(-1px);
 }
 
-/* Glassmorphism Utilities */
-.glass {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px 0 rgba(138, 106, 88, 0.05);
+.bg-wellness-hero-gradient {
+  background: linear-gradient(
+    145deg,
+    #fff9f7 0%,
+    #f6e6e8 35%,
+    #dcc9d6 65%,
+    rgba(232, 139, 168, 0.25) 100%
+  );
 }
 
-.glass-dark {
-  background: rgba(74, 64, 59, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+.bg-wellness-card-gradient {
+  background: linear-gradient(160deg, #fff9f7 0%, #f6e6e8 50%, rgba(220, 201, 214, 0.35) 100%);
 }
 
-.glass-panel {
-  background: rgba(250, 247, 242, 0.85);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 40px -12px rgba(138, 106, 88, 0.1);
+.bg-wellness-cta-gradient {
+  background: linear-gradient(135deg, #f6e6e8 0%, #fff9f7 45%, rgba(232, 139, 168, 0.15) 100%);
 }
+
+/* Cleaned up old duplicates */
 
 .text-luxury-accent {
-  color: #C8A46A;
+  color: #E88BA8;
 }
 
 .text-luxury-mauve {
-  color: #A6A089;
+  color: #DCC9D6;
 }
 
-.bg-luxury-gradient-hero {
-  background: linear-gradient(145deg, #faf7f2 0%, #ede3d7 35%, rgba(166, 160, 137, 0.28) 70%, rgba(200, 164, 106, 0.22) 100%);
-}
-
+.bg-luxury-gradient-hero,
 .bg-hero-slide-1 {
-  background: linear-gradient(135deg, #faf7f2 0%, #ede3d7 40%, rgba(166, 160, 137, 0.35) 100%);
+  background: linear-gradient(135deg, #fff9f7 0%, #f6e6e8 45%, rgba(220, 201, 214, 0.4) 100%);
 }
 
 .bg-hero-slide-2 {
-  background: linear-gradient(120deg, #ede3d7 0%, #faf7f2 50%, rgba(200, 164, 106, 0.3) 100%);
+  background: linear-gradient(120deg, #f6e6e8 0%, #fff9f7 55%, rgba(232, 139, 168, 0.2) 100%);
 }
 
 .bg-hero-slide-3 {
-  background: linear-gradient(160deg, #faf7f2 0%, rgba(166, 160, 137, 0.25) 45%, rgba(138, 106, 88, 0.12) 100%);
+  background: linear-gradient(160deg, #fff9f7 0%, rgba(220, 201, 214, 0.35) 50%, rgba(201, 93, 123, 0.1) 100%);
 }
 
 .card-luxury,
 .card-brand {
   @apply rounded-2xl overflow-hidden transition-all duration-500;
-  box-shadow: 0 4px 24px -4px rgba(138, 106, 88, 0.08);
+  box-shadow: 0 4px 24px -4px rgba(201, 93, 123, 0.08);
 }
 
 .card-luxury:hover,
 .card-brand:hover {
-  box-shadow: 0 12px 40px -8px rgba(166, 160, 137, 0.2);
+  box-shadow: 0 12px 40px -8px rgba(232, 139, 168, 0.18);
   transform: translateY(-2px);
 }
 

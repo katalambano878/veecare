@@ -1,12 +1,11 @@
-# Upscale Vintage — https://upscalevintage.com
+# Vee Care — Accra, Ghana - Shop Online
 User-agent: *
 Allow: /
 Disallow: /admin/
-Disallow: /account/
-Disallow: /checkout/
-Disallow: /cart
-Disallow: /wishlist
 Disallow: /api/
-Disallow: /pay/
+Disallow: /checkout
+Disallow: /cart
+Disallow: /account/
+Disallow: /auth/
 
-Sitemap: https://upscalevintage.com/sitemap.xml
+Sitemap: https://veecarehera.com/sitemap.xml

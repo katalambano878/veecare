@@ -251,9 +251,9 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   }
 
   const variantBtnSelected =
-    'border-brand-espresso bg-brand-nude/40 text-brand-espresso shadow-sm';
+    'glass-panel border-brand-berry/40 text-brand-espresso font-semibold shadow-glass border border-white/70';
   const variantBtnIdle =
-    'border-brand-nude/70 text-brand-cocoa hover:border-brand-mauve/60 hover:bg-brand-nude/20';
+    'glass border-white/50 text-brand-cocoa hover:shadow-glass-hover hover:text-brand-espresso';
 
   const discount = product.compare_at_price ? Math.round((1 - activePrice / product.compare_at_price) * 100) : 0;
   const minVariantPrice = hasVariants ? Math.min(...product.variants.map((v: any) => v.price || product.price)) : product.price;
@@ -286,8 +286,10 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
       <StructuredData data={productSchema} />
       <StructuredData data={breadcrumbSchema} />
 
-      <main className="min-h-screen bg-brand-cream">
-        <section className="py-6 md:py-8 border-b border-brand-nude/50 bg-white/60">
+      <main className="min-h-screen relative">
+        <div className="crystal-orb w-96 h-96 -top-20 right-0 bg-brand-rose/15" aria-hidden />
+        <div className="crystal-orb w-80 h-80 bottom-40 -left-20 bg-brand-lavender/25" aria-hidden />
+        <section className="py-6 md:py-8 border-b border-white/40 glass mx-4 sm:mx-6 lg:mx-8 rounded-2xl shadow-glass mb-2">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex items-center gap-2 text-sm flex-wrap gap-y-2 text-brand-cocoa/70">
               <Link href="/" className="hover:text-brand-espresso transition-colors">Home</Link>
@@ -305,7 +307,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
               <div>
-                <div className="relative aspect-square rounded-3xl overflow-hidden bg-brand-nude/30 mb-4 shadow-luxury border border-brand-nude/60">
+                <div className="relative aspect-square rounded-[2.5rem] overflow-hidden bg-brand-blush/30 mb-4 shadow-glass-strong border border-white/60 ring-1 ring-inset ring-white/40">
                   <Image
                     src={product.images[selectedImage]}
                     alt={product.name}
@@ -328,7 +330,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                       <button
                         key={index}
                         onClick={() => setSelectedImage(index)}
-                        className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImage === index ? 'border-brand-espresso shadow-luxury' : 'border-brand-nude/60 hover:border-brand-mauve/40'
+                        className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImage === index ? 'border-brand-berry shadow-glass-strong ring-2 ring-brand-rose/30' : 'border-white/60 hover:border-brand-rose/50 glass'
                           }`}
                       >
                         <Image
@@ -345,7 +347,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 )}
               </div>
 
-              <div className="lg:pt-2">
+              <div className="lg:pt-2 glass-panel rounded-[2.5rem] p-8 lg:p-10 border border-white/60 shadow-glass-strong">
                 <div className="flex items-start justify-between gap-4 mb-5">
                   <div>
                     <span className="brand-eyebrow mb-3 block">
@@ -357,7 +359,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   </div>
                   <button
                     onClick={() => setIsWishlisted(!isWishlisted)}
-                    className="w-12 h-12 flex-shrink-0 flex items-center justify-center border border-brand-nude/80 hover:border-brand-mauve rounded-full bg-white/80 transition-all cursor-pointer shadow-sm"
+                    className="w-12 h-12 flex-shrink-0 flex items-center justify-center glass rounded-2xl hover:shadow-glass-hover transition-all cursor-pointer border border-white/60"
                     aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                   >
                     <i className={`${isWishlisted ? 'ri-heart-fill text-brand-mauve' : 'ri-heart-line text-brand-cocoa'} text-xl`}></i>

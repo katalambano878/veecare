@@ -97,7 +97,7 @@ export default function ProductFilters({ onFilterChange }: ProductFiltersProps) 
     (priceRange[0] !== 0 || priceRange[1] !== 1000 ? 1 : 0);
 
   return (
-    <div className="bg-white/90 rounded-2xl shadow-luxury border border-brand-nude/50 p-6 sticky top-24">
+    <div className="glass-panel rounded-[2rem] shadow-glass-strong border border-white/60 p-6 lg:p-8 sticky top-28">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
           <h3 className="font-display text-lg font-semibold text-brand-espresso">Filters</h3>

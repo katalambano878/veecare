@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { revalidateStorefront } from '@/lib/revalidate-storefront';
 
 export default function AdminCategoriesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -66,6 +67,7 @@ export default function AdminCategoriesPage() {
       await supabase.from('products').update({ category_id: null }).eq('category_id', categoryId);
       const { error } = await supabase.from('categories').delete().eq('id', categoryId);
       if (error) throw error;
+      await revalidateStorefront();
       setCategories(categories.filter((c) => c.id !== categoryId));
       alert('Category deleted successfully');
     } catch (err: any) {
@@ -139,6 +141,7 @@ export default function AdminCategoriesPage() {
         alert('Category created');
       }
 
+      await revalidateStorefront();
       setShowAddModal(false);
       setShowEditModal(false);
       setEditingCategory(null);

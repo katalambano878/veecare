@@ -31,7 +31,7 @@ export default function StoreLayoutClient({
         <NavigationProgress />
       </Suspense>
       <ScrollToTop />
-      <div className="min-h-screen bg-brand-cream">
+      <div className="store-canvas min-h-screen">
         <PWASplash />
         <PWAInstaller />
         <Header />

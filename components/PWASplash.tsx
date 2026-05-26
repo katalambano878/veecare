@@ -27,7 +27,7 @@ export default function PWASplash() {
   if (!showSplash) return null;
 
   return (
-    <div className="pwa-splash" aria-hidden="true">
+    <div className="pwa-splash pointer-events-none" aria-hidden="true">
       <div className="pwa-splash-logo mb-6">
         <img
           src={LOGO_PATH}

@@ -45,7 +45,7 @@ export async function generateMetadata({
     product.seo_description?.trim() ||
     product.short_description?.trim() ||
     product.description?.replace(/<[^>]+>/g, '').slice(0, 160) ||
-    `Shop ${product.name} at ${BRAND_NAME}. Fashion and lifestyle finds in Ghana.`;
+    `Shop ${product.name} at ${BRAND_NAME} — feminine care & wellness in Ghana. Discreet delivery & WhatsApp support.`;
 
   const images = [...(product.product_images || [])].sort(
     (a: { position?: number }, b: { position?: number }) => (a.position ?? 0) - (b.position ?? 0)

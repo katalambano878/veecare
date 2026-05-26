@@ -1,9 +1,7 @@
 -- ============================================================================
 -- COMPLETE DATABASE SCHEMA MIGRATION
--- Generated from live Supabase database on 2026-02-09
--- 
--- This single migration creates the entire database from scratch.
--- Run this on a fresh Supabase project to get the full schema.
+-- Creates the full ecommerce schema on a fresh Supabase project.
+-- Run via: npm run supabase:migrate (after linking YOUR_PROJECT_ID)
 -- ============================================================================
 
 -- ============================================================================
@@ -29,8 +27,8 @@ CREATE TYPE ticket_priority AS ENUM ('low', 'medium', 'high', 'urgent');
 CREATE TYPE return_status AS ENUM ('pending', 'approved', 'rejected', 'processing', 'completed');
 
 -- ============================================================================
+-- 3. HELPER FUNCTIONS (needed before tables for RLS policies)
 -- ============================================================================
--- 4. TABLES
 -- ============================================================================
 
 -- Profiles (extends auth.users)
@@ -494,8 +492,8 @@ CREATE TABLE public.customers (
   secondary_phone text,
   secondary_email text
 );
--- 3. HELPER FUNCTIONS (needed before tables for RLS policies)
--- ============================================================================
+
+-- Mark order as paid + reduce stock (must be after orders/order_items/products/product_variants exist)
 
 -- Check if current user is admin or staff
 CREATE OR REPLACE FUNCTION public.is_admin_or_staff()
@@ -725,8 +723,8 @@ BEGIN
 END;
 $$;
 
--- Mark order as paid + reduce stock (must be after orders/order_items/products/product_variants exist)
-CREATE OR REPLACE FUNCTION public.mark_order_paid(order_ref text, moolre_ref text DEFAULT NULL)
+-- ============================================================================
+-- 4. TABLES
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -786,8 +784,8 @@ BEGIN
   RETURN to_jsonb(updated_order);
 END;
 $$;
+
 -- ============================================================================
--- 5. INDEXES
 -- ============================================================================
 
 -- Profiles

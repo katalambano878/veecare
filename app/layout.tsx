@@ -2,6 +2,7 @@ import type { Viewport } from "next";
 import Script from "next/script";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { SHORT_NAME } from "@/lib/brand";
 import {
   buildRootMetadata,
   organizationJsonLd,
@@ -15,7 +16,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-  themeColor: '#8A6A58',
+  themeColor: '#E88BA8',
 };
 
 export const metadata = buildRootMetadata();
@@ -31,14 +32,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en-GH">
       <head>
-        <meta name="theme-color" content="#8A6A58" />
+        <meta name="theme-color" content="#E88BA8" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Upscale" />
+        <meta name="apple-mobile-web-app-title" content={SHORT_NAME} />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-TileColor" content="#8A6A58" />
+        <meta name="msapplication-TileColor" content="#E88BA8" />
         <meta name="msapplication-TileImage" content={SEO_ASSETS.icon192} />
         <meta name="msapplication-config" content="/favicon/browserconfig.xml" />
         <meta name="msapplication-tap-highlight" content="no" />

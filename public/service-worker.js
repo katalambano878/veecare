@@ -1,4 +1,4 @@
-// UPSCALE VINTAGE - Service Worker
+// Vee Care - Service Worker
 const CACHE_VERSION = 'app-v1.0';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
@@ -223,7 +223,7 @@ self.addEventListener('push', (event) => {
 
   const data = event.data.json();
   const options = {
-    body: data.body || 'New update from UPSCALE VINTAGE',
+    body: data.body || 'New update from Vee Care',
     icon: '/logo.png',
     badge: '/logo.png',
     vibrate: [100, 50, 100],
@@ -239,7 +239,7 @@ self.addEventListener('push', (event) => {
 
   event.waitUntil(
     self.registration.showNotification(
-      data.title || 'UPSCALE VINTAGE',
+      data.title || 'Vee Care',
       options
     )
   );

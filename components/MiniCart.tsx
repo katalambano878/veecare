@@ -34,7 +34,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
   return createPortal(
     <>
       <div
-        className="fixed inset-0 bg-brand-cocoa/60 z-[200] transition-opacity"
+        className="fixed inset-0 bg-brand-cocoa/40 backdrop-blur-md z-[200] transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -43,16 +43,16 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Shopping cart"
-        className="fixed inset-y-0 right-0 z-[201] flex w-full max-w-md flex-col bg-brand-cream shadow-2xl border-l border-brand-nude/60 animate-in slide-in-from-right duration-300"
+        className="fixed inset-y-0 right-0 z-[201] flex w-full max-w-md flex-col glass-panel shadow-glass-strong border-l border-white/60 animate-in slide-in-from-right duration-300 backdrop-blur-2xl"
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-brand-nude/60 bg-brand-cream px-5 py-4 sm:px-6">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/50 px-5 py-4 sm:px-6">
           <h2 className="font-display text-xl font-semibold text-brand-espresso">
             Your Cart ({itemCount})
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-nude/70 bg-white text-brand-cocoa transition-colors hover:bg-brand-nude/40 hover:text-brand-espresso"
+            className="flex h-10 w-10 items-center justify-center rounded-xl glass text-brand-cocoa transition-all hover:shadow-glass-hover hover:text-brand-espresso"
             aria-label="Close cart"
           >
             <i className="ri-close-line text-2xl" />
@@ -61,7 +61,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
 
         {cart.length === 0 ? (
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 py-12 text-center">
-            <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-brand-nude/50">
+            <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-2xl glass shadow-glass">
               <i className="ri-shopping-cart-line text-5xl text-brand-cocoa/40" />
             </div>
             <h3 className="font-display text-xl font-semibold text-brand-espresso mb-2">
@@ -70,7 +70,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
             <p className="text-brand-cocoa/70 mb-8 max-w-xs">
               Browse the shop and add pieces you love.
             </p>
-            <Link href="/shop" onClick={onClose} className="btn-luxury-primary px-8 py-3">
+                <Link href="/shop" onClick={onClose} className="btn-wellness-primary px-8 py-3 shadow-glass">
               Continue Shopping
             </Link>
           </div>
@@ -81,7 +81,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                 {cart.map((item) => (
                   <li
                     key={`${item.id}-${item.variant || ''}`}
-                    className="flex gap-3 rounded-2xl border border-brand-nude/60 bg-white p-4 shadow-sm"
+                    className="flex gap-3 rounded-2xl glass border border-white/60 p-4 shadow-glass"
                   >
                     <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-brand-nude/50 bg-brand-nude/20">
                       <img
@@ -158,7 +158,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
               </ul>
             </div>
 
-            <div className="shrink-0 border-t border-brand-nude/60 bg-white px-5 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6">
+            <div className="shrink-0 border-t border-white/50 glass px-5 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6">
               <div className="mb-4 flex items-center justify-between">
                 <span className="text-sm font-medium text-brand-cocoa/80">Subtotal</span>
                 <span className="font-display text-2xl font-semibold text-brand-espresso">

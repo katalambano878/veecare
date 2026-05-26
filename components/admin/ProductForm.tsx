@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { revalidateStorefront } from '@/lib/revalidate-storefront';
 
 interface ProductFormProps {
     initialData?: any;
@@ -24,7 +25,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [moq, setMoq] = useState(initialData?.moq || '1');
     const [lowStockThreshold, setLowStockThreshold] = useState(initialData?.metadata?.low_stock_threshold || '5');
     const [description, setDescription] = useState(initialData?.description || '');
-    const [status, setStatus] = useState(initialData?.status || 'Active');
+    const [status, setStatus] = useState(initialData?.status || 'active');
     const [featured, setFeatured] = useState(initialData?.featured || false);
     const [preorderShipping, setPreorderShipping] = useState(initialData?.metadata?.preorder_shipping || '');
     const [activeTab, setActiveTab] = useState('general');
@@ -270,6 +271,23 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     // Variant helpers removed — variants are now auto-generated from selectedColors × selectedSizes
 
     const handleSubmit = async () => {
+        if (!productName.trim()) {
+            alert('Product name is required.');
+            return;
+        }
+        if (!categoryId) {
+            alert('Please select a category. Create one under Admin → Categories first.');
+            return;
+        }
+        if (!price || Number.isNaN(parseFloat(price))) {
+            alert('A valid price is required.');
+            return;
+        }
+        if (!urlSlug.trim()) {
+            alert('URL slug is required (SEO tab or auto-generated from name).');
+            return;
+        }
+
         try {
             setLoading(true);
 
@@ -289,7 +307,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 sku: sku || generateSku(), // Auto-generate if empty
                 quantity: hasVariants ? variantStockTotal : (parseInt(stock) || 0),
                 moq: parseInt(moq) || 1,
-                status: status.toLowerCase(),
+                status: status.toLowerCase() as 'active' | 'draft' | 'archived',
                 featured,
                 seo_title: seoTitle,
                 seo_description: metaDescription,
@@ -371,8 +389,10 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 }
             }
 
+            await revalidateStorefront();
             alert(isEditMode ? 'Product updated successfully!' : 'Product created successfully!');
             router.push('/admin/products');
+            router.refresh();
 
         } catch (err: any) {
             console.error('Error saving product:', err);
@@ -405,7 +425,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 <div className="flex items-center space-x-3">
                     {isEditMode && (
                         <Link
-                            href={`/product/${initialData?.id}`}
+                            href={`/product/${initialData?.slug || initialData?.id}`}
                             target="_blank"
                             className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 transition-colors font-semibold whitespace-nowrap cursor-pointer flex items-center"
                         >
@@ -493,12 +513,22 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                         onChange={(e) => setCategoryId(e.target.value)}
                                         className="w-full px-4 py-3 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso cursor-pointer"
                                     >
-                                        {categories.length === 0 && <option value="">Loading categories...</option>}
+                                        {categories.length === 0 && (
+                                            <option value="">No categories — create one in Admin → Categories</option>
+                                        )}
                                         {categories.length > 0 && <option value="">Select a category</option>}
                                         {categories.map(cat => (
                                             <option key={cat.id} value={cat.id}>{cat.name}</option>
                                         ))}
                                     </select>
+                                    {categories.length === 0 && (
+                                        <p className="text-sm text-amber-700 mt-2">
+                                            <Link href="/admin/categories" className="underline font-medium">
+                                                Add a category
+                                            </Link>{' '}
+                                            before publishing products to the shop.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -510,9 +540,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                         onChange={(e) => setStatus(e.target.value)}
                                         className="w-full px-4 py-3 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso cursor-pointer"
                                     >
-                                        <option>Active</option>
-                                        <option>Draft</option>
-                                        <option>Archived</option>
+                                        <option value="active">Active (visible on shop)</option>
+                                        <option value="draft">Draft (hidden from shop)</option>
+                                        <option value="archived">Archived</option>
                                     </select>
                                 </div>
                             </div>

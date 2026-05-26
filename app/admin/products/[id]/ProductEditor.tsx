@@ -425,7 +425,7 @@ export default function ProductEditor({ productId }: { productId: string }) {
                 </label>
                 <input
                   type="text"
-                  defaultValue="YOUR_APP_TITLE, perfumes wholesale and retail, YOUR_ADDRESS, Ghana"
+                  defaultValue="Vee Care, feminine care, wellness, hygiene, Accra Ghana"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
                 />
                 <p className="text-sm text-gray-500 mt-2">Separate keywords with commas</p>

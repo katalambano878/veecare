@@ -35,7 +35,6 @@ export function generateMetadata({
   description = DEFAULT_DESCRIPTION,
   keywords = [],
   ogImage,
-  ogType = 'website',
   path = '/',
   noindex = false,
 }: SEOProps): Metadata {
@@ -45,7 +44,6 @@ export function generateMetadata({
     keywords: [...keywords],
     path,
     ogImage: ogImage ?? SEO_ASSETS.ogImage,
-    ogType: ogType === 'product' ? 'website' : ogType,
     noindex,
   });
 }

@@ -1,16 +1,17 @@
 "use client";
 
 import Link from 'next/link';
+import Logo from '@/components/Logo';
 import {
   APP_TITLE,
   FOOTER_TAGLINE,
-  LOGO_PATH,
-  LOGO_CLASS_HEADER,
   CONTACT_ADDRESS,
   CONTACT_PHONE_DISPLAY,
   WHATSAPP_LINK,
   INSTAGRAM_HANDLE,
   INSTAGRAM_URL,
+  TIKTOK_URL,
+  SNAPCHAT_URL,
 } from '@/lib/brand';
 import { useCMS } from '@/context/CMSContext';
 
@@ -38,24 +39,21 @@ export default function Footer() {
   const { getSetting } = useCMS();
 
   const siteName = getSetting('site_name') || APP_TITLE;
-  const siteLogo = getSetting('site_logo') || LOGO_PATH;
   const contactPhone = getSetting('contact_phone') || CONTACT_PHONE_DISPLAY;
   const contactAddress = getSetting('contact_address') || CONTACT_ADDRESS;
   const socialInstagram = getSetting('social_instagram') || INSTAGRAM_URL;
+  const socialTiktok = getSetting('social_tiktok') || TIKTOK_URL;
+  const socialSnapchat = getSetting('social_snapchat') || SNAPCHAT_URL;
   const phoneHref = `tel:${contactPhone.replace(/\s/g, '')}`;
 
   return (
-    <footer className="mt-10 border-t border-brand-nude/60 bg-brand-cream pb-24 lg:pb-8">
+    <footer className="mt-10 border-t border-brand-nude/40 glass-panel pb-24 lg:pb-8 rounded-t-[3rem] mx-2 sm:mx-4 lg:mx-8 mb-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         {/* Brand row */}
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4 min-w-0">
-            <Link href="/" className="shrink-0">
-              <img
-                src={siteLogo}
-                alt={siteName}
-                className={`${LOGO_CLASS_HEADER} h-8 sm:h-9 w-auto max-w-[140px] object-contain`}
-              />
+            <Link href="/" className="shrink-0" aria-label={`${siteName} — home`}>
+              <Logo className="h-9 sm:h-10 w-auto max-w-[160px]" />
             </Link>
             <p className="text-sm sm:text-base text-brand-cocoa/80 font-medium leading-snug line-clamp-3 sm:max-w-sm">
               {FOOTER_TAGLINE}
@@ -67,26 +65,44 @@ export default function Footer() {
               href={socialInstagram}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-9 h-9 rounded-full border border-brand-nude/80 bg-white/60 flex items-center justify-center text-brand-espresso hover:bg-brand-espresso hover:text-brand-cream transition-colors"
+              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-brand-espresso hover:bg-brand-espresso hover:text-white transition-all shadow-glass hover:shadow-glass-hover hover:-translate-y-1"
               aria-label="Instagram"
             >
-              <i className="ri-instagram-line text-base" />
+              <i className="ri-instagram-line text-lg" />
+            </a>
+            <a
+              href={socialTiktok}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-brand-espresso hover:bg-brand-espresso hover:text-white transition-all shadow-glass hover:shadow-glass-hover hover:-translate-y-1"
+              aria-label="TikTok"
+            >
+              <i className="ri-tiktok-line text-lg" />
+            </a>
+            <a
+              href={socialSnapchat}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-brand-espresso hover:bg-brand-espresso hover:text-white transition-all shadow-glass hover:shadow-glass-hover hover:-translate-y-1"
+              aria-label="Snapchat"
+            >
+              <i className="ri-snapchat-line text-lg" />
             </a>
             <a
               href={WHATSAPP_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-9 h-9 rounded-full border border-brand-nude/80 bg-white/60 flex items-center justify-center text-brand-espresso hover:bg-brand-espresso hover:text-brand-cream transition-colors"
+              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-brand-espresso hover:bg-brand-espresso hover:text-white transition-all shadow-glass hover:shadow-glass-hover hover:-translate-y-1"
               aria-label="WhatsApp"
             >
-              <i className="ri-whatsapp-line text-base" />
+              <i className="ri-whatsapp-line text-lg" />
             </a>
             <a
               href={phoneHref}
-              className="w-9 h-9 rounded-full border border-brand-nude/80 bg-white/60 flex items-center justify-center text-brand-espresso hover:bg-brand-espresso hover:text-brand-cream transition-colors"
+              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-brand-espresso hover:bg-brand-espresso hover:text-white transition-all shadow-glass hover:shadow-glass-hover hover:-translate-y-1"
               aria-label="Call us"
             >
-              <i className="ri-phone-line text-base" />
+              <i className="ri-phone-line text-lg" />
             </a>
           </div>
         </div>

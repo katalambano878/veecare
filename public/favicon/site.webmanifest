@@ -1,19 +1,23 @@
 {
-  "name": "Upscale Vintage",
-  "short_name": "Upscale",
+  "name": "Vee Care",
+  "short_name": "Vee Care",
+  "description": "Feminine care and wellness - Accra, Ghana",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF9F7",
+  "theme_color": "#E88BA8",
   "icons": [
     {
       "src": "/favicon/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/favicon/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ],
-  "theme_color": "#6B3E2E",
-  "background_color": "#FAF6F2",
-  "display": "standalone"
+  ]
 }

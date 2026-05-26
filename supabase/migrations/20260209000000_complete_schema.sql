@@ -1,9 +1,7 @@
 -- ============================================================================
 -- COMPLETE DATABASE SCHEMA MIGRATION
--- Generated from live Supabase database on 2026-02-09
--- 
--- This single migration creates the entire database from scratch.
--- Run this on a fresh Supabase project to get the full schema.
+-- Creates the full ecommerce schema on a fresh Supabase project.
+-- Run via: npm run supabase:migrate (after linking YOUR_PROJECT_ID)
 -- ============================================================================
 
 -- ============================================================================

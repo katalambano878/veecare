@@ -1,18 +1,18 @@
 {
-  "name": "upscale-vintage",
+  "name": "vee-care",
   "version": "1.0.0",
-  "description": "YOUR_PROJECT_DESCRIPTION",
-  "author": "YOUR_NAME <your@email.com>",
-  "license": "YOUR_LICENSE",
+  "description": "Vee Care — online feminine care and wellness store in Accra, Ghana",
+  "author": "Vee Care",
+  "license": "UNLICENSED",
   "homepage": "https://yourdomain.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git"
+    "url": "https://github.com/YOUR_USERNAME/vee-care.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/issues"
+    "url": "https://github.com/YOUR_USERNAME/vee-care/issues"
   },
-  "keywords": ["YOUR", "KEYWORDS", "HERE"],
+  "keywords": ["feminine-care", "wellness", "ghana", "ecommerce", "vee-care"],
   "private": true,
   "dependencies": {
     "@react-google-maps/api": "^2.19.3",

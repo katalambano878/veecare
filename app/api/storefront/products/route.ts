@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getPublicSupabaseCredentials, isSupabaseConfigured } from '@/lib/supabase-config';
+import {
+    PRODUCTS_CACHE_TTL,
+    getProductsCache,
+    setProductsCacheEntry,
+} from '@/lib/storefront-cache';
 
 function getSupabase() {
     const { url, anonKey } = getPublicSupabaseCredentials();
     return createClient(url, anonKey);
 }
-
-// Simple in-memory cache
-let cache: { data: any; timestamp: number } | null = null;
-const CACHE_TTL = 15 * 60 * 1000; // 15 minutes — products don't change frequently
 
 export async function GET(request: Request) {
     if (!isSupabaseConfigured()) {
@@ -25,8 +26,10 @@ export async function GET(request: Request) {
     // Build a cache key from params
     const cacheKey = `${featured}-${limit}-${category || 'all'}`;
 
+  const cache = getProductsCache();
+
     // Check cache (only for featured/home requests — general shop is more dynamic)
-    if (featured && cache && cache.data?.[cacheKey] && Date.now() - cache.timestamp < CACHE_TTL) {
+    if (featured && cache && cache.data?.[cacheKey] && Date.now() - cache.timestamp < PRODUCTS_CACHE_TTL) {
         return NextResponse.json(cache.data[cacheKey], {
             headers: {
                 'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=1800',
@@ -65,10 +68,7 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
         }
 
-        // Cache the result
-        if (!cache) cache = { data: {}, timestamp: Date.now() };
-        cache.data[cacheKey] = data;
-        cache.timestamp = Date.now();
+        setProductsCacheEntry(cacheKey, data);
 
         return NextResponse.json(data, {
             headers: {

@@ -58,17 +58,17 @@ export default function CartPage() {
   const total = subtotal - couponDiscount + shipping;
 
   return (
-    <div className="min-h-screen bg-brand-cream">
-      <PageHero title="Shopping Cart"  />
-      <div className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen relative">
+      <PageHero title="Shopping Cart" subtitle="Review your wellness picks — calm, discreet, and ready when you are." />
+      <div className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
         <CartCountdown />
         {/* <FreeShippingBar currentAmount={subtotal} threshold={200} /> */}
 
         {cartItems.length === 0 && savedItems.length === 0 ? (
           <section className="py-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-              <div className="w-24 h-24 flex items-center justify-center mx-auto mb-6 bg-brand-nude/40 rounded-full">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center glass-card rounded-[2.5rem] py-16 border border-white/60 shadow-glass">
+              <div className="w-24 h-24 flex items-center justify-center mx-auto mb-6 glass rounded-2xl shadow-glass">
                 <i className="ri-shopping-cart-line text-5xl text-brand-cocoa/40"></i>
               </div>
               <h2 className="font-display text-3xl font-semibold text-brand-espresso mb-4">Your cart is empty</h2>
@@ -83,7 +83,7 @@ export default function CartPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
-                  <div className="bg-white/90 rounded-2xl shadow-luxury border border-brand-nude/50 p-6 overflow-hidden">
+                  <div className="glass-panel rounded-[2rem] shadow-glass-strong border border-white/60 p-6 sm:p-8 overflow-hidden">
                     <div className="flex items-center justify-between mb-6">
                       <h2 className="font-display text-2xl font-semibold text-brand-espresso">Cart Items ({cartItems.length})</h2>
                       {savings > 0 && (
@@ -175,7 +175,7 @@ export default function CartPage() {
                   </div>
 
                   {savedItems.length > 0 && (
-                    <div className="bg-white/90 rounded-2xl shadow-luxury border border-brand-nude/50 p-6">
+                    <div className="glass-card rounded-[2rem] shadow-glass border border-white/60 p-6 sm:p-8">
                       <h3 className="font-display text-xl font-semibold text-brand-espresso mb-4">Saved for Later ({savedItems.length})</h3>
                       <div className="space-y-4">
                         {savedItems.map((item) => (
@@ -196,7 +196,7 @@ export default function CartPage() {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="bg-white/90 rounded-2xl shadow-luxury border border-brand-nude/50 p-6 sticky top-24">
+                  <div className="glass-panel rounded-[2rem] shadow-glass-strong border border-white/60 p-6 sm:p-8 sticky top-28">
                     <h3 className="font-display text-xl font-semibold text-brand-espresso mb-6">Order Summary</h3>
 
                     <div className="space-y-4 mb-6">

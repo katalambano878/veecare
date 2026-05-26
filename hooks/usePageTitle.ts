@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react';
 
-import { APP_TITLE } from '@/lib/brand';
+import { APP_TITLE, META_TITLE } from '@/lib/brand';
 
 export function usePageTitle(title: string) {
   useEffect(() => {
-    document.title = title ? `${title} | ${APP_TITLE}` : `${APP_TITLE} | Curated Luxury & Lifestyle`;
+    document.title = title ? `${title} | ${APP_TITLE}` : META_TITLE;
   }, [title]);
 }
