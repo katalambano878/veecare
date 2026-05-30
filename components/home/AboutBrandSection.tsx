@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import AnimatedSection from '@/components/AnimatedSection';
-import { APP_TITLE, BRAND_INTRO, BRAND_INTRO_SECONDARY } from '@/lib/brand';
+import { ABOUT_US, BRAND_INTRO_SECONDARY, BRAND_MOTTO } from '@/lib/brand';
 
 type AboutBrandSectionProps = {
   /** When true, CTA scrolls to story on the About page instead of linking away */
@@ -21,16 +21,14 @@ export default function AboutBrandSection({ onAboutPage = false }: AboutBrandSec
               ABOUT THE BRAND
             </span>
             <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-brand-cocoa mb-6 sm:mb-8 leading-[1.12] tracking-tight">
-              This brand understands <span className="italic text-brand-berry font-medium block mt-2">women</span>
+              Empowering women&apos;s <span className="italic text-brand-berry font-medium block mt-2">yoni wellness</span>
             </h2>
             <div className="space-y-6 text-lg text-brand-cocoa/80 leading-relaxed font-normal">
-              <p>
-                <strong className="font-semibold text-brand-cocoa">{APP_TITLE}</strong> is a modern
-                feminine care and wellness brand for women in Ghana who value self-care, hygiene,
-                emotional comfort, and confidence.
-              </p>
-              <p>{BRAND_INTRO}</p>
+              <p>{ABOUT_US}</p>
               <p>{BRAND_INTRO_SECONDARY}</p>
+              <p className="font-display text-xl italic text-brand-berry/90 border-l-4 border-brand-rose pl-5">
+                &ldquo;{BRAND_MOTTO}&rdquo;
+              </p>
             </div>
             <Link
               href={onAboutPage ? '#our-story' : '/about'}

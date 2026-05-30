@@ -2,16 +2,60 @@
  * Vee Care — feminine care & wellness (Accra, Ghana)
  * Canonical brand + SEO defaults (code-owned; not overridden by CMS).
  */
-export const APP_TITLE = 'Vee Care';
-export const BRAND_NAME = 'Vee Care';
+export const APP_TITLE = 'Vee Care Hera';
+export const BRAND_NAME = 'Vee-Care Hera';
 export const SHORT_NAME = 'Vee Care';
 export const TAGLINE = 'Feminine Care & Wellness for Every Woman';
 
-export const BRAND_INTRO =
-  'Vee Care is an online feminine care and wellness brand based in Accra, Ghana. We create a calm, supportive space for women’s personal care, hygiene, wellness, confidence, and everyday self-care.';
+export const BRAND_MOTTO =
+  'Because your feminine care should be as powerful and natural as you are.';
+
+export const ABOUT_US =
+  'At Vee-Care Hera, we are dedicated to evoking a sense of empowerment, unity, and holistic wellbeing for women’s yoni health — through a strong, supportive community and plant-based products customized to address intimate discomfort.';
+
+export const BRAND_MISSION =
+  'Our mission is to encourage and provide honest information about feminine hygiene and overall health — empowering women to embrace their sexuality and feminine energy with confidence and knowledge.';
+
+export const BRAND_VISION = 'Empowering women with safe, herbal feminine care.';
+
+export const BRAND_VALUES = [
+  'Empowerment',
+  'Wellness',
+  'Education',
+  'Community',
+  'Quality',
+] as const;
+
+export const FOUNDER_STORY = {
+  image: '/about/founder-story.png',
+  imageAlt: 'Vee-Care Hera founder — herbal feminine wellness brand, Ghana',
+  paragraphs: [
+    'Vee-Care Hera was born out of a deep passion for women’s wellness and a desire to provide safe, natural care for feminine health. Founded in 2024, Vee-Care Hera set out to break the silence around intimate care, empowering women to prioritize their hygiene, comfort, and confidence.',
+    'The journey started with the belief that every woman deserves products that are not only effective but also gentle and herbal-based — free from harsh chemicals and unnecessary additives. Through research, personal experiences, and countless conversations with women, Vee-Care Hera created a line of herbal feminine care products designed to support the body’s natural balance and promote holistic wellbeing.',
+    'More than a brand, Vee-Care Hera is a community — a safe space where women are educated, uplifted, and reminded that self-care is an act of self-love. With every product and every message, we stand for healing, teaching, and empowering women to care for themselves unapologetically.',
+  ],
+  journeyNote:
+    'We are here not just to help you stay on track, but to evolve into who you are meant to be.',
+} as const;
+
+export const PRODUCT_FOCUS_AREAS = [
+  'Infection care products',
+  'Irregular menstrual flow',
+  'Low libido',
+  'Vaginal dryness',
+  'Sweeteners & painful intimacy support',
+] as const;
+
+/** Delivery schedule — online orders only; no walk-in shop or pickups */
+export const DELIVERY_DAYS = ['Tuesdays', 'Thursdays', 'Saturdays'] as const;
+export const DELIVERY_DAYS_DISPLAY = 'Tuesdays, Thursdays & Saturdays';
+export const NO_PICKUP_NOTICE =
+  'We are an online-only brand — there is no walk-in shop and we do not offer order pickups. All orders are delivered to your address.';
+
+export const BRAND_INTRO = ABOUT_US;
 
 export const BRAND_INTRO_SECONDARY =
-  'Designed to support your comfort, confidence, and everyday wellness — shop online or connect with us on Instagram, TikTok, and Snapchat.';
+  'Shop plant-based feminine care online or connect with us on Instagram, TikTok, and Snapchat. Deliveries go out on Tuesdays, Thursdays, and Saturdays.';
 
 /** Production URL — set NEXT_PUBLIC_APP_URL in .env.local */
 export const SITE_URL_DEFAULT = 'https://veecarehera.com';
@@ -75,7 +119,7 @@ export const NAV_LINKS_OPTIONAL = [
 ] as const;
 
 export const FOOTER_TAGLINE =
-  'A modern feminine wellness brand — personal care, hygiene, and self-care for confident everyday women in Ghana.';
+  'Plant-based feminine care and a supportive community for women’s yoni health — herbal, honest, and empowering.';
 
 /** Hero slider — images in /public/hero/ */
 export const HERO_IMAGE_VERSION = '6';
@@ -171,12 +215,16 @@ export const TESTIMONIALS = [
 
 export const HOME_FAQ_PREVIEW = [
   {
-    question: 'Do you deliver across Ghana?',
-    answer:
-      'Yes. We deliver nationwide with clear timelines at checkout and updates when your order ships.',
+    question: 'When do you deliver?',
+    answer: `We deliver on ${DELIVERY_DAYS_DISPLAY}. We are online-only — no walk-in shop or order pickups.`,
   },
   {
-    question: 'How can I reach Vee Care?',
+    question: 'Do you deliver across Ghana?',
+    answer:
+      'Yes. We deliver nationwide. Delivery cost is confirmed with you after checkout — orders ship on our delivery days.',
+  },
+  {
+    question: 'How can I reach Vee-Care Hera?',
     answer:
       'Message us on WhatsApp, call 050 998 1360, or DM @vee_care_gh on Instagram — we reply with care and discretion.',
   },
@@ -189,26 +237,40 @@ export const HOME_FAQ_PREVIEW = [
 
 /** Primary meta description — used site-wide (overrides CMS for SEO). */
 export const META_DESCRIPTION =
-  'Shop feminine care, hygiene & wellness essentials at Vee Care — Accra, Ghana. Personal care, menstrual products, intimate wash, self-care kits & discreet nationwide delivery. WhatsApp support.';
+  'Vee-Care Hera — plant-based feminine care & yoni wellness in Ghana. Herbal products, honest education & community support. Delivery Tuesdays, Thursdays & Saturdays. WhatsApp support.';
 
 export const META_TITLE =
-  'Vee Care | Feminine Care & Wellness for Every Woman — Ghana';
+  'Vee-Care Hera | Plant-Based Feminine Care & Yoni Wellness — Ghana';
 
 export const REFUND_POLICY = {
-  title: 'Refund policy',
-  refundIntro: 'A refund may be approved when one of the following applies:',
-  refundReasons: [
-    'A defective, damaged, or leaking item was delivered.',
-    'There was a mix-up in your order.',
-    'You paid for an item that was out of stock.',
-    'A package was lost after dispatch (subject to investigation).',
+  title: 'Refund & Returns Policy',
+  intro:
+    'At Vee-Care Hera, we prioritize customer satisfaction while maintaining hygiene and quality standards. Due to the nature of our products, we have a strict refund and return policy as outlined below.',
+  sections: [
+    {
+      title: 'No refunds on opened or used products',
+      body: 'For hygiene and safety reasons, we do not accept returns or issue refunds for products that have been opened, used, or tampered with after delivery.',
+    },
+    {
+      title: 'Returns & refunds for damaged or defective products',
+      body: 'If you receive a damaged or defective product, notify us within 24 hours of delivery with clear pictures or videos as proof. We will assess the situation and provide either a replacement or a refund, depending on the severity of the issue.',
+    },
+    {
+      title: 'Order cancellation policy',
+      body: 'Orders can only be canceled before dispatch. Once an order has been shipped, no cancellation or refund will be issued.',
+    },
+    {
+      title: 'Delivery issues & non-delivery',
+      body: 'If a package is lost due to a mistake on our part, we will send a replacement or issue a refund after verification. If delivery fails due to incorrect details provided by the customer, we will not issue a refund.',
+    },
+    {
+      title: 'Refund processing time',
+      body: 'If a refund is approved, it will be processed within 7 business days via the same payment method used for the purchase.',
+    },
+    {
+      title: 'Customer responsibility',
+      body: 'Customers are responsible for providing the correct address and ensuring someone is available to receive the package. We do not offer refunds for failed deliveries due to incorrect details or customer unavailability.',
+    },
   ],
-  exchangeTitle: 'Exchange requirements',
-  exchangeBody:
-    'Hygiene and personal-care items must be unopened, sealed, and in original packaging. Opened intimate-care products cannot be exchanged for health and safety reasons.',
-  exchangeWindow:
-    'Please reach out within 24 hours of delivery with your order details and photos if needed.',
-  finalNote:
-    'We review each request with care and will guide you through the next steps.',
   contactCta: 'Questions? WhatsApp us at 050 998 1360 or message @vee_care_gh on Instagram.',
 } as const;

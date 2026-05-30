@@ -622,8 +622,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
                 <div className="border-t border-brand-nude/50 pt-6 space-y-4">
                   <div className="flex items-center text-brand-cocoa/80">
-                    <i className="ri-store-2-line text-xl text-brand-espresso mr-3"></i>
-                    <span>Free store pickup available</span>
+                    <i className="ri-truck-line text-xl text-brand-espresso mr-3"></i>
+                    <span>Delivery on Tuesdays, Thursdays &amp; Saturdays</span>
                   </div>
                   <div className="flex items-center text-brand-cocoa/80">
                     <i className="ri-arrow-left-right-line text-xl text-brand-espresso mr-3"></i>

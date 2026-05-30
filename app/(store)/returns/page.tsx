@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import PageHero from '@/components/PageHero';
 import RefundPolicySection from '@/components/RefundPolicySection';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { REFUND_POLICY } from '@/lib/brand';
 
 const mockOrders = [
   {
@@ -45,7 +44,12 @@ export default function ReturnsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [foundOrder, setFoundOrder] = useState<(typeof mockOrders)[0] | null>(null);
 
-  const reasons = [...REFUND_POLICY.refundReasons, 'Other (describe in notes to support)'];
+  const reasons = [
+    'Damaged or defective product',
+    'Wrong item received',
+    'Product not as described',
+    'Other (describe in notes to support)',
+  ];
 
   const handleFindOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -311,8 +315,8 @@ export default function ReturnsPage() {
                     original packaging.
                   </li>
                   <li>
-                    <span className="font-semibold text-brand-espresso">3.</span> Bring to store or follow instructions
-                    we send by WhatsApp or email.
+                    <span className="font-semibold text-brand-espresso">3.</span> Follow the instructions we send by
+                    WhatsApp or email — we are online-only with no walk-in returns desk.
                   </li>
                   <li>
                     <span className="font-semibold text-brand-espresso">4.</span> Exchanges must be within 24 hours of

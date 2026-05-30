@@ -45,7 +45,7 @@ export default function FAQsPage() {
     {
       category: 'shipping',
       question: 'How much does shipping cost?',
-      answer: 'Standard shipping costs GHS 20. Express delivery costs GHS 40. Orders over GHS 300 qualify for FREE standard shipping. Store pickup is also available at no charge from our Accra location.'
+      answer: 'We deliver on Tuesdays, Thursdays, and Saturdays. Delivery cost depends on your location and is confirmed after checkout. We are online-only — no walk-in shop or order pickups.'
     },
     {
       category: 'shipping',
