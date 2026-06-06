@@ -620,7 +620,7 @@ export default function ChatWidget() {
                 <button
                     type="button"
                     onClick={() => setOpen(true)}
-                    className="fixed bottom-[5.5rem] right-3 z-[9999] w-14 h-14 rounded-full bg-brand-espresso hover:bg-brand-cocoa text-white shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-champagne focus:ring-offset-2 sm:bottom-6 sm:right-4"
+                    className="fixed bottom-[5.5rem] right-3 z-[9999] w-14 h-14 rounded-full bg-brand-espresso hover:bg-brand-cocoa text-white shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-champagne focus:ring-offset-2 lg:bottom-6 lg:right-6"
                     aria-label="Open chat"
                 >
                     <i className="ri-chat-smile-3-line text-2xl" aria-hidden />
@@ -639,8 +639,8 @@ export default function ChatWidget() {
                         'fixed bottom-[5.5rem] z-[9998] flex flex-col overflow-hidden rounded-2xl border border-brand-nude bg-white shadow-2xl ' +
                         'left-3 right-3 mx-auto max-w-[22rem] ' +
                         'h-[min(70vh,32rem)] max-h-[32rem] ' +
-                        'sm:left-auto sm:right-4 sm:mx-0 sm:max-w-none sm:w-[400px] sm:bottom-6 ' +
-                        'sm:h-[min(75vh,600px)] sm:max-h-[600px]'
+                        'lg:left-auto lg:right-6 lg:mx-0 lg:max-w-none lg:w-[400px] lg:bottom-6 ' +
+                        'lg:h-[min(75vh,600px)] lg:max-h-[600px]'
                     }
                     role="dialog"
                     aria-label="Chat with us"

@@ -47,11 +47,12 @@ export default function StoreLayoutClient({
           <NetworkStatusMonitor />
           <UpdatePrompt />
           <LiveSalesNotification />
-          <ChatWidget />
           <ScrollToTopLazy />
         </IdleWidgets>
       </div>
       <MobileBottomNav />
+      {/* Outside .store-canvas so .store-canvas > * { position:relative } does not break fixed positioning */}
+      <ChatWidget />
     </CMSProvider>
   );
 }
