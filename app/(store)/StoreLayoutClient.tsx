@@ -40,9 +40,7 @@ export default function StoreLayoutClient({
         <Footer />
         <IdleWidgets>
           <PWASplash />
-          <PWAInstaller />
           <SessionTimeoutWarning />
-          <PWAPrompt />
           <OfflineIndicator />
           <NetworkStatusMonitor />
           <UpdatePrompt />
@@ -51,7 +49,9 @@ export default function StoreLayoutClient({
         </IdleWidgets>
       </div>
       <MobileBottomNav />
-      {/* Outside .store-canvas so .store-canvas > * { position:relative } does not break fixed positioning */}
+      {/* Outside .store-canvas — fixed overlays must not sit inside .store-canvas */}
+      <PWAInstaller />
+      <PWAPrompt />
       <ChatWidget />
     </CMSProvider>
   );

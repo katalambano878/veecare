@@ -13,11 +13,11 @@
  *   - order_items.product_name (not name_snapshot)
  *   - order_items.unit_price, .total_price (not line_total)
  *
- * Payments are handled exclusively through Moolre (Mobile Money) because
- * that is what the existing /api/payment/moolre route uses.
+ * Payments use Hubtel (default) or Moolre via /api/payment/* routes.
  */
 
 import { supabaseAdmin } from './supabase-admin';
+import { initiateHubtelCheckout, isHubtelConfigured } from './payments/hubtel';
 import {
     BRAND_NAME,
     TAGLINE,
@@ -351,6 +351,77 @@ export async function getProductForCart(supabase: any, slugOrId: string): Promis
         : await q.eq('slug', trimmed).maybeSingle();
     if (error || !data) return null;
     return mapProduct(data);
+}
+
+export type CartAddResult = {
+    success: boolean;
+    product?: ChatProduct;
+    quantity: number;
+    message: string;
+};
+
+/** Resolve a product query and validate quantity for chat add-to-cart. */
+export async function resolveAddToCart(
+    supabase: any,
+    query: string,
+    requestedQty = 1,
+): Promise<CartAddResult> {
+    const maxQty = 10;
+    const qty = Math.max(1, Math.min(maxQty, Math.floor(requestedQty) || 1));
+    const trimmed = (query || '').trim();
+
+    if (!trimmed) {
+        return { success: false, quantity: qty, message: 'Please tell me which product to add.' };
+    }
+
+    let product = await getProductForCart(supabase, trimmed);
+    if (!product) {
+        const results = await searchProducts(supabase, trimmed, 3);
+        if (results.length === 1) {
+            product = results[0];
+        } else if (results.length > 1) {
+            const exact = results.find(
+                (p) =>
+                    p.name.toLowerCase() === trimmed.toLowerCase() ||
+                    p.slug.toLowerCase() === trimmed.toLowerCase(),
+            );
+            product = exact || results[0];
+        }
+    }
+
+    if (!product) {
+        return {
+            success: false,
+            quantity: qty,
+            message: `I couldn't find "${trimmed}". Try the exact product name or browse /shop.`,
+        };
+    }
+
+    if (!product.inStock) {
+        return {
+            success: false,
+            product,
+            quantity: qty,
+            message: `Sorry, "${product.name}" is currently out of stock.`,
+        };
+    }
+
+    const addQty = Math.max(product.moq, qty);
+    if (addQty > product.maxStock) {
+        return {
+            success: false,
+            product,
+            quantity: addQty,
+            message: `Only ${product.maxStock} unit${product.maxStock === 1 ? '' : 's'} of "${product.name}" are available.`,
+        };
+    }
+
+    return {
+        success: true,
+        product,
+        quantity: addQty,
+        message: `Added ${addQty} × ${product.name} (GH₵${(product.price * addQty).toFixed(2)}) to your cart.`,
+    };
 }
 
 // ─── 3. Track Order ─────────────────────────────────────────────────────────
@@ -811,10 +882,8 @@ export async function createChatOrder(
     if (!['standard', 'express', 'pickup'].includes(deliveryMethod)) {
         return { success: false, message: 'Invalid delivery method.' };
     }
-    // upscalevintage only supports Moolre out of the box. We still allow "cod"
-    // as a placeholder for stores that toggle it on later.
-    if (!['moolre', 'cod'].includes(paymentMethod)) {
-        return { success: false, message: 'Invalid payment method. Only Moolre Mobile Money or Cash on Delivery are supported here.' };
+    if (!['hubtel', 'moolre', 'cod'].includes(paymentMethod)) {
+        return { success: false, message: 'Invalid payment method. Use Hubtel, Moolre Mobile Money, or Cash on Delivery.' };
     }
 
     const rateLimitKey = shipping.email.toLowerCase().trim();
@@ -913,7 +982,7 @@ export async function createChatOrder(
                 total,
                 shipping_method: deliveryMethod,
                 payment_method: paymentMethod,
-                payment_provider: paymentMethod === 'moolre' ? 'moolre' : null,
+                payment_provider: paymentMethod === 'cod' ? null : paymentMethod,
                 shipping_address: shippingAddress,
                 billing_address: shippingAddress,
                 notes: `Chat checkout — delivery: ${deliveryMethod}, pay: ${paymentMethod}`,
@@ -953,42 +1022,92 @@ export async function createChatOrder(
             };
         }
 
-        // Moolre Mobile Money flow
-        const moolreApiUser = process.env.MOOLRE_API_USER;
-        const moolreApiPubkey = process.env.MOOLRE_API_PUBKEY;
-        const moolreAccountNumber = process.env.MOOLRE_ACCOUNT_NUMBER;
-
-        if (!moolreApiUser || !moolreApiPubkey || !moolreAccountNumber) {
-            return {
-                success: true,
-                orderNumber,
-                total,
-                message: `Order ${orderNumber} created (GH₵${total.toFixed(2)}), but Moolre is not configured on this site. Please complete checkout from the cart page or contact ${SUPPORT_EMAIL}.`,
-            };
-        }
-
         const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
-        const uniqueRef = `${orderNumber}-R${Date.now()}`;
-        const payload: Record<string, unknown> = {
-            type: 1,
-            amount: total.toString(),
-            email: process.env.MOOLRE_MERCHANT_EMAIL || sanitizedShipping.email,
-            externalref: uniqueRef,
-            callback: `${baseUrl}/api/payment/moolre/callback`,
-            redirect: `${baseUrl}/order-success?order=${encodeURIComponent(orderNumber)}&payment_success=true`,
-            reusable: '0',
-            currency: 'GHS',
-            accountnumber: moolreAccountNumber,
-            metadata: {
-                customer_email: sanitizedShipping.email,
-                original_order_number: orderNumber,
-            },
-        };
-        if (process.env.MOOLRE_CALLBACK_SECRET) {
-            payload.secret = process.env.MOOLRE_CALLBACK_SECRET;
-        }
+        const customerName = `${sanitizedShipping.firstName} ${sanitizedShipping.lastName}`.trim();
 
         try {
+            if (paymentMethod === 'hubtel') {
+                if (!isHubtelConfigured()) {
+                    return {
+                        success: true,
+                        orderNumber,
+                        total,
+                        message: `Order ${orderNumber} created (GH₵${total.toFixed(2)}), but Hubtel is not configured. Please complete checkout from the cart page or contact ${SUPPORT_EMAIL}.`,
+                    };
+                }
+
+                const hubtelResult = await initiateHubtelCheckout({
+                    orderRef: orderNumber,
+                    amount: total,
+                    customerName,
+                    customerEmail: sanitizedShipping.email,
+                    customerPhone: sanitizedShipping.phone,
+                    baseUrl,
+                });
+
+                if (hubtelResult.success && hubtelResult.checkoutUrl) {
+                    await admin
+                        .from('orders')
+                        .update({
+                            metadata: {
+                                payment_method: 'hubtel',
+                                payment_provider: 'hubtel',
+                                hubtel_client_reference: hubtelResult.clientReference,
+                            },
+                        })
+                        .eq('id', order.id);
+
+                    return {
+                        success: true,
+                        orderNumber,
+                        total,
+                        paymentUrl: hubtelResult.checkoutUrl,
+                        message: `Order ${orderNumber} is ready. Total GH₵${total.toFixed(2)} (incl. GH₵${shippingCost.toFixed(2)} delivery). Complete payment with the secure Hubtel link below (Mobile Money, card & more).`,
+                    };
+                }
+
+                return {
+                    success: true,
+                    orderNumber,
+                    total,
+                    message: `Order ${orderNumber} created (GH₵${total.toFixed(2)}), but we could not open Hubtel checkout. Try paying from your cart or contact ${SUPPORT_EMAIL}.`,
+                };
+            }
+
+            // Moolre Mobile Money flow
+            const moolreApiUser = process.env.MOOLRE_API_USER;
+            const moolreApiPubkey = process.env.MOOLRE_API_PUBKEY;
+            const moolreAccountNumber = process.env.MOOLRE_ACCOUNT_NUMBER;
+
+            if (!moolreApiUser || !moolreApiPubkey || !moolreAccountNumber) {
+                return {
+                    success: true,
+                    orderNumber,
+                    total,
+                    message: `Order ${orderNumber} created (GH₵${total.toFixed(2)}), but Moolre is not configured. Please complete checkout from the cart page or contact ${SUPPORT_EMAIL}.`,
+                };
+            }
+
+            const uniqueRef = `${orderNumber}-R${Date.now()}`;
+            const payload: Record<string, unknown> = {
+                type: 1,
+                amount: total.toString(),
+                email: process.env.MOOLRE_MERCHANT_EMAIL || sanitizedShipping.email,
+                externalref: uniqueRef,
+                callback: `${baseUrl}/api/payment/moolre/callback`,
+                redirect: `${baseUrl}/order-success?order=${encodeURIComponent(orderNumber)}&payment_success=true`,
+                reusable: '0',
+                currency: 'GHS',
+                accountnumber: moolreAccountNumber,
+                metadata: {
+                    customer_email: sanitizedShipping.email,
+                    original_order_number: orderNumber,
+                },
+            };
+            if (process.env.MOOLRE_CALLBACK_SECRET) {
+                payload.secret = process.env.MOOLRE_CALLBACK_SECRET;
+            }
+
             const response = await fetch('https://api.moolre.com/embed/link', {
                 method: 'POST',
                 headers: {
@@ -1018,7 +1137,7 @@ export async function createChatOrder(
                 message: `Order ${orderNumber} created (GH₵${total.toFixed(2)}), but we could not open Moolre. Try paying from your cart or contact ${SUPPORT_EMAIL}.`,
             };
         } catch (payErr: unknown) {
-            console.error('[ChatTools] Moolre payment error:', payErr);
+            console.error('[ChatTools] Payment error:', payErr);
             return {
                 success: true,
                 orderNumber,

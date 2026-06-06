@@ -62,6 +62,8 @@ type ChatCoupon = {
 type ChatAction = {
     type: 'add_to_cart' | 'view_product' | 'view_order' | 'track_order' | 'apply_coupon' | 'payment_link';
     product?: ChatProduct;
+    quantity?: number;
+    autoAdd?: boolean;
     orderId?: string;
     orderNumber?: string;
     couponCode?: string;
@@ -167,17 +169,29 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 // Convert a chat-product into a CartItem the React Context cart understands.
-function chatProductToCartItem(p: ChatProduct): CartItem {
+function chatProductToCartItem(p: ChatProduct, quantity?: number): CartItem {
     return {
         id: p.id,
         name: p.name,
         price: p.price,
         image: p.image,
-        quantity: p.moq || 1,
+        quantity: quantity || p.moq || 1,
         slug: p.slug,
         maxStock: p.maxStock,
         moq: p.moq || 1,
     };
+}
+
+function applyAutoCartActions(
+    actions: ChatAction[] | undefined,
+    addToCart: (item: CartItem, options?: { openDrawer?: boolean }) => void,
+) {
+    if (!actions?.length) return;
+    for (const action of actions) {
+        if (action.type === 'add_to_cart' && action.autoAdd && action.product) {
+            addToCart(chatProductToCartItem(action.product, action.quantity), { openDrawer: false });
+        }
+    }
 }
 
 // ─── Main Component ─────────────────────────────────────────────────────────
@@ -192,7 +206,7 @@ export default function ChatWidget() {
     const [mounted, setMounted] = useState(false);
     const listRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const { cart, addToCart, clearCart, setIsCartOpen } = useCart();
+    const { cart, cartCount, addToCart, clearCart, setIsCartOpen } = useCart();
     const pathname = usePathname();
 
     const cartPayload = useMemo(
@@ -233,8 +247,8 @@ export default function ChatWidget() {
             setMessages([
                 {
                     role: 'assistant',
-                    content: `Hi! I'm your ${BRAND_NAME} wellness assistant. I can help you find feminine care products, track orders, check discounts, and even place an order right here — discreetly and with care. What can I help you with?`,
-                    quickReplies: ['Find a product', 'Track my order', 'What do you recommend?', 'Delivery info'],
+                    content: `Hi! I'm your ${BRAND_NAME} wellness assistant. I can find products, **add them to your cart**, place your order, and send you a secure payment link — all right here. What can I help you with?`,
+                    quickReplies: ['Find a product', 'Add to cart', 'Checkout now', 'Track my order'],
                     timestamp: Date.now(),
                 },
             ]);
@@ -293,7 +307,8 @@ export default function ChatWidget() {
 
                 const data = await res.json();
 
-                // Clear cart if a payment link action was returned (order was created)
+                applyAutoCartActions(data.actions, addToCart);
+
                 if (data.actions?.some((a: ChatAction) => a.type === 'payment_link')) {
                     clearCart();
                 }
@@ -326,15 +341,14 @@ export default function ChatWidget() {
                 setLoading(false);
             }
         },
-        [input, loading, messages, open, pathname, cartPayload, clearCart],
+        [input, loading, messages, open, pathname, cartPayload, clearCart, addToCart],
     );
 
     const handleAddToCart = useCallback(
-        (product: ChatProduct) => {
-            addToCart(chatProductToCartItem(product));
-            setIsCartOpen(true);
+        (product: ChatProduct, quantity?: number) => {
+            addToCart(chatProductToCartItem(product, quantity));
         },
-        [addToCart, setIsCartOpen],
+        [addToCart],
     );
 
     const handleQuickReply = useCallback(
@@ -438,6 +452,8 @@ export default function ChatWidget() {
                 });
                 const chatData = await chatRes.json();
 
+                applyAutoCartActions(chatData.actions, addToCart);
+
                 if (chatData.actions?.some((a: ChatAction) => a.type === 'payment_link')) {
                     clearCart();
                 }
@@ -511,7 +527,7 @@ export default function ChatWidget() {
                 setVoiceProcessing(null);
             }
         },
-        [messages, open, pathname, cartPayload, clearCart],
+        [messages, open, pathname, cartPayload, clearCart, addToCart],
     );
 
     sendVoiceRef.current = sendVoiceMessage;
@@ -601,7 +617,7 @@ export default function ChatWidget() {
             {
                 role: 'assistant',
                 content: 'Chat cleared! How can I help you today?',
-                quickReplies: ['Find a product', 'Track my order', 'What do you recommend?', 'Delivery info'],
+                quickReplies: ['Find a product', 'Add to cart', 'Checkout now', 'Track my order'],
                 timestamp: Date.now(),
             },
         ];
@@ -661,6 +677,19 @@ export default function ChatWidget() {
                             </div>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
+                            {cartCount > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCartOpen(true)}
+                                    className="relative w-9 h-9 rounded-lg hover:bg-white/60 text-brand-cocoa flex items-center justify-center transition-colors"
+                                    title="View cart"
+                                >
+                                    <i className="ri-shopping-cart-2-line text-base" aria-hidden />
+                                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-brand-espresso text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                                        {cartCount > 99 ? '99+' : cartCount}
+                                    </span>
+                                </button>
+                            )}
                             <button
                                 type="button"
                                 onClick={clearChat}
@@ -796,7 +825,7 @@ export default function ChatWidget() {
                             </form>
                         )}
                         <p className="text-center text-[10px] text-gray-400 mt-1.5">
-                            Powered by AI · {BRAND_NAME}
+                            Powered by DoctorBarns Tech
                         </p>
                     </div>
                 </div>
@@ -962,19 +991,24 @@ function MessageBubble({
 
                 {/* Payment Link Button */}
                 {message.actions
-                    ?.filter((a) => a.type === 'payment_link')
+                    ?.filter((a) => a.type === 'payment_link' && a.paymentUrl)
                     .map((a, idx) => (
                         <a
                             key={`pay-${idx}`}
                             href={a.paymentUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
                             className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-brand-espresso hover:bg-brand-cocoa text-white font-semibold rounded-xl shadow-md transition-all active:scale-[0.98] text-sm"
                         >
                             <i className="ri-secure-payment-line text-lg" />
                             {a.label || 'Pay Now'}
                         </a>
                     ))}
+
+                {message.actions?.some((a) => a.autoAdd && a.type === 'add_to_cart') && (
+                    <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 flex items-center gap-1.5">
+                        <i className="ri-checkbox-circle-fill" aria-hidden />
+                        Added to your cart
+                    </p>
+                )}
 
                 {/* Quick Replies */}
                 {isLast && !isUser && message.quickReplies && message.quickReplies.length > 0 && (

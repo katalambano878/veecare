@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import {
     searchProducts,
     getProductForCart,
+    resolveAddToCart,
     trackOrder,
     getCustomerOrders,
     checkCoupon,
@@ -65,6 +66,8 @@ interface ChatMessage {
 interface ChatAction {
     type: 'add_to_cart' | 'view_product' | 'view_order' | 'track_order' | 'apply_coupon' | 'payment_link';
     product?: ChatProduct;
+    quantity?: number;
+    autoAdd?: boolean;
     orderId?: string;
     orderNumber?: string;
     couponCode?: string;
@@ -133,6 +136,28 @@ const LLM_TOOLS = [
                 type: 'object',
                 properties: { slug_or_id: { type: 'string', description: 'Product slug or UUID' } },
                 required: ['slug_or_id'],
+            },
+        },
+    },
+    {
+        type: 'function' as const,
+        function: {
+            name: 'add_to_cart',
+            description:
+                'Add a product to the customer cart immediately. Use when they say "add to cart", "I want X", "put X in my cart", "buy X", or confirm they want a shown product. The item is added to their live cart automatically.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    product_query: {
+                        type: 'string',
+                        description: 'Product name, slug, or UUID to add',
+                    },
+                    quantity: {
+                        type: 'number',
+                        description: 'How many to add (default 1)',
+                    },
+                },
+                required: ['product_query'],
             },
         },
     },
@@ -272,13 +297,13 @@ const LLM_TOOLS = [
         function: {
             name: 'create_order',
             description:
-                "Create an order and initiate Mobile Money payment. Use this when the customer has items in their cart AND has provided all required shipping information (firstName, lastName, email, phone, address, city, region) AND has confirmed they want to proceed with checkout. The cart items are provided automatically from the customer's current cart - pass them in the items parameter.",
+                "Create an order and return a secure payment link (Hubtel or Moolre). Use when the customer has items in their cart AND has provided all shipping info AND confirmed checkout. If items are omitted, the customer's live cart from context is used automatically.",
             parameters: {
                 type: 'object',
                 properties: {
                     items: {
                         type: 'array',
-                        description: 'Cart items to order. Use the product IDs and quantities from the cart context provided in the conversation.',
+                        description: 'Optional — cart items to order. Omit to use the customer cart from context (preferred).',
                         items: {
                             type: 'object',
                             properties: {
@@ -309,11 +334,11 @@ const LLM_TOOLS = [
                     },
                     payment_method: {
                         type: 'string',
-                        enum: ['moolre'],
-                        description: 'moolre = Moolre Mobile Money link (only payment method)',
+                        enum: ['hubtel', 'moolre'],
+                        description: 'hubtel = Hubtel checkout (Mobile Money, card — default). moolre = Moolre Mobile Money link.',
                     },
                 },
-                required: ['items', 'shipping', 'delivery_method', 'payment_method'],
+                required: ['shipping', 'delivery_method', 'payment_method'],
             },
         },
     },
@@ -382,12 +407,13 @@ WHEN CREATING SUPPORT TICKETS:
 STORE POLICIES (quick reference):
 - Delivery: ${NO_PICKUP_NOTICE} Orders ship on ${DELIVERY_DAYS_DISPLAY}. Delivery cost confirmed after checkout. See /shipping.
 - Returns: see /returns; no refunds on opened/used products (hygiene). Damaged/defective: notify within 24 hours with photos.
-- Payment: Moolre Mobile Money (GHS). No payment on delivery.
+- Payment: Hubtel (Mobile Money, card) or Moolre Mobile Money (GHS). No payment on delivery.
 - Contact: ${SUPPORT_EMAIL}, ${CONTACT_PHONE_DISPLAY}, WhatsApp ${WHATSAPP_LINK}
 - Tone: Be warm, discreet, and respectful when discussing intimate/feminine health topics.
 
 CAPABILITIES (what you CAN do):
 - Search and recommend products
+- **Add products to the customer's cart** using the add_to_cart tool
 - Check product availability and pricing
 - Track orders by order number + email
 - Show recent orders (logged-in users)
@@ -401,10 +427,13 @@ CAPABILITIES (what you CAN do):
 IMPORTANT — USING WEBSITE KNOWLEDGE:
 When a customer asks about ANYTHING related to the business (policies, how to do something, contact info, account help, delivery zones, payment methods, returns process, FAQs, etc.), ALWAYS use the get_website_info tool first to get accurate, up-to-date information from the actual website.
 
+ADD TO CART:
+When a customer wants to add a product ("add to cart", "I want the...", "put X in my cart", "buy 2 of..."), call add_to_cart immediately with the product name/slug and quantity. Do NOT just show a product card — actually add it. If multiple products match, ask which one, then add_to_cart.
+
 CHECKOUT & ORDER PLACEMENT:
-You can help customers place orders directly in this chat:
+You can help customers place orders and pay directly in this chat:
 1. The customer's current cart contents are provided in the conversation context (if they have items).
-2. When the customer says they want to checkout, buy, or place an order, collect their shipping info step by step:
+2. When the customer says they want to checkout, buy, pay, or place an order, collect their shipping info step by step:
    - Full name (first and last)
    - Email address
    - Phone number
@@ -414,11 +443,12 @@ You can help customers place orders directly in this chat:
    - **Express** — GH₵40 (priority dispatch when available)
    - There is NO pickup — we are online-only and deliver to the customer's address.
 4. Ask them to choose a payment method:
-   - **Moolre** — Mobile Money via secure Moolre link (recommended, only option)
+   - **Hubtel** — Secure checkout via Hubtel (Mobile Money, card — recommended default)
+   - **Moolre** — Mobile Money via secure Moolre link
 5. Summarize the order (items, subtotal, delivery fee, total) and ask the customer to confirm.
-6. Once confirmed, call the create_order tool with the cart items (product IDs and quantities from the cart context), shipping info, delivery method, and payment method.
-7. Share the payment link from the tool for Moolre. For COD, confirm the order is placed.
-IMPORTANT: Do NOT ask the customer to list their cart items — you already have them. Just reference what is in their cart and proceed. If the cart is empty, tell them to add products first.
+6. Once confirmed, call create_order with cart items (product IDs + quantities from cart context), shipping info, delivery method, and payment method.
+7. After create_order succeeds, tell the customer to tap the **Pay Now** button — it opens Hubtel or Moolre checkout. Do NOT send them to the website checkout page.
+IMPORTANT: Do NOT ask the customer to list cart items — you already have them. If the cart is empty, help them add products with add_to_cart first.
 
 LIMITATIONS (what you CANNOT do directly):
 - Reset passwords or change login credentials
@@ -745,6 +775,50 @@ async function handleWithoutAI(supabase: any, userText: string, profile: ChatCus
         };
     }
 
+    if (/\b(checkout|place\s+(my\s+)?order|pay\s+now|ready\s+to\s+pay|buy\s+now)\b/i.test(lower)) {
+        return {
+            message:
+                'I can checkout for you right here! Share your full name, email, phone, delivery address (street, city, region), delivery speed (standard GH₵20 or express GH₵40), and payment method (Hubtel or Moolre). I\'ll place the order and send a secure payment link.',
+            quickReplies: ['Standard delivery', 'Express delivery', 'Hubtel payment'],
+        };
+    }
+
+    if (/\b(add|put).*(to\s+)?(my\s+)?(cart|basket)\b/i.test(lower) || /\badd\s+to\s+cart\b/i.test(lower)) {
+        const query = userText
+            .replace(/\b(add|put|to|my|the|cart|basket|please|can you|i want|want)\b/gi, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        if (query.length > 2) {
+            const result = await resolveAddToCart(supabase, query, 1);
+            if (result.success && result.product) {
+                return {
+                    message: result.message,
+                    products: [result.product],
+                    actions: [
+                        {
+                            type: 'add_to_cart',
+                            product: result.product,
+                            quantity: result.quantity,
+                            autoAdd: true,
+                        },
+                    ],
+                    quickReplies: ['Checkout now', 'Add another item'],
+                };
+            }
+            if (result.product) {
+                return {
+                    message: result.message,
+                    products: [result.product],
+                    quickReplies: ['Find something else', 'What do you recommend?'],
+                };
+            }
+        }
+        return {
+            message: 'Which product would you like to add? Tell me the name and quantity (e.g. "add 2 Yoni Wash to cart").',
+            quickReplies: ['Find a product', 'What do you recommend?'],
+        };
+    }
+
     if (/\b(thanks|thank you|bye|goodbye)\b/i.test(lower)) {
         return {
             message: "You're welcome! If you need anything else, I'm always here to help. Happy shopping!",
@@ -879,6 +953,7 @@ async function handleWithAI(
     let couponCard: ChatCoupon | undefined;
     let quickReplies: string[] = [];
     let paymentAction: ChatAction | undefined;
+    let cartAddActions: ChatAction[] = [];
 
     try {
         const res = await fetchWithRetry(LLM_API_URL, {
@@ -927,6 +1002,7 @@ async function handleWithAI(
                     profile,
                     clientIp,
                     categories,
+                    cartItems,
                 );
 
                 if (toolResult.products) allProducts.push(...toolResult.products);
@@ -936,6 +1012,7 @@ async function handleWithAI(
                 if (toolResult.couponCard) couponCard = toolResult.couponCard;
                 if (toolResult.quickReplies) quickReplies = toolResult.quickReplies;
                 if (toolResult.paymentAction) paymentAction = toolResult.paymentAction;
+                if (toolResult.cartAddAction) cartAddActions.push(toolResult.cartAddAction);
 
                 llmMessages.push({
                     role: 'tool',
@@ -990,7 +1067,11 @@ async function handleWithAI(
             }
         }
 
-        allActions = allProducts.filter((p) => p.inStock).map((p) => ({ type: 'add_to_cart' as const, product: p }));
+        if (cartAddActions.length > 0) {
+            allActions = cartAddActions;
+        } else {
+            allActions = allProducts.filter((p) => p.inStock).map((p) => ({ type: 'add_to_cart' as const, product: p }));
+        }
         if (paymentAction) allActions.push(paymentAction);
 
         if (!quickReplies.length) {
@@ -1073,6 +1154,7 @@ async function executeToolCall(
     profile: ChatCustomerProfile | null,
     clientIp?: string,
     categories: StoreCategory[] = [],
+    cartItems?: { id: string; name: string; price: number; quantity: number; slug: string }[],
 ): Promise<{
     data: any;
     products?: ChatProduct[];
@@ -1081,6 +1163,7 @@ async function executeToolCall(
     returnCard?: ChatReturn;
     couponCard?: ChatCoupon;
     paymentAction?: ChatAction;
+    cartAddAction?: ChatAction;
     quickReplies?: string[];
 }> {
     switch (fnName) {
@@ -1158,6 +1241,39 @@ async function executeToolCall(
             return {
                 data: product ? { name: product.name, price: product.price, inStock: product.inStock } : { error: 'Product not found' },
                 products: product ? [product] : undefined,
+            };
+        }
+
+        case 'add_to_cart': {
+            const result = await resolveAddToCart(supabase, args.product_query, args.quantity);
+            if (!result.success || !result.product) {
+                return {
+                    data: {
+                        success: false,
+                        message: result.message,
+                        product: result.product
+                            ? { name: result.product.name, price: result.product.price, inStock: result.product.inStock }
+                            : undefined,
+                    },
+                    products: result.product ? [result.product] : undefined,
+                    quickReplies: result.product ? ['Try again', 'Search for something else'] : ['Find a product'],
+                };
+            }
+            return {
+                data: {
+                    success: true,
+                    message: result.message,
+                    product: { name: result.product.name, quantity: result.quantity, price: result.product.price },
+                    instruction: 'Confirm the item was added. Offer checkout or adding more items.',
+                },
+                products: [result.product],
+                cartAddAction: {
+                    type: 'add_to_cart',
+                    product: result.product,
+                    quantity: result.quantity,
+                    autoAdd: true,
+                },
+                quickReplies: ['Checkout now', 'Add another item', 'View my cart'],
             };
         }
 
@@ -1351,11 +1467,19 @@ async function executeToolCall(
         }
 
         case 'create_order': {
+            let orderItems = Array.isArray(args.items) ? args.items : [];
+            if (orderItems.length === 0 && cartItems?.length) {
+                orderItems = cartItems.map((item) => ({
+                    productId: item.id,
+                    quantity: item.quantity,
+                }));
+            }
+
             const orderResult = await createChatOrder(supabaseWriter, {
-                items: args.items || [],
+                items: orderItems,
                 shipping: args.shipping || {},
                 deliveryMethod: args.delivery_method || 'standard',
-                paymentMethod: args.payment_method || 'moolre',
+                paymentMethod: args.payment_method || 'hubtel',
                 userId,
             });
 
@@ -1401,7 +1525,7 @@ function generateQuickReplies(
 ): string[] {
     if (ticketCard) return ['Continue shopping', 'Track my order'];
     if (orderCard) return ['I have an issue', 'Track another order', 'Continue shopping'];
-    if (products.length > 0) return ['Add to cart', 'Show me more', 'Something else'];
+    if (products.length > 0) return ['Add to cart', 'Checkout now', 'Show me more', 'Something else'];
 
     const lower = userText.toLowerCase();
     if (/\b(hi|hello|hey)\b/.test(lower)) return ['Find a product', 'Track my order', 'What do you recommend?'];

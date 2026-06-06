@@ -55,7 +55,7 @@ export default function CheckoutPage() {
   ];
 
   const [deliveryMethod, setDeliveryMethod] = useState('doorstep');
-  const [paymentMethod, setPaymentMethod] = useState('moolre');
+  const [paymentMethod, setPaymentMethod] = useState('hubtel');
   const [errors, setErrors] = useState<any>({});
 
 
@@ -247,16 +247,15 @@ export default function CheckoutPage() {
       });
 
       // 4. Handle Payment Redirects or Completion
-      if (paymentMethod === 'moolre') {
+      if (paymentMethod === 'hubtel' || paymentMethod === 'moolre') {
         try {
-          // Payment link reminder will be sent automatically after 15 mins if unpaid (via cron)
+          const paymentEndpoint = paymentMethod === 'moolre' ? '/api/payment/moolre' : '/api/payment/hubtel';
 
-          const paymentRes = await fetch('/api/payment/moolre', {
+          const paymentRes = await fetch(paymentEndpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               orderId: orderNumber,
-              amount: total,
               customerEmail: shippingData.email
             })
           });
@@ -267,10 +266,7 @@ export default function CheckoutPage() {
             throw new Error(paymentResult.message || 'Payment initialization failed');
           }
 
-          // Clear cart before redirecting
           clearCart();
-
-          // Redirect to Moolre
           window.location.href = paymentResult.url;
           return;
 
@@ -278,7 +274,7 @@ export default function CheckoutPage() {
           console.error('Payment Error:', paymentErr);
           alert('Failed to initialize payment: ' + paymentErr.message);
           setIsLoading(false);
-          return; // Stop execution
+          return;
         }
       }
 
@@ -577,7 +573,7 @@ export default function CheckoutPage() {
                           Processing...
                         </>
                       ) : (
-                        'Pay with Mobile Money'
+                        'Pay Securely'
                       )}
                     </button>
                   </div>

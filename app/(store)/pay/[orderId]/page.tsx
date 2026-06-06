@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { getInitiateEndpoint, PAYMENT_ENDPOINTS, resolvePaymentProvider } from '@/lib/payments/providers';
 
 export default function PaymentPage() {
   usePageTitle('Complete Payment');
@@ -63,12 +64,12 @@ export default function PaymentPage() {
     setError(null);
 
     try {
-      const paymentRes = await fetch('/api/payment/moolre', {
+      const provider = resolvePaymentProvider(order.payment_method, order.metadata);
+      const paymentRes = await fetch(getInitiateEndpoint(provider), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderId: order.order_number,
-          amount: order.total,
           customerEmail: order.email
         })
       });
@@ -218,7 +219,7 @@ export default function PaymentPage() {
           ) : (
             <>
               <i className="ri-secure-payment-line mr-2"></i>
-              Pay GH₵ {order?.total?.toFixed(2)} with Mobile Money
+              Pay GH₵ {order?.total?.toFixed(2)} with {PAYMENT_ENDPOINTS[resolvePaymentProvider(order?.payment_method, order?.metadata)].label}
             </>
           )}
         </button>
@@ -227,7 +228,7 @@ export default function PaymentPage() {
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500 flex items-center justify-center">
             <i className="ri-lock-line mr-1"></i>
-            Secure payment powered by Moolre
+            Secure payment powered by {PAYMENT_ENDPOINTS[resolvePaymentProvider(order?.payment_method, order?.metadata)].label}
           </p>
         </div>
 

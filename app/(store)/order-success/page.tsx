@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getVerifyEndpoint } from '@/lib/payments/providers';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -67,10 +68,9 @@ function OrderSuccessContent() {
       return;
     }
 
-    // Callback hasn't fired - verify via our endpoint
-    // Verify payment via Moolre API — we no longer trust the redirect alone
     try {
-      const res = await fetch('/api/payment/moolre/verify', {
+      const verifyEndpoint = getVerifyEndpoint(initialOrder);
+      const res = await fetch(verifyEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderNumber: orderNum })
