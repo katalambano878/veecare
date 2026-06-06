@@ -1,0 +1,11 @@
+# Vee Care — Accra, Ghana - Shop Online
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout
+Disallow: /cart
+Disallow: /account/
+Disallow: /auth/
+
+Sitemap: https://veecarehera.com/sitemap.xml

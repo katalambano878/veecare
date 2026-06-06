@@ -1,0 +1,722 @@
+'use client';
+
+import Link from 'next/link';
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { cachedQuery } from '@/lib/query-cache';
+import ProductCard from '@/components/ProductCard';
+import ProductReviews from '@/components/ProductReviews';
+import { StructuredData, generateProductSchema, generateBreadcrumbSchema } from '@/components/SEOHead';
+import { SITE_URL } from '@/lib/seo';
+import { notFound } from 'next/navigation';
+import { useCart } from '@/context/CartContext';
+import { usePageTitle } from '@/hooks/usePageTitle';
+
+// Map common color names to hex values for the swatch preview
+function colorNameToHex(name: string): string {
+  const map: Record<string, string> = {
+    red: '#ef4444', blue: '#3b82f6', green: '#22c55e', yellow: '#eab308',
+    orange: '#f97316', purple: '#a855f7', pink: '#ec4899', black: '#111827',
+    white: '#ffffff', gray: '#6b7280', grey: '#6b7280', brown: '#92400e',
+    navy: '#1e3a5f', gold: '#d4a017', silver: '#c0c0c0', beige: '#f5f5dc',
+    maroon: '#800000', teal: '#14b8a6', coral: '#ff7f50', ivory: '#fffff0',
+    cream: '#fffdd0', burgundy: '#800020', lavender: '#e6e6fa', cyan: '#06b6d4',
+    magenta: '#d946ef', olive: '#84cc16', peach: '#ffcba4', mint: '#98f5e1',
+    rose: '#f43f5e', wine: '#722f37', charcoal: '#374151', sky: '#0ea5e9',
+  };
+  return map[name.toLowerCase().trim()] || '#d1d5db';
+}
+
+export default function ProductDetailClient({ slug }: { slug: string }) {
+  const [product, setProduct] = useState<any>(null);
+  usePageTitle(product?.name || 'Product');
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState('description');
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+
+  const { addToCart } = useCart();
+
+  useEffect(() => {
+    async function fetchProduct() {
+      try {
+        setLoading(true);
+        // Fetch main product (cached for 2 minutes)
+        const { data: productData, error } = await cachedQuery<{ data: any; error: any }>(
+          `product:${slug}`,
+          async () => {
+            let query = supabase
+              .from('products')
+              .select(`
+                *,
+                categories(name),
+                product_variants(*),
+                product_images(url, position, alt_text)
+              `);
+
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+
+            if (isUUID) {
+              query = query.or(`id.eq.${slug},slug.eq.${slug}`);
+            } else {
+              query = query.eq('slug', slug);
+            }
+
+            return query.single() as any;
+          },
+          2 * 60 * 1000 // 2 minutes
+        );
+
+        if (error || !productData) {
+          console.error('Error fetching product:', error);
+          setLoading(false);
+          return;
+        }
+
+        // Transform product data
+        // Map variant colors from option2, and extract color_hex from metadata
+        const rawVariants = (productData.product_variants || []).map((v: any) => ({
+          ...v,
+          color: v.option2 || '',
+          colorHex: v.metadata?.color_hex || ''
+        }));
+
+        // Build a color-to-hex map from variants (prefer stored hex, fallback to colorNameToHex)
+        const colorHexMap: Record<string, string> = {};
+        rawVariants.forEach((v: any) => {
+          if (v.color) {
+            if (!colorHexMap[v.color]) {
+              colorHexMap[v.color] = v.colorHex || colorNameToHex(v.color);
+            }
+          }
+        });
+
+        const transformedProduct = {
+          ...productData,
+          images: productData.product_images?.sort((a: any, b: any) => a.position - b.position).map((img: any) => img.url) || [],
+          category: productData.categories?.name || 'Shop',
+          rating: productData.rating_avg || 0,
+          reviewCount: 0,
+          stockCount: productData.quantity,
+          moq: productData.moq || 1,
+          colors: [...new Set(rawVariants.map((v: any) => v.color).filter(Boolean))],
+          colorHexMap,
+          variants: rawVariants,
+          sizes: rawVariants.map((v: any) => v.name) || [],
+          features: ['Premium Quality', 'Authentic Design'],
+          featured: ['Premium Quality', 'Authentic Design'],
+          care: 'Handle with care.',
+          preorderShipping: productData.metadata?.preorder_shipping || null
+        };
+
+        // Ensure at least one image/placeholder
+        if (transformedProduct.images.length === 0) {
+          transformedProduct.images = ['https://via.placeholder.com/800x800?text=No+Image'];
+        }
+
+        setProduct(transformedProduct);
+
+        // Set initial quantity to MOQ
+        if (transformedProduct.moq > 1) {
+          setQuantity(transformedProduct.moq);
+        }
+
+        // If variants exist, do NOT pre-select — force user to choose
+        // Reset variant and color selection
+        setSelectedVariant(null);
+        setSelectedSize('');
+        setSelectedColor('');
+
+        // Fetch related products (cached for 5 minutes)
+        if (productData.category_id) {
+          const { data: related } = await cachedQuery<{ data: any; error: any }>(
+            `related:${productData.category_id}:${productData.id}`,
+            (() => supabase
+              .from('products')
+              .select('*, product_images(url, position), product_variants(id, name, price, quantity)')
+              .eq('category_id', productData.category_id)
+              .neq('id', productData.id)
+              .limit(4)) as any,
+            5 * 60 * 1000
+          );
+
+          if (related) {
+            setRelatedProducts(related.map((p: any) => {
+              const variants = p.product_variants || [];
+              const hasVariants = variants.length > 0;
+              const minVariantPrice = hasVariants ? Math.min(...variants.map((v: any) => v.price || p.price)) : undefined;
+              const totalVariantStock = hasVariants ? variants.reduce((sum: number, v: any) => sum + (v.quantity || 0), 0) : 0;
+              const effectiveStock = hasVariants ? totalVariantStock : p.quantity;
+              return {
+                id: p.id,
+                slug: p.slug,
+                name: p.name,
+                price: p.price,
+                image: p.product_images?.[0]?.url || 'https://via.placeholder.com/800?text=No+Image',
+                rating: p.rating_avg || 0,
+                reviewCount: 0,
+                inStock: effectiveStock > 0,
+                maxStock: effectiveStock || 50,
+                moq: p.moq || 1,
+                hasVariants,
+                minVariantPrice
+              };
+            }));
+          }
+        }
+
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (slug) {
+      fetchProduct();
+    }
+  }, [slug]);
+
+  const hasVariants = product?.variants?.length > 0;
+  const hasColors = product?.colors?.length > 0;
+  const needsVariantSelection = hasVariants && !selectedVariant;
+  const needsColorSelection = hasColors && !selectedColor;
+
+  // Determine the active price: variant price if selected, otherwise base price
+  const activePrice = selectedVariant?.price ?? product?.price ?? 0;
+  const activeStock = selectedVariant ? (selectedVariant.stock ?? selectedVariant.quantity ?? product?.stockCount ?? 0) : (product?.stockCount ?? 0);
+
+  const handleAddToCart = () => {
+    if (!product) return;
+    if (needsVariantSelection) return; // Safety check
+
+    // Build variant display string: "Color / Name" or just "Name" or just "Color"
+    let variantLabel: string | undefined;
+    if (selectedVariant) {
+      const color = selectedVariant.color || selectedColor || '';
+      const name = selectedVariant.name || '';
+      if (color && name) {
+        variantLabel = `${color} / ${name}`;
+      } else {
+        variantLabel = color || name || undefined;
+      }
+    }
+
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: activePrice,
+      image: product.images[0],
+      quantity: quantity,
+      variant: variantLabel,
+      slug: product.slug,
+      maxStock: activeStock,
+      moq: product.moq || 1
+    });
+  };
+
+  const handleBuyNow = () => {
+    handleAddToCart();
+    window.location.href = '/checkout';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-brand-cream py-12 flex justify-center items-center">
+        <div className="text-center">
+          <i className="ri-loader-4-line text-4xl text-brand-espresso animate-spin mb-4 block"></i>
+                <p className="text-brand-cocoa/60 font-normal">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-brand-cream py-20 flex justify-center items-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-display text-brand-espresso mb-4">Product Not Found</h2>
+          <Link href="/shop" className="text-brand-mauve hover:text-brand-espresso font-medium transition-colors">
+            Return to Shop
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const variantBtnSelected =
+    'glass-panel border-brand-berry/40 text-brand-espresso font-semibold shadow-glass border border-white/70';
+  const variantBtnIdle =
+    'glass border-white/50 text-brand-cocoa hover:shadow-glass-hover hover:text-brand-espresso';
+
+  const discount = product.compare_at_price ? Math.round((1 - activePrice / product.compare_at_price) * 100) : 0;
+  const minVariantPrice = hasVariants ? Math.min(...product.variants.map((v: any) => v.price || product.price)) : product.price;
+
+  const productSchema = generateProductSchema({
+    name: product.name,
+    description: product.description,
+    image: product.images[0],
+    price: hasVariants ? minVariantPrice : product.price,
+    currency: 'GHS',
+    sku: product.sku,
+    rating: product.rating,
+    reviewCount: product.reviewCount,
+    availability: product.quantity > 0 ? 'in_stock' : 'out_of_stock',
+    category: product.category
+  });
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: SITE_URL },
+    { name: 'Shop', url: `${SITE_URL}/shop` },
+    {
+      name: product.category,
+      url: `${SITE_URL}/shop?category=${product.category.toLowerCase().replace(/\s+/g, '-')}`,
+    },
+    { name: product.name, url: `${SITE_URL}/product/${slug}` },
+  ]);
+
+  return (
+    <>
+      <StructuredData data={productSchema} />
+      <StructuredData data={breadcrumbSchema} />
+
+      <main className="min-h-screen relative">
+        <div className="crystal-orb w-96 h-96 -top-20 right-0 bg-brand-rose/15" aria-hidden />
+        <div className="crystal-orb w-80 h-80 bottom-40 -left-20 bg-brand-lavender/25" aria-hidden />
+        <section className="py-6 md:py-8 border-b border-white/40 glass mx-4 sm:mx-6 lg:mx-8 rounded-2xl shadow-glass mb-2">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="flex items-center gap-2 text-sm flex-wrap gap-y-2 text-brand-cocoa/70">
+              <Link href="/" className="hover:text-brand-espresso transition-colors">Home</Link>
+              <i className="ri-arrow-right-s-line text-brand-nude"></i>
+              <Link href="/shop" className="hover:text-brand-espresso transition-colors">Shop</Link>
+              <i className="ri-arrow-right-s-line text-brand-nude"></i>
+              <span className="text-brand-mauve">{product.category}</span>
+              <i className="ri-arrow-right-s-line text-brand-nude"></i>
+              <span className="text-brand-espresso font-medium truncate max-w-[220px]">{product.name}</span>
+            </nav>
+          </div>
+        </section>
+
+        <section className="py-10 md:py-14">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
+              <div>
+                <div className="relative aspect-square rounded-[2.5rem] overflow-hidden bg-brand-blush/30 mb-4 shadow-glass-strong border border-white/60 ring-1 ring-inset ring-white/40">
+                  <Image
+                    src={product.images[selectedImage]}
+                    alt={product.name}
+                    fill
+                    className="object-cover object-center"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    priority
+                    quality={80}
+                  />
+                  {discount > 0 && (
+                    <span className="absolute top-5 right-5 glass text-brand-espresso border border-white/50 text-xs font-semibold tracking-normal px-4 py-2 rounded-full">
+                      Save {discount}%
+                    </span>
+                  )}
+                </div>
+
+                {product.images.length > 1 && (
+                  <div className="grid grid-cols-4 gap-4">
+                    {product.images.map((image: string, index: number) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImage(index)}
+                        className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImage === index ? 'border-brand-berry shadow-glass-strong ring-2 ring-brand-rose/30' : 'border-white/60 hover:border-brand-rose/50 glass'
+                          }`}
+                      >
+                        <Image
+                          src={image}
+                          alt={`${product.name} view ${index + 1}`}
+                          fill
+                          className="object-cover object-center"
+                          sizes="(max-width: 1024px) 25vw, 12vw"
+                          quality={60}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="lg:pt-2 glass-panel rounded-[2.5rem] p-8 lg:p-10 border border-white/60 shadow-glass-strong">
+                <div className="flex items-start justify-between gap-4 mb-5">
+                  <div>
+                    <span className="brand-eyebrow mb-3 block">
+                      {product.category}
+                    </span>
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display text-brand-espresso mb-3 leading-[1.1] tracking-tight">
+                      {product.name}
+                    </h1>
+                  </div>
+                  <button
+                    onClick={() => setIsWishlisted(!isWishlisted)}
+                    className="w-12 h-12 flex-shrink-0 flex items-center justify-center glass rounded-2xl hover:shadow-glass-hover transition-all cursor-pointer border border-white/60"
+                    aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                  >
+                    <i className={`${isWishlisted ? 'ri-heart-fill text-brand-mauve' : 'ri-heart-line text-brand-cocoa'} text-xl`}></i>
+                  </button>
+                </div>
+
+                <div className="flex items-center mb-6">
+                  <div className="flex items-center space-x-1 mr-3">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <i
+                        key={star}
+                        className={`${star <= Math.round(product.rating) ? 'ri-star-fill text-brand-champagne' : 'ri-star-line text-brand-nude'} text-lg`}
+                      ></i>
+                    ))}
+                  </div>
+                  <span className="text-brand-cocoa/80 font-medium tracking-wide">{Number(product.rating).toFixed(1)}</span>
+                </div>
+
+                <div className="flex items-baseline flex-wrap gap-3 mb-6 pb-6 border-b border-brand-nude/50">
+                  {hasVariants && !selectedVariant ? (
+                    <span className="text-3xl lg:text-4xl font-display text-brand-espresso tracking-tight">
+                      From GH₵{minVariantPrice.toFixed(2)}
+                    </span>
+                  ) : (
+                    <span className="text-3xl lg:text-4xl font-display text-brand-espresso tracking-tight">GH₵{activePrice.toFixed(2)}</span>
+                  )}
+                  {product.compare_at_price && product.compare_at_price > activePrice && (
+                    <span className="text-lg text-brand-cocoa/40 line-through font-light">GH₵{product.compare_at_price.toFixed(2)}</span>
+                  )}
+                </div>
+
+                <p className="text-brand-cocoa/80 leading-relaxed mb-8 font-normal">{product.description}</p>
+
+                {/* Color Selector */}
+                {hasVariants && product.colors.length > 0 && (
+                  <div className="mb-6">
+                    <label className="block font-medium text-brand-espresso mb-3">
+                      Color: {selectedColor ? (
+                        <span className="text-brand-mauve font-normal">{selectedColor}</span>
+                      ) : (
+                        <span className="text-red-500 font-normal text-sm">Please select a color</span>
+                      )}
+                    </label>
+                    <div className="flex flex-wrap gap-3">
+                      {product.colors.map((color: string) => {
+                        const isSelected = selectedColor === color;
+                        const colorVariants = product.variants.filter((v: any) => v.color === color);
+                        const colorStock = colorVariants.reduce((sum: number, v: any) => sum + (v.stock ?? v.quantity ?? 0), 0);
+                        const isOutOfStock = colorStock === 0 && product.stockCount === 0;
+                        return (
+                          <button
+                            key={color}
+                            onClick={() => {
+                              setSelectedColor(color);
+                              // If only one variant for this color, auto-select it
+                              const matching = product.variants.filter((v: any) => v.color === color);
+                              if (matching.length === 1) {
+                                setSelectedVariant(matching[0]);
+                                setSelectedSize(matching[0].name);
+                              } else {
+                                // Reset variant selection so user picks a size too
+                                setSelectedVariant(null);
+                                setSelectedSize('');
+                              }
+                            }}
+                            disabled={isOutOfStock}
+                            className={`px-5 py-2.5 rounded-full border-2 font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${isSelected
+                              ? variantBtnSelected
+                              : isOutOfStock
+                                ? 'border-brand-nude/40 text-brand-cocoa/30 cursor-not-allowed bg-brand-nude/10'
+                                : variantBtnIdle
+                              }`}
+                          >
+                            <span className="w-5 h-5 rounded-full border border-brand-nude/70 flex-shrink-0 shadow-sm" style={{ backgroundColor: product.colorHexMap?.[color] || colorNameToHex(color) }}></span>
+                            <span>{color}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Size / Name Variant Selector */}
+                {hasVariants && (() => {
+                  // Filter variants: if colors exist and one is selected, show only matching; otherwise show all
+                  const hasColors = product.colors.length > 0;
+                  const visibleVariants = hasColors && selectedColor
+                    ? product.variants.filter((v: any) => v.color === selectedColor)
+                    : hasColors
+                      ? [] // Don't show name variants until a color is picked
+                      : product.variants;
+
+                  // Check if we need to show the name selector (skip if all visible variants have the same name or only 1)
+                  const uniqueNames = [...new Set(visibleVariants.map((v: any) => v.name).filter(Boolean))];
+                  const showNameSelector = visibleVariants.length > 1 || (!hasColors && visibleVariants.length > 0);
+
+                  if (!showNameSelector && !hasColors) {
+                    // Single variant with no colors — show standard picker
+                    return (
+                      <div className="mb-8">
+                        <label className="block font-medium text-brand-espresso mb-3">
+                          Variant: {selectedVariant ? (
+                            <span className="text-brand-mauve font-normal">{selectedVariant.name} · GH₵{selectedVariant.price?.toFixed(2)}</span>
+                          ) : (
+                            <span className="text-red-500 font-normal text-sm">Please select a variant</span>
+                          )}
+                        </label>
+                        <div className="flex flex-wrap gap-3">
+                          {product.variants.map((variant: any) => {
+                            const isSelected = selectedVariant?.id === variant.id || selectedVariant?.name === variant.name;
+                            const variantStock = variant.stock ?? variant.quantity ?? 0;
+                            const isOutOfStock = variantStock === 0 && product.stockCount === 0;
+                            return (
+                              <button
+                                key={variant.id || variant.name}
+                                onClick={() => {
+                                  setSelectedVariant(variant);
+                                  setSelectedSize(variant.name);
+                                }}
+                                disabled={isOutOfStock}
+                                className={`px-6 py-3 rounded-xl border-2 font-medium transition-all whitespace-nowrap cursor-pointer flex flex-col items-center ${isSelected
+                                  ? variantBtnSelected
+                                  : isOutOfStock
+                                    ? 'border-brand-nude/40 text-brand-cocoa/30 cursor-not-allowed bg-brand-nude/10'
+                                    : variantBtnIdle
+                                  }`}
+                              >
+                                <span>{variant.name}</span>
+                                <span className={`text-xs mt-0.5 ${isSelected ? 'text-brand-espresso' : 'text-brand-cocoa/60'}`}>
+                                  GH₵{(variant.price || product.price).toFixed(2)}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (visibleVariants.length > 1) {
+                    return (
+                      <div className="mb-8">
+                        <label className="block font-medium text-brand-espresso mb-3">
+                          Size / Type: {selectedVariant ? (
+                            <span className="text-brand-mauve font-normal">{selectedVariant.name} · GH₵{selectedVariant.price?.toFixed(2)}</span>
+                          ) : (
+                            <span className="text-red-500 font-normal text-sm">Please select</span>
+                          )}
+                        </label>
+                        <div className="flex flex-wrap gap-3">
+                          {visibleVariants.map((variant: any) => {
+                            const isSelected = selectedVariant?.id === variant.id;
+                            const variantStock = variant.stock ?? variant.quantity ?? 0;
+                            const isOutOfStock = variantStock === 0 && product.stockCount === 0;
+                            return (
+                              <button
+                                key={variant.id || variant.name}
+                                onClick={() => {
+                                  setSelectedVariant(variant);
+                                  setSelectedSize(variant.name);
+                                }}
+                                disabled={isOutOfStock}
+                                className={`px-6 py-3 rounded-xl border-2 font-medium transition-all whitespace-nowrap cursor-pointer flex flex-col items-center ${isSelected
+                                  ? variantBtnSelected
+                                  : isOutOfStock
+                                    ? 'border-brand-nude/40 text-brand-cocoa/30 cursor-not-allowed bg-brand-nude/10'
+                                    : variantBtnIdle
+                                  }`}
+                              >
+                                <span>{variant.name}</span>
+                                <span className={`text-xs mt-0.5 ${isSelected ? 'text-brand-espresso' : 'text-brand-cocoa/60'}`}>
+                                  GH₵{(variant.price || product.price).toFixed(2)}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return null;
+                })()}
+
+                <div className="mb-8">
+                  <label className="block font-medium text-brand-espresso mb-3">Quantity</label>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center border-2 border-brand-nude/70 rounded-xl overflow-hidden">
+                      <button
+                        onClick={() => setQuantity(Math.max(product.moq || 1, quantity - 1))}
+                        className="w-12 h-12 flex items-center justify-center text-brand-cocoa hover:bg-brand-nude/30 transition-colors cursor-pointer"
+                        disabled={activeStock === 0 || quantity <= (product.moq || 1)}
+                      >
+                        <i className="ri-subtract-line text-xl"></i>
+                      </button>
+                      <input
+                        type="number"
+                        value={quantity}
+                        onChange={(e) => setQuantity(Math.max(product.moq || 1, Math.min(activeStock, parseInt(e.target.value) || (product.moq || 1))))}
+                        className="w-16 h-12 text-center border-x-2 border-brand-nude/70 focus:outline-none text-lg font-semibold text-brand-espresso bg-white"
+                        min={product.moq || 1}
+                        max={activeStock}
+                        disabled={activeStock === 0}
+                      />
+                      <button
+                        onClick={() => setQuantity(Math.min(activeStock, quantity + 1))}
+                        className="w-12 h-12 flex items-center justify-center text-brand-cocoa hover:bg-brand-nude/30 transition-colors cursor-pointer"
+                        disabled={activeStock === 0}
+                      >
+                        <i className="ri-add-line text-xl"></i>
+                      </button>
+                    </div>
+                    <div className="flex flex-col">
+                      {product.moq > 1 && (
+                        <span className="text-brand-mauve font-medium text-sm">
+                          <i className="ri-information-line mr-1"></i>
+                          Min. order: {product.moq} units
+                        </span>
+                      )}
+                      {activeStock > 10 && (
+                        <span className="text-brand-cocoa/70 font-medium text-sm">
+                          <i className="ri-checkbox-circle-line mr-1 text-brand-espresso"></i>
+                          {activeStock} in stock
+                        </span>
+                      )}
+                      {activeStock > 0 && activeStock <= 10 && (
+                        <span className="text-amber-600 font-medium text-sm">
+                          <i className="ri-error-warning-line mr-1"></i>
+                          Only {activeStock} left in stock
+                        </span>
+                      )}
+                      {activeStock === 0 && (
+                        <span className="text-red-600 font-medium">
+                          <i className="ri-close-circle-line mr-1"></i>
+                          Out of Stock
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                  <button
+                    disabled={activeStock === 0 || needsVariantSelection || needsColorSelection}
+                    className={`flex-1 btn-luxury-primary py-4 flex items-center justify-center gap-2 text-base ${(activeStock === 0 || needsVariantSelection || needsColorSelection) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={handleAddToCart}
+                  >
+                    <i className="ri-shopping-cart-line text-xl"></i>
+                    <span>{activeStock === 0 ? 'Out of Stock' : needsColorSelection ? 'Select a Color' : needsVariantSelection ? 'Select a Variant' : 'Add to Cart'}</span>
+                  </button>
+                  {activeStock > 0 && !needsVariantSelection && !needsColorSelection && (
+                    <button
+                      onClick={handleBuyNow}
+                      className="sm:w-auto btn-luxury-outline px-8 py-4 whitespace-nowrap cursor-pointer"
+                    >
+                      Buy Now
+                    </button>
+                  )}
+                </div>
+
+                <div className="border-t border-brand-nude/50 pt-6 space-y-4">
+                  <div className="flex items-center text-brand-cocoa/80">
+                    <i className="ri-truck-line text-xl text-brand-espresso mr-3"></i>
+                    <span>Delivery on Tuesdays, Thursdays &amp; Saturdays</span>
+                  </div>
+                  <div className="flex items-center text-brand-cocoa/80">
+                    <i className="ri-arrow-left-right-line text-xl text-brand-espresso mr-3"></i>
+                    <span>30 day easy returns and exchanges</span>
+                  </div>
+                  <div className="flex items-center text-brand-cocoa/80">
+                    <i className="ri-shield-check-line text-xl text-brand-espresso mr-3"></i>
+                    <span>Secure payment & buyer protection</span>
+                  </div>
+                  {product.sku && (
+                    <div className="flex items-center text-brand-cocoa/80">
+                      <i className="ri-barcode-line text-xl text-brand-espresso mr-3"></i>
+                      <span>SKU: {product.sku}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 bg-brand-nude/20 border-t border-brand-nude/40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="border-b border-brand-nude/60 mb-8">
+              <div className="flex space-x-4 sm:space-x-8 overflow-x-auto">
+                {['description', 'features', 'care', 'reviews'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`pb-4 font-sans font-medium tracking-normal text-sm transition-colors relative whitespace-nowrap cursor-pointer ${activeTab === tab
+                      ? 'text-brand-espresso border-b-2 border-brand-espresso'
+                      : 'text-brand-cocoa/60 hover:text-brand-espresso'
+                      }`}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {activeTab === 'description' && (
+              <div className="prose max-w-none">
+                <p className="text-brand-cocoa/80 text-lg leading-relaxed">{product.description}</p>
+              </div>
+            )}
+
+            {activeTab === 'features' && (
+              <div>
+                <h3 className="font-display text-2xl font-semibold text-brand-espresso mb-6">Key Features</h3>
+                <ul className="grid md:grid-cols-2 gap-4">
+                  {product.features.map((feature: string, index: number) => (
+                    <li key={index} className="flex items-start">
+                      <i className="ri-checkbox-circle-fill text-brand-champagne text-xl mr-3 mt-1"></i>
+                      <span className="text-brand-cocoa/80 text-lg">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {activeTab === 'care' && (
+              <div>
+                <h3 className="font-display text-2xl font-semibold text-brand-espresso mb-6">Care Instructions</h3>
+                <p className="text-brand-cocoa/80 text-lg leading-relaxed">{product.care}</p>
+              </div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <div id="reviews">
+                <ProductReviews productId={product.id} />
+              </div>
+            )}
+          </div>
+        </section>
+
+        {relatedProducts.length > 0 && (
+          <section className="py-20 bg-white border-t border-brand-nude/40" data-product-shop>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
+              <div className="text-center mb-12">
+                <p className="brand-eyebrow mb-3">Curated for you</p>
+                <h2 className="font-display text-3xl lg:text-4xl font-semibold text-brand-espresso mb-4">You May Also Like</h2>
+                <p className="text-lg text-brand-cocoa/70">Handpicked pieces that pair beautifully with this item</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {relatedProducts.map((p) => (
+                  <ProductCard key={p.id} {...p} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+    </>
+  );
+}

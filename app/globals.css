@@ -1,0 +1,985 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.5.0/remixicon.min.css');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans text-brand-cocoa bg-brand-cream antialiased selection:bg-brand-mauve/30 selection:text-brand-espresso;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight text-brand-espresso;
+  }
+
+  p {
+    @apply font-sans leading-relaxed tracking-normal;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    @apply font-sans;
+  }
+}
+
+/* ========================================
+   ANIMATIONS & EFFECTS
+   ======================================== */
+
+/* Fade In Up Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Fade In Left */
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Fade In Right */
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Scale In */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Slide Up */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Float animation for decorative elements */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Pulse glow */
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(197, 138, 148, 0.35);
+  }
+
+  50% {
+    box-shadow: 0 0 20px 10px rgba(212, 176, 106, 0);
+  }
+}
+
+/* Shimmer effect for loading */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes hero-progress {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+/* ========================================
+   ANIMATION UTILITY CLASSES
+   ======================================== */
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in-left {
+  animation: fadeInLeft 0.6s ease-out forwards;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 0.6s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Staggered delays for lists */
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animate-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animate-delay-500 {
+  animation-delay: 500ms;
+}
+
+.animate-delay-600 {
+  animation-delay: 600ms;
+}
+
+.animate-delay-700 {
+  animation-delay: 700ms;
+}
+
+.animate-delay-800 {
+  animation-delay: 800ms;
+}
+
+/* Initial hidden state for scroll animations */
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-animate.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-animate-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-animate-left.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.scroll-animate-right {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-animate-right.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.scroll-animate-scale {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-animate-scale.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ========================================
+   HOVER EFFECTS
+   ======================================== */
+
+/* Card lift effect */
+.hover-lift {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 50px -12px rgba(107, 62, 46, 0.15);
+}
+
+/* Card grow effect */
+.hover-grow {
+  transition: transform 0.3s ease;
+}
+
+.hover-grow:hover {
+  transform: scale(1.03);
+}
+
+/* Image zoom on hover */
+.img-zoom {
+  overflow: hidden;
+}
+
+.img-zoom img {
+  transition: transform 0.5s ease;
+}
+
+.img-zoom:hover img {
+  transform: scale(1.1);
+}
+
+/* Shine effect on hover */
+.hover-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.hover-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent);
+  transition: left 0.5s ease;
+  z-index: 1;
+}
+
+.hover-shine:hover::before {
+  left: 100%;
+}
+
+/* Border glow on hover */
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(197, 138, 148, 0.35);
+}
+
+/* ========================================
+   BUTTON EFFECTS
+   ======================================== */
+
+.btn-animate {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-animate::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn-animate:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-animate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.3);
+}
+
+.btn-animate:active {
+  transform: translateY(0);
+}
+
+/* ========================================
+   LOADING SKELETON
+   ======================================== */
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ========================================
+   SMOOTH TRANSITIONS
+   ======================================== */
+
+/* Page transition wrapper */
+.page-transition {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Smooth color transitions for interactive elements */
+a,
+button {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Smooth image loading */
+img {
+  transition: opacity 0.3s ease;
+}
+
+/* ========================================
+   PARALLAX HELPER
+   ======================================== */
+
+.parallax-slow {
+  will-change: transform;
+}
+
+/* ========================================
+   GOD LEVEL CRYSTALLINE UI
+   ======================================== */
+
+.glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.05) 100%);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-left-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 10px 40px -10px rgba(0, 0, 0, 0.08), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.6), 
+    inset 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+.glass-dark {
+  background: linear-gradient(135deg, rgba(60, 50, 50, 0.5) 0%, rgba(30, 20, 20, 0.7) 100%);
+  backdrop-filter: blur(20px) saturate(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  border-left-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 24px 60px -15px rgba(201, 93, 123, 0.15), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.8), 
+    inset 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+.glass-card {
+  @apply rounded-[2rem] transition-all duration-500;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-left-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 
+    0 12px 32px -8px rgba(201, 93, 123, 0.1), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.glass-card:hover {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%);
+  transform: translateY(-6px);
+  box-shadow: 
+    0 24px 48px -12px rgba(232, 139, 168, 0.25), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.8), 
+    inset 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+/* Crystalline store canvas — ambient mesh without the muddy grain */
+.store-canvas {
+  position: relative;
+  background-color: #FAFAFA;
+  isolation: isolate;
+}
+
+.store-canvas::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.9) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(232, 139, 168, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 60% at 80% 15%, rgba(220, 201, 214, 0.2) 0%, transparent 55%),
+    radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.8) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 50% at 50% 100%, rgba(201, 93, 123, 0.08) 0%, transparent 65%),
+    linear-gradient(135deg, #FAFAFA 0%, #F5F0F2 50%, #FAFAFA 100%);
+}
+
+.store-canvas > * {
+  position: relative;
+  z-index: 1;
+}
+
+.crystal-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+  mix-blend-mode: normal;
+  opacity: 0.6;
+}
+
+.crystal-shimmer {
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.8) 40%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0.8) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Enhancing existing buttons for a sleeker crystalline look */
+.btn-wellness-primary,
+.btn-luxury-primary,
+.btn-brand-primary {
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-semibold tracking-wide transition-all duration-300;
+  background: linear-gradient(135deg, #C95D7B 0%, #B24D6A 100%);
+  color: #FFF9F7;
+  box-shadow: 
+    0 8px 24px -4px rgba(201, 93, 123, 0.4), 
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(201, 93, 123, 0.6);
+  border-top-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-wellness-primary:hover,
+.btn-luxury-primary:hover,
+.btn-brand-primary:hover {
+  background: linear-gradient(135deg, #D87691 0%, #C95D7B 100%);
+  box-shadow: 
+    0 12px 32px -6px rgba(232, 139, 168, 0.5), 
+    inset 0 1px 2px rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   PWA - STANDALONE MODE OPTIMIZATIONS
+   ======================================== */
+
+/* Safe area insets for notched devices */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Body-level PWA optimizations */
+.pwa-body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior-y: contain;
+}
+
+/* Standalone mode - full app feel */
+@media (display-mode: standalone) {
+
+  /* Remove browser-like elements, tighten the experience */
+  html {
+    overscroll-behavior: none;
+  }
+
+  body {
+    overscroll-behavior-y: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Allow text selection in inputs and text content */
+  input,
+  textarea,
+  [contenteditable],
+  p,
+  span,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  li,
+  td,
+  th,
+  label,
+  a {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Add safe area top padding for the sticky header */
+  header.sticky {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Ensure bottom nav has safe area */
+  nav[aria-label="Mobile navigation"] {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Add bottom padding to main content for bottom nav */
+  main {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Ensure bottom padding for mobile nav even in browser mode */
+@media (max-width: 1023px) {
+
+  main,
+  footer {
+    padding-bottom: 80px;
+  }
+}
+
+/* ========================================
+   PWA - ANIMATIONS FOR PROMPTS & TOASTS
+   ======================================== */
+
+/* Sheet slide up for install prompt */
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.pwa-prompt-sheet {
+  animation: sheetSlideUp 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.pwa-prompt-backdrop {
+  animation: backdropFadeIn 0.3s ease-out forwards;
+}
+
+/* Update toast slide in */
+@keyframes toastSlideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.pwa-update-toast {
+  animation: toastSlideIn 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* ========================================
+   PWA - NATIVE-LIKE TOUCH INTERACTIONS
+   ======================================== */
+
+/* Haptic-like active state for all tappable elements */
+@media (hover: none) and (pointer: coarse) {
+
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Smooth momentum scrolling */
+.scroll-smooth-native {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for app-like feel on horizontal scrolls */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========================================
+   PWA - PULL TO REFRESH VISUAL INDICATOR
+   ======================================== */
+
+@keyframes pullRefreshSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pull-refresh-spinner {
+  animation: pullRefreshSpin 0.8s linear infinite;
+}
+
+/* ========================================
+   PWA - PAGE TRANSITION EFFECT
+   ======================================== */
+
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pwa-page-enter {
+  animation: pageSlideIn 0.3s ease-out forwards;
+}
+
+@media (max-width: 1023px) {
+  .pwa-page-enter {
+    animation: none;
+  }
+}
+
+/* ========================================
+   PWA - SPLASH SCREEN FALLBACK
+   ======================================== */
+
+@keyframes splashFadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.pwa-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #F8F4F1;
+  pointer-events: none;
+  animation: splashFadeOut 0.5s ease-out 1.5s forwards;
+}
+
+.pwa-splash-logo {
+  animation: scaleIn 0.6s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes splashPulse {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.pwa-splash-dots span {
+  animation: splashPulse 1.4s ease-in-out infinite;
+}
+
+.pwa-splash-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.pwa-splash-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* ========================================
+   HERO SLIDER ANIMATIONS
+   ======================================== */
+
+@keyframes kenBurns {
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.15);
+  }
+}
+
+.animate-ken-burns {
+  animation: kenBurns 8s ease-out forwards;
+}
+
+/* Hero slider — 9:16 mobile assets, 16:9 desktop assets */
+.hero-slide-image {
+  object-fit: cover;
+  object-position: center top;
+}
+
+.hero-slide-image--mobile {
+  object-fit: cover;
+  object-position: center top;
+}
+
+@media (min-width: 1024px) {
+  .hero-slide-image--desktop {
+    object-fit: cover;
+    object-position: right center;
+  }
+
+  .hero-slide-image--desktop.hero-slide-image--active {
+    transform: scale(1);
+  }
+
+  .hero-slide-image--desktop.hero-slide-image--inactive {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes progress {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-progress {
+  animation: progress linear;
+}
+
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* Ensure the older button styles from before the glass update are removed or overwritten nicely. We'll replace the existing button section to avoid duplicates. */
+
+body {
+  background-color: #FFF9F7;
+  color: #5B4B4B;
+}
+
+.brand-eyebrow {
+  @apply font-sans text-xs sm:text-sm font-medium tracking-wide text-brand-berry;
+}
+
+.brand-body {
+  @apply font-sans text-base sm:text-lg text-brand-cocoa/85 leading-relaxed font-normal;
+}
+
+.brand-body-lg {
+  @apply font-sans text-lg sm:text-xl text-brand-cocoa/85 leading-relaxed font-normal;
+}
+
+::selection {
+  background-color: #F6E6E8;
+  color: #C95D7B;
+}
+
+/* Old duplicate button styles removed */
+
+.btn-wellness-soft,
+.btn-luxury-outline,
+.btn-brand-outline {
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-medium tracking-normal border transition-all duration-300;
+  border-color: rgba(220, 201, 214, 0.9);
+  color: #5B4B4B;
+  background: rgba(255, 249, 247, 0.9);
+}
+
+.btn-wellness-soft:hover,
+.btn-luxury-outline:hover,
+.btn-brand-outline:hover {
+  background: #F6E6E8;
+  border-color: #E88BA8;
+  color: #C95D7B;
+  transform: translateY(-1px);
+}
+
+.btn-brand-soft {
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-full font-sans text-sm font-medium tracking-normal border transition-all duration-300;
+  border-color: rgba(246, 230, 232, 0.9);
+  color: #C95D7B;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.btn-brand-soft:hover {
+  background: #F6E6E8;
+  border-color: #DCC9D6;
+  transform: translateY(-1px);
+}
+
+.bg-wellness-hero-gradient {
+  background: linear-gradient(
+    145deg,
+    #fff9f7 0%,
+    #f6e6e8 35%,
+    #dcc9d6 65%,
+    rgba(232, 139, 168, 0.25) 100%
+  );
+}
+
+.bg-wellness-card-gradient {
+  background: linear-gradient(160deg, #fff9f7 0%, #f6e6e8 50%, rgba(220, 201, 214, 0.35) 100%);
+}
+
+.bg-wellness-cta-gradient {
+  background: linear-gradient(135deg, #f6e6e8 0%, #fff9f7 45%, rgba(232, 139, 168, 0.15) 100%);
+}
+
+/* Cleaned up old duplicates */
+
+.text-luxury-accent {
+  color: #E88BA8;
+}
+
+.text-luxury-mauve {
+  color: #DCC9D6;
+}
+
+.bg-luxury-gradient-hero,
+.bg-hero-slide-1 {
+  background: linear-gradient(135deg, #fff9f7 0%, #f6e6e8 45%, rgba(220, 201, 214, 0.4) 100%);
+}
+
+.bg-hero-slide-2 {
+  background: linear-gradient(120deg, #f6e6e8 0%, #fff9f7 55%, rgba(232, 139, 168, 0.2) 100%);
+}
+
+.bg-hero-slide-3 {
+  background: linear-gradient(160deg, #fff9f7 0%, rgba(220, 201, 214, 0.35) 50%, rgba(201, 93, 123, 0.1) 100%);
+}
+
+.card-luxury,
+.card-brand {
+  @apply rounded-2xl overflow-hidden transition-all duration-500;
+  box-shadow: 0 4px 24px -4px rgba(201, 93, 123, 0.08);
+}
+
+.card-luxury:hover,
+.card-brand:hover {
+  box-shadow: 0 12px 40px -8px rgba(232, 139, 168, 0.18);
+  transform: translateY(-2px);
+}
+
+/* Decorative soft-glam orbs */
+.hero-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+}
