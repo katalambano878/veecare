@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { revalidateStorefront } from '@/lib/revalidate-storefront';
+import { slugify, validateSlug } from '@/lib/slug';
+import ProductSeoPanel from '@/components/admin/ProductSeoPanel';
 
 interface ProductFormProps {
     initialData?: any;
@@ -198,6 +200,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [metaDescription, setMetaDescription] = useState(initialData?.seo_description || '');
     const [urlSlug, setUrlSlug] = useState(initialData?.slug || '');
     const [keywords, setKeywords] = useState(initialData?.tags?.join(', ') || '');
+    const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(isEditMode && initialData?.slug));
 
     const tabs = [
         { id: 'general', label: 'General', icon: 'ri-information-line' },
@@ -221,12 +224,12 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
         fetchCategories();
     }, [categoryId]);
 
-    // Auto-generate slug from name if not manually edited
+    // Auto-generate slug from name until the admin edits it manually
     useEffect(() => {
-        if (!isEditMode && productName && !urlSlug) {
-            setUrlSlug(productName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
+        if (!slugManuallyEdited && productName.trim()) {
+            setUrlSlug(slugify(productName));
         }
-    }, [productName, isEditMode, urlSlug]);
+    }, [productName, slugManuallyEdited]);
 
     // Auto-generate SKU for new products
     useEffect(() => {
@@ -283,13 +286,29 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
             alert('A valid price is required.');
             return;
         }
-        if (!urlSlug.trim()) {
-            alert('URL slug is required (SEO tab or auto-generated from name).');
+        const normalizedSlug = slugify(urlSlug || productName);
+        const slugCheck = validateSlug(normalizedSlug);
+        if (!slugCheck.valid) {
+            alert(slugCheck.message || 'URL slug is invalid. Check the SEO tab.');
+            setActiveTab('seo');
             return;
         }
 
         try {
             setLoading(true);
+
+            const { data: slugConflict } = await supabase
+                .from('products')
+                .select('id, name')
+                .eq('slug', normalizedSlug)
+                .maybeSingle();
+
+            if (slugConflict && slugConflict.id !== initialData?.id) {
+                alert(`URL slug "${normalizedSlug}" is already used by "${slugConflict.name}". Choose a different slug in the SEO tab.`);
+                setActiveTab('seo');
+                setLoading(false);
+                return;
+            }
 
             // If product has variants, auto-sync main stock = sum of variant stocks
             const hasVariants = variants.length > 0;
@@ -1051,73 +1070,23 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                     )}
 
                     {activeTab === 'seo' && (
-                        <div className="space-y-6 max-w-3xl">
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-1">Search Engine Optimization</h3>
-                                <p className="text-gray-600">Optimize how this product appears in search results</p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                    Page Title
-                                </label>
-                                <input
-                                    type="text"
-                                    value={seoTitle}
-                                    onChange={(e) => setSeoTitle(e.target.value)}
-                                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
-                                    placeholder="Seo friendly title"
-                                />
-                                <p className="text-sm text-gray-500 mt-2">60 characters recommended</p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                    Meta Description
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    maxLength={500}
-                                    value={metaDescription}
-                                    onChange={(e) => setMetaDescription(e.target.value)}
-                                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso resize-none"
-                                    placeholder="Seo friendly description"
-                                />
-                                <p className="text-sm text-gray-500 mt-2">160 characters recommended</p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                    URL Slug
-                                </label>
-                                <div className="flex items-center">
-                                    <span className="text-gray-600 bg-gray-100 px-4 py-3 border-2 border-r-0 border-gray-300 rounded-l-lg">
-                                        store.com/product/
-                                    </span>
-                                    <input
-                                        type="text"
-                                        value={urlSlug}
-                                        onChange={(e) => setUrlSlug(e.target.value)}
-                                        className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
-                                        placeholder="product-slug"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                    Keywords
-                                </label>
-                                <input
-                                    type="text"
-                                    value={keywords}
-                                    onChange={(e) => setKeywords(e.target.value)}
-                                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
-                                    placeholder="keyword1, keyword2"
-                                />
-                                <p className="text-sm text-gray-500 mt-2">Separate keywords with commas</p>
-                            </div>
-                        </div>
+                        <ProductSeoPanel
+                            productName={productName}
+                            description={description}
+                            price={price}
+                            images={images}
+                            seoTitle={seoTitle}
+                            setSeoTitle={setSeoTitle}
+                            metaDescription={metaDescription}
+                            setMetaDescription={setMetaDescription}
+                            urlSlug={urlSlug}
+                            setUrlSlug={setUrlSlug}
+                            keywords={keywords}
+                            setKeywords={setKeywords}
+                            productId={initialData?.id}
+                            slugManuallyEdited={slugManuallyEdited}
+                            setSlugManuallyEdited={setSlugManuallyEdited}
+                        />
                     )}
                 </div>
             </div>
