@@ -29,8 +29,8 @@ export function getAvailablePaymentMethods(): PaymentMethodOption[] {
         },
         {
             id: 'hubtel',
-            label: 'Hubtel Checkout',
-            description: 'Pay with debit/credit card or Mobile Money via Hubtel',
+            label: 'Card Payment',
+            description: 'Pay with debit/credit card via Hubtel',
             icon: 'ri-bank-card-line',
             available: isHubtelConfigured(),
         },

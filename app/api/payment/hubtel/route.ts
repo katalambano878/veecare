@@ -43,7 +43,7 @@ export async function POST(req: Request) {
         const { data: order, error: orderError } = await supabaseAdmin
             .from('orders')
             .select('id, order_number, total, email, phone, payment_status, metadata, shipping_address')
-            .or(`id.eq.${orderId},order_number.eq.${orderId}`)
+            .eq('order_number', orderId)
             .single();
 
         if (orderError || !order) {

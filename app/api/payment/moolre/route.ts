@@ -39,11 +39,11 @@ export async function POST(req: Request) {
         const { data: order, error: orderError } = await supabaseAdmin
             .from('orders')
             .select('id, order_number, total, email, payment_status')
-            .or(`id.eq.${orderId},order_number.eq.${orderId}`)
+            .eq('order_number', orderId)
             .single();
 
         if (orderError || !order) {
-            console.error('[Payment] Order not found:', orderId);
+            console.error('[Payment] Order not found:', orderId, '| Error:', orderError?.message);
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 

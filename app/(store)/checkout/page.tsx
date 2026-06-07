@@ -689,7 +689,7 @@ export default function CheckoutPage() {
                     ) : paymentMethod === 'moolre' ? (
                       'Pay with Mobile Money'
                     ) : (
-                      'Pay with Hubtel'
+                      'Pay with Card'
                     )}
                   </button>
                 </div>
