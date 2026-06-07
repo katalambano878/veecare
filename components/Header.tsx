@@ -93,9 +93,9 @@ export default function Header() {
                 </Link>
               </div>
 
-              <div className="hidden lg:flex items-center justify-center gap-6 xl:gap-8">
+              <div className="hidden md:flex items-center justify-center gap-3 lg:gap-6 xl:gap-8 min-w-0">
                 {NAV_LINKS.map((link) => (
-                  <Link key={link.href} href={link.href} className={navLinkClass}>
+                  <Link key={link.href} href={link.href} className={`${navLinkClass} text-xs lg:text-sm whitespace-nowrap`}>
                     {link.label}
                     <span className="absolute inset-x-0 bottom-0 h-px scale-x-0 bg-brand-rose transition-transform duration-300 ease-out group-hover:scale-x-100" />
                   </Link>
@@ -157,14 +157,14 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Mobile & tablet nav — includes Blog */}
-            <div className="lg:hidden border-t border-white/50 px-2 pb-2">
-              <div className="flex gap-1 overflow-x-auto scrollbar-hide py-1">
+            {/* Phone-only nav row — tablets use centered links in the main bar */}
+            <div className="md:hidden border-t border-white/50 px-3 pb-2">
+              <div className="flex items-center justify-center gap-1 overflow-x-auto scrollbar-hide py-1.5 w-full">
                 {NAV_LINKS.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="shrink-0 px-3 py-1.5 text-xs font-medium text-brand-cocoa/85 hover:text-brand-espresso rounded-full hover:bg-white/40 transition-colors whitespace-nowrap"
+                    className="shrink-0 px-3 py-1.5 text-sm font-medium text-brand-cocoa/85 hover:text-brand-espresso rounded-full hover:bg-white/40 transition-colors whitespace-nowrap"
                   >
                     {link.label}
                   </Link>
@@ -176,7 +176,7 @@ export default function Header() {
         </div>
       </header>
       {/* Spacer for fixed glass header */}
-      <div className="h-[6.25rem] md:h-24 shrink-0" aria-hidden />
+      <div className="h-[7.25rem] md:h-24 shrink-0" aria-hidden />
 
       <MiniCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
