@@ -26,6 +26,7 @@ const SHOP_LINKS = [
 const HELP_LINKS = [
   { label: 'Contact', href: '/contact' },
   { label: 'Track Order', href: '/order-tracking' },
+  { label: 'Affiliate Program', href: '/affiliate' },
   { label: 'Shipping', href: '/shipping' },
   { label: 'Returns & refunds', href: '/returns' },
   { label: 'FAQs', href: '/faqs' },

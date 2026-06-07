@@ -239,6 +239,22 @@ export default function AdminAffiliatesPage() {
     }
   };
 
+  const updateAffiliateStatus = async (affiliate: Affiliate, status: Affiliate['status']) => {
+    try {
+      const { error } = await supabase
+        .from('affiliates')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', affiliate.id);
+      if (error) throw error;
+      await fetchAffiliates();
+    } catch (err) {
+      console.error('Status update failed:', err);
+      alert('Failed to update affiliate status.');
+    }
+  };
+
+  const pendingCount = affiliates.filter((a) => a.status === 'pending').length;
+
   const filteredAffiliates = affiliates.filter(
     (a) => statusFilter === 'all' || a.status === statusFilter
   );
@@ -268,10 +284,33 @@ export default function AdminAffiliatesPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {pendingCount > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="font-semibold text-amber-900">
+              {pendingCount} application{pendingCount === 1 ? '' : 's'} awaiting approval
+            </p>
+            <p className="text-sm text-amber-800">
+              Review new sign-ups below and click Approve to activate their referral links.
+            </p>
+          </div>
+          <button
+            onClick={() => setStatusFilter('pending')}
+            className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-sm font-semibold whitespace-nowrap cursor-pointer"
+          >
+            View Pending
+          </button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">Total Affiliates</p>
           <p className="text-2xl font-bold text-gray-900">{affiliates.length}</p>
+        </div>
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
+          <p className="text-sm text-gray-600 mb-1">Pending Approval</p>
+          <p className="text-2xl font-bold text-amber-700">{pendingCount}</p>
         </div>
         <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">Active</p>
@@ -363,14 +402,32 @@ export default function AdminAffiliatesPage() {
                         </span>
                       </td>
                       <td className="py-4 px-4">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => copyLink(affiliate.code)}
-                            title="Copy referral link"
-                            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-mauve hover:bg-brand-nude/30 rounded-lg cursor-pointer"
-                          >
-                            <i className="ri-link text-lg"></i>
-                          </button>
+                        <div className="flex items-center flex-wrap gap-2">
+                          {affiliate.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => updateAffiliateStatus(affiliate, 'active')}
+                                className="text-xs px-3 py-1.5 bg-brand-espresso text-white rounded-lg hover:bg-brand-cocoa cursor-pointer font-semibold"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => updateAffiliateStatus(affiliate, 'suspended')}
+                                className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                          {affiliate.status === 'active' && (
+                            <button
+                              onClick={() => copyLink(affiliate.code)}
+                              title="Copy referral link"
+                              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-mauve hover:bg-brand-nude/30 rounded-lg cursor-pointer"
+                            >
+                              <i className="ri-link text-lg"></i>
+                            </button>
+                          )}
                           <button
                             onClick={() => openEdit(affiliate)}
                             className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-mauve hover:bg-brand-nude/30 rounded-lg cursor-pointer"

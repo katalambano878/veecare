@@ -8,6 +8,22 @@ export function normalizeAffiliateCode(code: string): string {
     return code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
+export function isValidAffiliateCode(code: string): boolean {
+    const normalized = normalizeAffiliateCode(code);
+    return normalized.length >= 3 && normalized.length <= 20;
+}
+
+export function suggestAffiliateCode(name: string): string {
+    const base = name
+        .trim()
+        .split(/\s+/)[0]
+        .toUpperCase()
+        .replace(/[^A-Z]/g, '')
+        .slice(0, 8) || 'PARTNER';
+    const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return `${base}${suffix}`;
+}
+
 export function getAffiliateCodeFromCookie(): string | null {
     if (typeof document === 'undefined') return null;
     const match = document.cookie.match(new RegExp(`(?:^|; )${AFFILIATE_COOKIE}=([^;]*)`));

@@ -29,7 +29,8 @@ type Commission = {
 const STORAGE_KEY = 'veecare_affiliate_login';
 
 export default function AffiliatePage() {
-  usePageTitle('Affiliate Dashboard');
+  usePageTitle('Affiliate Program');
+  const [mode, setMode] = useState<'register' | 'login'>('register');
   const [code, setCode] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,6 +38,18 @@ export default function AffiliatePage() {
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [copied, setCopied] = useState(false);
+  const [registerSuccess, setRegisterSuccess] = useState<{
+    code: string;
+    email: string;
+    name: string;
+  } | null>(null);
+
+  const [registerForm, setRegisterForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    code: '',
+  });
 
   useEffect(() => {
     try {
@@ -46,6 +59,7 @@ export default function AffiliatePage() {
         if (parsed.code && parsed.email) {
           setCode(parsed.code);
           setEmail(parsed.email);
+          setMode('login');
           loadDashboard(parsed.code, parsed.email);
         }
       }
@@ -76,6 +90,7 @@ export default function AffiliatePage() {
 
       setAffiliate(data.affiliate);
       setCommissions(data.commissions || []);
+      setRegisterSuccess(null);
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify({ code: loginCode.trim().toUpperCase(), email: loginEmail.trim().toLowerCase() })
@@ -87,9 +102,47 @@ export default function AffiliatePage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     loadDashboard(code, email);
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setRegisterSuccess(null);
+
+    try {
+      const res = await fetch('/api/affiliate/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registerForm),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Could not submit application');
+        if (data.code) {
+          setCode(data.code);
+          setEmail(registerForm.email);
+        }
+        return;
+      }
+
+      setRegisterSuccess({
+        code: data.affiliate.code,
+        email: data.affiliate.email,
+        name: data.affiliate.name,
+      });
+      setCode(data.affiliate.code);
+      setEmail(data.affiliate.email);
+      setRegisterForm({ name: '', email: '', phone: '', code: '' });
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogout = () => {
@@ -99,6 +152,8 @@ export default function AffiliatePage() {
     setCode('');
     setEmail('');
     setError('');
+    setRegisterSuccess(null);
+    setMode('register');
   };
 
   const copyLink = async () => {
@@ -123,53 +178,196 @@ export default function AffiliatePage() {
     <div className="min-h-screen bg-brand-cream">
       <PageHero
         title="Affiliate Program"
-        subtitle="Share your link, earn commission on every sale"
+        subtitle="Join free, share your link, and earn commission on every sale"
       />
 
       <div className="max-w-5xl mx-auto px-4 py-12">
         {!affiliate ? (
-          <div className="max-w-md mx-auto bg-white rounded-2xl border border-brand-nude/60 shadow-sm p-8">
-            <h2 className="text-2xl font-bold text-brand-espresso mb-2">Partner Login</h2>
-            <p className="text-brand-cocoa/80 mb-6 text-sm">
-              Enter the referral code and email your admin gave you to view earnings.
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-brand-espresso mb-1">
-                  Referral Code
-                </label>
-                <input
-                  type="text"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  placeholder="JANE10"
-                  required
-                  className="w-full px-4 py-3 border-2 border-brand-nude rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso uppercase"
-                />
+          <div className="max-w-lg mx-auto">
+            {registerSuccess ? (
+              <div className="bg-white rounded-2xl border border-brand-nude/60 shadow-sm p-8 text-center">
+                <div className="w-14 h-14 bg-brand-nude/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i className="ri-check-line text-2xl text-brand-espresso"></i>
+                </div>
+                <h2 className="text-2xl font-bold text-brand-espresso mb-2">Application Submitted!</h2>
+                <p className="text-brand-cocoa/80 mb-6 text-sm">
+                  Thanks, {registerSuccess.name}! Your application is under review. You will be
+                  notified once an admin approves your account.
+                </p>
+                <div className="bg-brand-cream rounded-xl p-4 mb-6 text-left text-sm space-y-2">
+                  <p>
+                    <span className="text-brand-cocoa/70">Your code:</span>{' '}
+                    <span className="font-mono font-bold">{registerSuccess.code}</span>
+                  </p>
+                  <p>
+                    <span className="text-brand-cocoa/70">Email:</span> {registerSuccess.email}
+                  </p>
+                </div>
+                <p className="text-xs text-brand-cocoa/60 mb-6">
+                  Save these details. Once approved, sign in below to get your referral link.
+                </p>
+                <button
+                  onClick={() => {
+                    setRegisterSuccess(null);
+                    setMode('login');
+                  }}
+                  className="w-full bg-brand-espresso hover:bg-brand-cocoa text-white py-3 rounded-lg font-semibold transition-colors cursor-pointer"
+                >
+                  Go to Sign In
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-brand-espresso mb-1">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="partner@email.com"
-                  required
-                  className="w-full px-4 py-3 border-2 border-brand-nude rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
-                />
+            ) : (
+              <div className="bg-white rounded-2xl border border-brand-nude/60 shadow-sm p-8">
+                <div className="flex rounded-xl bg-brand-cream p-1 mb-6">
+                  <button
+                    type="button"
+                    onClick={() => { setMode('register'); setError(''); }}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
+                      mode === 'register'
+                        ? 'bg-white text-brand-espresso shadow-sm'
+                        : 'text-brand-cocoa/70 hover:text-brand-espresso'
+                    }`}
+                  >
+                    Apply to Join
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMode('login'); setError(''); }}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
+                      mode === 'login'
+                        ? 'bg-white text-brand-espresso shadow-sm'
+                        : 'text-brand-cocoa/70 hover:text-brand-espresso'
+                    }`}
+                  >
+                    Partner Sign In
+                  </button>
+                </div>
+
+                {mode === 'register' ? (
+                  <>
+                    <h2 className="text-xl font-bold text-brand-espresso mb-1">Become an Affiliate</h2>
+                    <p className="text-brand-cocoa/80 mb-6 text-sm">
+                      Anyone can apply. Your account will be reviewed and approved by our team
+                      before you can start earning.
+                    </p>
+
+                    <form onSubmit={handleRegister} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-brand-espresso mb-1">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={registerForm.name}
+                          onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
+                          placeholder="Jane Doe"
+                          required
+                          className="w-full px-4 py-3 border-2 border-brand-nude rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-brand-espresso mb-1">
+                          Email *
+                        </label>
+                        <input
+                          type="email"
+                          value={registerForm.email}
+                          onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+                          placeholder="you@email.com"
+                          required
+                          className="w-full px-4 py-3 border-2 border-brand-nude rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-brand-espresso mb-1">
+                          Phone (optional)
+                        </label>
+                        <input
+                          type="tel"
+                          value={registerForm.phone}
+                          onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
+                          placeholder="024 000 0000"
+                          className="w-full px-4 py-3 border-2 border-brand-nude rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-brand-espresso mb-1">
+                          Preferred Referral Code (optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={registerForm.code}
+                          onChange={(e) =>
+                            setRegisterForm({ ...registerForm, code: e.target.value.toUpperCase() })
+                          }
+                          placeholder="JANE10"
+                          className="w-full px-4 py-3 border-2 border-brand-nude rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso uppercase"
+                        />
+                        <p className="text-xs text-brand-cocoa/60 mt-1">
+                          Leave blank and we will assign one for you.
+                        </p>
+                      </div>
+
+                      {error && <p className="text-red-600 text-sm">{error}</p>}
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-brand-espresso hover:bg-brand-cocoa text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+                      >
+                        {loading ? 'Submitting...' : 'Submit Application'}
+                      </button>
+                    </form>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-bold text-brand-espresso mb-1">Partner Sign In</h2>
+                    <p className="text-brand-cocoa/80 mb-6 text-sm">
+                      Already applied? Enter your referral code and email to view your dashboard.
+                    </p>
+
+                    <form onSubmit={handleLogin} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-brand-espresso mb-1">
+                          Referral Code
+                        </label>
+                        <input
+                          type="text"
+                          value={code}
+                          onChange={(e) => setCode(e.target.value.toUpperCase())}
+                          placeholder="JANE10"
+                          required
+                          className="w-full px-4 py-3 border-2 border-brand-nude rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso uppercase"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-brand-espresso mb-1">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="you@email.com"
+                          required
+                          className="w-full px-4 py-3 border-2 border-brand-nude rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso"
+                        />
+                      </div>
+
+                      {error && <p className="text-red-600 text-sm">{error}</p>}
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-brand-espresso hover:bg-brand-cocoa text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+                      >
+                        {loading ? 'Loading...' : 'View Dashboard'}
+                      </button>
+                    </form>
+                  </>
+                )}
               </div>
-
-              {error && <p className="text-red-600 text-sm">{error}</p>}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-brand-espresso hover:bg-brand-cocoa text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                {loading ? 'Loading...' : 'View Dashboard'}
-              </button>
-            </form>
+            )}
           </div>
         ) : (
           <div className="space-y-8">
@@ -189,10 +387,16 @@ export default function AffiliatePage() {
               </button>
             </div>
 
-            {affiliate.status !== 'active' && (
+            {affiliate.status === 'pending' && (
               <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg text-sm">
-                Your account is currently <strong>{affiliate.status}</strong>. New referrals may
-                not earn commission until an admin activates your account.
+                <strong>Application pending approval.</strong> An admin is reviewing your account.
+                Your referral link will start working once you are approved.
+              </div>
+            )}
+
+            {affiliate.status === 'suspended' && (
+              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+                Your account is suspended. Please contact support for help.
               </div>
             )}
 
@@ -224,8 +428,9 @@ export default function AffiliatePage() {
             <div className="bg-white rounded-xl border border-brand-nude/60 p-6">
               <h3 className="text-lg font-bold text-brand-espresso mb-3">Your Referral Link</h3>
               <p className="text-sm text-brand-cocoa/80 mb-4">
-                Share this link. When someone buys within 30 days, you earn commission on their
-                order.
+                {affiliate.status === 'active'
+                  ? 'Share this link. When someone buys within 30 days, you earn commission on their order.'
+                  : 'This link will work once your account is approved.'}
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
@@ -236,7 +441,8 @@ export default function AffiliatePage() {
                 />
                 <button
                   onClick={copyLink}
-                  className="bg-brand-espresso hover:bg-brand-cocoa text-white px-6 py-3 rounded-lg font-semibold whitespace-nowrap cursor-pointer"
+                  disabled={affiliate.status !== 'active'}
+                  className="bg-brand-espresso hover:bg-brand-cocoa text-white px-6 py-3 rounded-lg font-semibold whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {copied ? 'Copied!' : 'Copy Link'}
                 </button>
@@ -272,7 +478,9 @@ export default function AffiliatePage() {
                     {commissions.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="p-8 text-center text-brand-cocoa/70">
-                          No commissions yet. Share your link to start earning!
+                          {affiliate.status === 'active'
+                            ? 'No commissions yet. Share your link to start earning!'
+                            : 'Commissions will appear here after you are approved and refer sales.'}
                         </td>
                       </tr>
                     ) : (
