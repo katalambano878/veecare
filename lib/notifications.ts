@@ -109,8 +109,182 @@ function emailShippingNotes(notes: string[]): string {
     if (notes.length === 0) return '';
     return `<div style="background-color:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:14px 16px;margin:20px 0;">
 <p style="font-weight:600;color:#92400e;margin:0 0 6px;font-size:13px;">&#9200; Shipping Notes</p>
-${notes.map(n => `<p style="color:#78350f;margin:3px 0;font-size:13px;">${n}</p>`).join('')}
+${notes.map((n) => `<p style="color:#78350f;margin:3px 0;font-size:13px;">${escapeHtml(n)}</p>`).join('')}
 </div>`;
+}
+
+type OrderItemRow = {
+    id: string;
+    product_name: string;
+    variant_name: string | null;
+    sku: string | null;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    metadata?: { image?: string; slug?: string; preorder_shipping?: string | null };
+    products?: { product_images?: { url: string; position?: number }[] } | null;
+};
+
+function formatMoney(amount: number): string {
+    return `GH\u20B5${Number(amount).toFixed(2)}`;
+}
+
+function getCustomerName(order: Record<string, unknown>, shippingAddress?: Record<string, unknown> | null): string {
+    const addr = shippingAddress ?? (order.shipping_address as Record<string, unknown> | null);
+    if (addr?.full_name) return String(addr.full_name);
+    if (addr?.fullName) return String(addr.fullName);
+    if (addr?.firstName) {
+        return addr.lastName ? `${addr.firstName} ${addr.lastName}` : String(addr.firstName);
+    }
+    const meta = order.metadata as Record<string, unknown> | undefined;
+    if (meta?.first_name) {
+        return meta.last_name ? `${meta.first_name} ${meta.last_name}` : String(meta.first_name);
+    }
+    return 'Customer';
+}
+
+function getItemImage(item: OrderItemRow): string {
+    if (item.metadata?.image) return item.metadata.image;
+    const images = item.products?.product_images ?? [];
+    const sorted = [...images].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    return sorted[0]?.url || 'https://via.placeholder.com/128?text=Product';
+}
+
+function emailSectionTitle(title: string): string {
+    return `<h3 style="margin:28px 0 12px;color:#111827;font-size:16px;font-weight:700;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">${escapeHtml(title)}</h3>`;
+}
+
+function formatShippingAddressBlock(addr: Record<string, unknown> | null | undefined): string {
+    if (!addr) {
+        return '<p style="color:#6b7280;font-size:14px;margin:0;">No shipping address provided.</p>';
+    }
+
+    const lines: string[] = [];
+    const name = [addr.firstName, addr.lastName].filter(Boolean).join(' ')
+        || (addr.full_name as string)
+        || (addr.fullName as string);
+    if (name) lines.push(String(name));
+    if (addr.address || addr.address1) lines.push(String(addr.address || addr.address1));
+    if (addr.address2) lines.push(String(addr.address2));
+    const cityRegion = [addr.city, addr.region || addr.state].filter(Boolean).join(', ');
+    if (cityRegion) lines.push(cityRegion);
+    if (addr.country) lines.push(String(addr.country));
+    if (addr.phone) lines.push(`Phone: ${addr.phone}`);
+    if (addr.email) lines.push(`Email: ${addr.email}`);
+
+    return lines
+        .map((line) => `<p style="margin:0 0 4px;color:#374151;font-size:14px;line-height:1.5;">${escapeHtml(line)}</p>`)
+        .join('');
+}
+
+function emailOrderItemsHtml(items: OrderItemRow[]): string {
+    if (!items.length) {
+        return '<p style="color:#6b7280;font-size:14px;margin:0;">No items found.</p>';
+    }
+
+    const rows = items.map((item) => {
+        const image = escapeHtml(getItemImage(item));
+        const name = escapeHtml(item.product_name);
+        const variant = item.variant_name ? escapeHtml(item.variant_name) : '';
+        const sku = item.sku ? escapeHtml(item.sku) : '';
+        const preorder = item.metadata?.preorder_shipping
+            ? escapeHtml(String(item.metadata.preorder_shipping))
+            : '';
+        const unitPrice = formatMoney(Number(item.unit_price));
+
+        return `
+<tr>
+  <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;width:72px;">
+    <img src="${image}" alt="${name}" width="64" height="64" style="display:block;width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;background:#f9fafb;" />
+  </td>
+  <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;vertical-align:top;">
+    <p style="margin:0 0 4px;color:#111827;font-size:14px;font-weight:600;">${name}</p>
+    <p style="margin:0 0 2px;color:#6b7280;font-size:12px;">${unitPrice} each</p>
+    ${variant ? `<p style="margin:0 0 2px;color:#6b7280;font-size:12px;">Variant: ${variant}</p>` : ''}
+    ${sku ? `<p style="margin:0 0 2px;color:#6b7280;font-size:12px;">SKU: ${sku}</p>` : ''}
+    ${preorder ? `<p style="margin:6px 0 0;color:#92400e;font-size:11px;background:#fffbeb;padding:4px 8px;border-radius:4px;display:inline-block;">&#9200; ${preorder}</p>` : ''}
+  </td>
+  <td style="padding:12px 4px;border-bottom:1px solid #f3f4f6;vertical-align:top;text-align:center;color:#374151;font-size:13px;white-space:nowrap;">&times;${item.quantity}</td>
+  <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;text-align:right;color:#111827;font-size:14px;font-weight:600;white-space:nowrap;">${formatMoney(Number(item.total_price))}</td>
+</tr>`;
+    }).join('');
+
+    return `
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;">
+  <thead>
+    <tr>
+      <td colspan="2" style="padding:0 0 8px;color:#6b7280;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Product</td>
+      <td style="padding:0 0 8px;color:#6b7280;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;text-align:center;">Qty</td>
+      <td style="padding:0 0 8px;color:#6b7280;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;text-align:right;">Total</td>
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>`;
+}
+
+function emailOrderTotalsHtml(order: Record<string, unknown>): string {
+    const subtotal = Number(order.subtotal ?? 0);
+    const shipping = Number(order.shipping_total ?? 0);
+    const tax = Number(order.tax_total ?? 0);
+    const discount = Number(order.discount_total ?? 0);
+    const total = Number(order.total ?? 0);
+
+    const rows: [string, number][] = [['Subtotal', subtotal]];
+    if (shipping > 0) rows.push(['Shipping', shipping]);
+    if (tax > 0) rows.push(['Tax', tax]);
+    if (discount > 0) rows.push(['Discount', -discount]);
+
+    const body = rows.map(([label, val]) => `
+<tr>
+  <td style="padding:6px 0;color:#6b7280;font-size:13px;">${label}</td>
+  <td style="padding:6px 0;text-align:right;color:#374151;font-size:13px;">${val < 0 ? '-' : ''}${formatMoney(Math.abs(val))}</td>
+</tr>`).join('');
+
+    return `
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;border-top:2px solid #e5e7eb;padding-top:8px;">
+  ${body}
+  <tr>
+    <td style="padding:10px 0 0;color:#111827;font-size:15px;font-weight:700;">Order Total</td>
+    <td style="padding:10px 0 0;text-align:right;color:#111827;font-size:18px;font-weight:700;">${formatMoney(total)}</td>
+  </tr>
+</table>`;
+}
+
+async function fetchOrderEmailDetails(orderId: string) {
+    const { data: fullOrder, error: orderError } = await supabaseAdmin
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .single();
+
+    if (orderError || !fullOrder) {
+        console.warn('[Notification] Could not refetch order:', orderError?.message);
+        return { fullOrder: null, items: [] as OrderItemRow[] };
+    }
+
+    const { data: items, error: itemsError } = await supabaseAdmin
+        .from('order_items')
+        .select(`
+            id,
+            product_name,
+            variant_name,
+            sku,
+            quantity,
+            unit_price,
+            total_price,
+            metadata,
+            products(product_images(url, position))
+        `)
+        .eq('order_id', orderId);
+
+    if (itemsError) {
+        console.warn('[Notification] Could not fetch order items:', itemsError.message);
+    }
+
+    return {
+        fullOrder,
+        items: (items ?? []) as OrderItemRow[],
+    };
 }
 
 // Helper to mask sensitive data in logs
@@ -255,75 +429,76 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
 }
 
 export async function sendOrderConfirmation(order: any) {
-    const { id, email, phone: orderPhone, shipping_address, total, created_at, order_number, metadata } = order;
-
+    const orderId = order.id;
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
-    // Build customer name from available sources
-    const getName = () => {
-        // Try shipping_address first
-        if (shipping_address?.full_name) return shipping_address.full_name;
-        if (shipping_address?.firstName) {
-            return shipping_address.lastName
-                ? `${shipping_address.firstName} ${shipping_address.lastName}`
-                : shipping_address.firstName;
-        }
-        // Fall back to metadata
-        if (metadata?.first_name) {
-            return metadata.last_name
-                ? `${metadata.first_name} ${metadata.last_name}`
-                : metadata.first_name;
-        }
-        return 'Customer';
-    };
-    const name = getName();
+    const { fullOrder, items } = orderId
+        ? await fetchOrderEmailDetails(orderId)
+        : { fullOrder: null, items: [] as OrderItemRow[] };
 
-    // Prefer top-level phone, then shipping address phone
-    const phone = orderPhone || shipping_address?.phone;
+    const o = (fullOrder ?? order) as Record<string, unknown>;
+    const email = String(o.email ?? order.email ?? '');
+    const orderNumber = String(o.order_number ?? order.order_number ?? orderId);
+    const createdAt = String(o.created_at ?? order.created_at ?? new Date().toISOString());
+    const shippingAddress = (o.shipping_address ?? order.shipping_address) as Record<string, unknown> | null;
+    const metadata = (o.metadata ?? order.metadata) as Record<string, unknown> | undefined;
+    const name = getCustomerName(o, shippingAddress);
+    const phone = String(o.phone ?? order.phone ?? shippingAddress?.phone ?? '');
+    const trackingNumber = String(metadata?.tracking_number ?? '');
+    const trackingUrl = `${baseUrl}/order-tracking?order=${orderNumber}`;
+    const orderDate = new Date(createdAt).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 
-    // Get tracking number from metadata
-    const trackingNumber = metadata?.tracking_number || '';
-    const trackingUrl = `${baseUrl}/order-tracking?order=${order_number || id}`;
-
-    console.log(`[Notification] Preparing for Order #${order_number} | Phone: ${phone ? 'Present' : 'Missing'} | Tracking: ${trackingNumber || 'None'}`);
-
-    // Fetch order items to get preorder_shipping info
-    let shippingNotes: string[] = [];
-    try {
-        const { data: items } = await supabaseAdmin
-            .from('order_items')
-            .select('product_name, metadata')
-            .eq('order_id', id);
-        if (items) {
-            for (const item of items) {
-                const preorder = item.metadata?.preorder_shipping;
-                if (preorder) {
-                    shippingNotes.push(`${item.product_name}: ${preorder}`);
-                }
-            }
-        }
-    } catch (err) {
-        console.warn('[Notification] Could not fetch order items for shipping notes');
+    const shippingNotes: string[] = [];
+    for (const item of items) {
+        const preorder = item.metadata?.preorder_shipping;
+        if (preorder) shippingNotes.push(`${item.product_name}: ${preorder}`);
     }
-
     const shippingNotesSms = shippingNotes.length > 0
         ? ` Note: ${shippingNotes.join('; ')}.`
         : '';
+
+    const paymentMethod = String(o.payment_method ?? metadata?.payment_method ?? 'Online');
+    const paymentStatus = String(o.payment_status ?? 'paid');
+    const shippingMethod = String(o.shipping_method ?? 'Standard delivery');
+    const orderStatus = String(o.status ?? 'processing');
+    const orderNotes = o.notes ? String(o.notes) : '';
+
+    console.log(
+        `[Notification] Preparing for Order #${orderNumber} | Items: ${items.length} | Phone: ${phone ? 'Present' : 'Missing'}`,
+    );
+
+    const itemsHtml = emailOrderItemsHtml(items);
+    const totalsHtml = emailOrderTotalsHtml(o);
+    const shippingHtml = formatShippingAddressBlock(shippingAddress);
 
     // 1. Email to Customer
     const customerEmailHtml = emailLayout(`
 <div style="text-align:center;margin-bottom:24px;">
   <div style="width:64px;height:64px;background-color:${BRAND.colorLight};border-radius:50%;margin:0 auto 16px;line-height:64px;font-size:28px;">&#10003;</div>
   <h2 style="margin:0 0 4px;color:#111827;font-size:24px;">Order Confirmed!</h2>
-  <p style="margin:0;color:#6b7280;font-size:15px;">Thank you for your purchase, ${name}.</p>
+  <p style="margin:0;color:#6b7280;font-size:15px;">Thank you for your purchase, ${escapeHtml(name)}.</p>
 </div>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:20px 0;">
-  ${emailInfoRow('Order Number', `#${order_number || id}`)}
-  ${emailInfoRow('Order Date', new Date(created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))}
-  ${trackingNumber ? emailInfoRow('Tracking', trackingNumber) : ''}
-  ${emailInfoRow('Total', `GH₵${Number(total).toFixed(2)}`)}
+  ${emailInfoRow('Order Number', `#${escapeHtml(orderNumber)}`)}
+  ${emailInfoRow('Order Date', escapeHtml(orderDate))}
+  ${trackingNumber ? emailInfoRow('Tracking', escapeHtml(trackingNumber)) : ''}
+  ${emailInfoRow('Payment', escapeHtml(`${paymentMethod} (${paymentStatus})`))}
 </table>
+
+${emailSectionTitle('Your Items')}
+${itemsHtml}
+${totalsHtml}
+
+${emailSectionTitle('Delivery Details')}
+${shippingHtml}
+<p style="margin:8px 0 0;color:#6b7280;font-size:13px;">Delivery method: <strong>${escapeHtml(shippingMethod)}</strong></p>
 
 ${emailShippingNotes(shippingNotes)}
 
@@ -332,44 +507,66 @@ ${emailShippingNotes(shippingNotes)}
 ${emailButton('Track Your Order', trackingUrl)}
 
 <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">Or copy this link: <a href="${trackingUrl}" style="color:${BRAND.color};">${trackingUrl}</a></p>
-`, `Your order #${order_number || id} is confirmed!`);
+`, `Your order #${orderNumber} is confirmed!`);
 
-    const customerEmailResult = await sendEmail({
-        to: email,
-        subject: `Order Confirmed! #${order_number || id}`,
-        html: customerEmailHtml
-    });
-    if (customerEmailResult?.error) {
-        console.error('[Notification] Customer confirmation email failed for order', order_number || id);
+    if (email) {
+        const customerEmailResult = await sendEmail({
+            to: email,
+            subject: `Order Confirmed! #${orderNumber}`,
+            html: customerEmailHtml,
+        });
+        if (customerEmailResult?.error) {
+            console.error('[Notification] Customer confirmation email failed for order', orderNumber);
+        }
     }
 
-    // 2. Email to Admin
+    // 2. Email to Admin — full order breakdown
     const adminEmailHtml = emailLayout(`
-<h2 style="margin:0 0 16px;color:#111827;font-size:20px;">&#128230; New Order Received</h2>
+<h2 style="margin:0 0 8px;color:#111827;font-size:22px;">&#128230; New Order Received</h2>
+<p style="margin:0 0 20px;color:#6b7280;font-size:14px;">A customer has paid and this order is ready to fulfil.</p>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:16px 0;">
-  ${emailInfoRow('Order', `#${order_number || id}`)}
-  ${emailInfoRow('Customer', `${name}`)}
-  ${emailInfoRow('Email', email)}
-  ${emailInfoRow('Total', `GH₵${Number(total).toFixed(2)}`)}
-  ${trackingNumber ? emailInfoRow('Tracking', trackingNumber) : ''}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:0 0 8px;">
+  ${emailInfoRow('Order', `#${escapeHtml(orderNumber)}`)}
+  ${emailInfoRow('Date', escapeHtml(orderDate))}
+  ${emailInfoRow('Status', escapeHtml(orderStatus))}
+  ${emailInfoRow('Payment', escapeHtml(`${paymentMethod} — ${paymentStatus}`))}
+  ${trackingNumber ? emailInfoRow('Tracking', escapeHtml(trackingNumber)) : ''}
 </table>
+
+${emailSectionTitle('Customer')}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:0 0 8px;">
+  ${emailInfoRow('Name', escapeHtml(name))}
+  ${emailInfoRow('Email', `<a href="mailto:${escapeHtml(email)}" style="color:${BRAND.color};text-decoration:none;">${escapeHtml(email)}</a>`)}
+  ${phone ? emailInfoRow('Phone', `<a href="tel:${escapeHtml(phone.replace(/\s/g, ''))}" style="color:${BRAND.color};text-decoration:none;">${escapeHtml(phone)}</a>`) : ''}
+</table>
+
+${emailSectionTitle('Shipping Address')}
+<div style="background-color:#f9fafb;border-radius:12px;padding:16px;margin-bottom:8px;">
+  ${shippingHtml}
+  <p style="margin:10px 0 0;color:#6b7280;font-size:13px;">Method: <strong>${escapeHtml(shippingMethod)}</strong></p>
+</div>
+
+${emailSectionTitle('Order Items')}
+${itemsHtml}
+${totalsHtml}
+
+${orderNotes ? `${emailSectionTitle('Customer Notes')}<p style="margin:0;color:#374151;font-size:14px;line-height:1.6;">${escapeHtml(orderNotes)}</p>` : ''}
 
 ${emailShippingNotes(shippingNotes)}
 
-${emailButton('View Order in Admin', `${baseUrl}/admin/orders/${id}`)}
-`, `New order #${order_number} from ${name}`);
+${emailButton('View &amp; Manage Order', `${baseUrl}/admin/orders/${orderId}`)}
+`, `New order #${orderNumber} from ${name} — ${formatMoney(Number(o.total ?? 0))}`);
 
     const adminRecipients = getAdminRecipients();
     const adminEmailResult = await sendEmail({
         to: adminRecipients,
-        subject: `New Order #${order_number || id}`,
-        html: adminEmailHtml
+        subject: `New Order #${orderNumber} — ${formatMoney(Number(o.total ?? 0))}`,
+        html: adminEmailHtml,
     });
     if (adminEmailResult?.error) {
         console.error(
             '[Notification] Admin order email failed for order',
-            order_number || id,
+            orderNumber,
             '| recipients:',
             adminRecipients.map(maskEmail).join(', '),
         );
@@ -378,12 +575,12 @@ ${emailButton('View Order in Admin', `${baseUrl}/admin/orders/${id}`)}
     // 3. SMS to Customer (if phone exists)
     if (phone) {
         const smsMessage = trackingNumber
-            ? `Hi ${name}, your order #${order_number || id} is confirmed! Tracking: ${trackingNumber}. Track here: ${trackingUrl}${shippingNotesSms}`
-            : `Hi ${name}, your order #${order_number || id} at ${APP_TITLE} is confirmed! Track here: ${trackingUrl}${shippingNotesSms}`;
+            ? `Hi ${name}, your order #${orderNumber} is confirmed! Tracking: ${trackingNumber}. Track here: ${trackingUrl}${shippingNotesSms}`
+            : `Hi ${name}, your order #${orderNumber} at ${APP_TITLE} is confirmed! Track here: ${trackingUrl}${shippingNotesSms}`;
 
         await sendSMS({
             to: phone,
-            message: smsMessage
+            message: smsMessage,
         });
     }
 }
