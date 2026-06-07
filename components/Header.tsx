@@ -93,8 +93,8 @@ export default function Header() {
                 </Link>
               </div>
 
-              <div className="hidden lg:flex items-center justify-center gap-8 xl:gap-10">
-                {navLinks.map((link) => (
+              <div className="hidden lg:flex items-center justify-center gap-6 xl:gap-8">
+                {NAV_LINKS.map((link) => (
                   <Link key={link.href} href={link.href} className={navLinkClass}>
                     {link.label}
                     <span className="absolute inset-x-0 bottom-0 h-px scale-x-0 bg-brand-rose transition-transform duration-300 ease-out group-hover:scale-x-100" />
