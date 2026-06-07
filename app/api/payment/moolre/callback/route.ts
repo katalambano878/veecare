@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/notifications';
+import { creditAffiliateCommission } from '@/lib/affiliate';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 
 /**
@@ -213,6 +214,12 @@ export async function POST(req: Request) {
                 }
             } catch (statsError: any) {
                 console.error('[Callback] Customer stats failed:', statsError.message);
+            }
+
+            try {
+                await creditAffiliateCommission(orderJson.id);
+            } catch (affiliateError: unknown) {
+                console.error('[Callback] Affiliate commission failed:', affiliateError);
             }
 
             // Send SMS + Email notifications

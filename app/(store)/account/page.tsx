@@ -137,8 +137,8 @@ function AccountContent() {
     {
       icon: 'ri-user-add-line',
       title: 'Refer & Earn',
-      description: 'Invite friends and earn rewards',
-      link: '/referral'
+      description: 'Share your link and earn commission',
+      link: '/affiliate'
     }
   ];
 

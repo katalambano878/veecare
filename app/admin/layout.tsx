@@ -205,6 +205,11 @@ export default function AdminLayout({
       path: '/admin/coupons'
     },
     {
+      title: 'Affiliates',
+      icon: 'ri-share-forward-line',
+      path: '/admin/affiliates'
+    },
+    {
       title: 'Customer Insights',
       icon: 'ri-user-search-line',
       path: '/admin/customer-insights',

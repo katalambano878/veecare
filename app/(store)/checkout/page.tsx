@@ -9,6 +9,7 @@ import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import { getAffiliateCodeFromCookie } from '@/lib/affiliate';
 
 type PaymentMethodOption = {
   id: 'moolre' | 'hubtel';
@@ -173,6 +174,21 @@ export default function CheckoutPage() {
       const trackingId = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
       const trackingNumber = `SLI-${trackingId}`;
 
+      const affiliateCode = getAffiliateCodeFromCookie();
+      let affiliateMeta: Record<string, string | number> = {};
+      if (affiliateCode) {
+        const { data: affiliate } = await supabase.rpc('resolve_affiliate_code', {
+          p_code: affiliateCode,
+        });
+        if (affiliate?.id) {
+          affiliateMeta = {
+            affiliate_id: affiliate.id,
+            affiliate_code: affiliate.code,
+            affiliate_commission_rate: affiliate.commission_rate,
+          };
+        }
+      }
+
       // 1. Create Order
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -201,6 +217,7 @@ export default function CheckoutPage() {
             tracking_number: trackingNumber,
             payment_method: paymentMethod,
             payment_provider: paymentMethod,
+            ...affiliateMeta,
           }
         }])
         .select()

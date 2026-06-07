@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/notifications';
+import { creditAffiliateCommission } from '@/lib/affiliate';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { stripHubtelRetrySuffix, verifyHubtelTransaction } from '@/lib/payments/hubtel';
 
@@ -147,6 +148,12 @@ export async function POST(req: Request) {
             }
         } catch (statsError: unknown) {
             console.error('[Hubtel Callback] Customer stats failed:', statsError);
+        }
+
+        try {
+            await creditAffiliateCommission(orderJson.id);
+        } catch (affiliateError: unknown) {
+            console.error('[Hubtel Callback] Affiliate commission failed:', affiliateError);
         }
 
         try {

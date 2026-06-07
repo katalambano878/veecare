@@ -9,6 +9,7 @@ import NavigationProgress from '@/components/NavigationProgress';
 import IdleWidgets from '@/components/IdleWidgets';
 import { CMSProvider } from '@/context/CMSContext';
 import { ModulesProvider } from '@/context/ModulesContext';
+import AffiliateCapture from '@/components/AffiliateCapture';
 
 import dynamic from 'next/dynamic';
 
@@ -33,6 +34,7 @@ export default function StoreLayoutClient({
       <ModulesProvider>
       <Suspense fallback={null}>
         <NavigationProgress />
+        <AffiliateCapture />
       </Suspense>
       <div className="store-canvas min-h-screen pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         <Header />
