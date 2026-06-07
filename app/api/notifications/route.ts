@@ -2,7 +2,18 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { verifyAuth } from '@/lib/auth';
 import { escapeHtml } from '@/lib/sanitize';
-import { sendOrderConfirmation, sendOrderStatusUpdate, sendWelcomeMessage, sendContactMessage, sendPaymentLink, sendEmail, sendSMS, emailLayout } from '@/lib/notifications';
+import {
+    sendOrderConfirmation,
+    sendOrderStatusUpdate,
+    sendWelcomeMessage,
+    sendContactMessage,
+    sendSupportTicketAlert,
+    sendReturnRequestAlert,
+    sendPaymentLink,
+    sendEmail,
+    sendSMS,
+    emailLayout,
+} from '@/lib/notifications';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
@@ -143,8 +154,61 @@ export async function POST(request: Request) {
             if (name.length > 100 || subject.length > 200 || message.length > 5000) {
                 return NextResponse.json({ error: 'Input too long' }, { status: 400 });
             }
-            await sendContactMessage(payload);
+            try {
+                await sendContactMessage(payload);
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Failed to notify admin';
+                console.error('[Notification] Contact message failed:', message);
+                return NextResponse.json({ error: message }, { status: 500 });
+            }
             return NextResponse.json({ success: true, message: 'Contact message sent' });
+        }
+
+        if (type === 'support_ticket') {
+            const { name, email, orderNumber, category, priority, subject, description } = payload;
+            if (!name || !email || !category || !priority || !subject || !description) {
+                return NextResponse.json({ error: 'All support ticket fields required' }, { status: 400 });
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+            }
+            if (name.length > 100 || subject.length > 200 || description.length > 5000) {
+                return NextResponse.json({ error: 'Input too long' }, { status: 400 });
+            }
+            try {
+                await sendSupportTicketAlert({
+                    name,
+                    email,
+                    orderNumber,
+                    category,
+                    priority,
+                    subject,
+                    description,
+                });
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Failed to notify admin';
+                console.error('[Notification] Support ticket failed:', message);
+                return NextResponse.json({ error: message }, { status: 500 });
+            }
+            return NextResponse.json({ success: true, message: 'Support ticket sent' });
+        }
+
+        if (type === 'return_request') {
+            const { email, orderNumber, returnType, items } = payload;
+            if (!email || !orderNumber || !returnType || !Array.isArray(items) || items.length === 0) {
+                return NextResponse.json({ error: 'Return request details required' }, { status: 400 });
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+            }
+            try {
+                await sendReturnRequestAlert({ email, orderNumber, returnType, items });
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Failed to notify admin';
+                console.error('[Notification] Return request failed:', message);
+                return NextResponse.json({ error: message }, { status: 500 });
+            }
+            return NextResponse.json({ success: true, message: 'Return request sent' });
         }
 
         if (type === 'payment_link') {

@@ -67,12 +67,44 @@ export default function ReturnsPage() {
     );
   };
 
-  const handleSubmitReturn = () => {
+  const handleSubmitReturn = async () => {
+    if (!foundOrder || !email) return;
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const items = foundOrder.items
+        .filter((item) => selectedItems.includes(item.id))
+        .map((item) => ({
+          name: item.name,
+          reason: returnReasons[item.id],
+          price: item.price,
+        }));
+
+      const res = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'return_request',
+          payload: {
+            email,
+            orderNumber: orderNumber || foundOrder.id,
+            returnType,
+            items,
+          },
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(result.error || 'Failed to submit return request');
+      }
+
       router.push('/returns/confirmation');
-    }, 1500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to submit return request';
+      alert(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

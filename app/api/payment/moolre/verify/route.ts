@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { sendOrderConfirmation } from '@/lib/notifications';
+import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/notifications';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 
 /**
@@ -49,9 +49,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 
-        // Already paid - no action needed
+        // Already paid — retry notifications if a previous attempt failed
         if (order.payment_status === 'paid') {
-            console.log('[Verify] Order already paid:', orderNumber);
+            console.log('[Verify] Order already paid, checking notifications:', orderNumber);
+            try {
+                await retryOrderNotificationsIfNeeded(orderNumber);
+            } catch (notifyError: unknown) {
+                console.error('[Verify] Notification retry failed:', notifyError);
+            }
             return NextResponse.json({
                 success: true,
                 status: order.status,

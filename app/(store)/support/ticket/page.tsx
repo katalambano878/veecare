@@ -37,21 +37,45 @@ export default function SupportTicketPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // reCAPTCHA verification
     const isHuman = await getToken('support_ticket');
     if (!isHuman) {
       setIsSubmitting(false);
       alert('Security verification failed. Please try again.');
       return;
     }
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'support_ticket',
+          payload: {
+            name: formData.name,
+            email: formData.email,
+            orderNumber: formData.orderNumber,
+            category: formData.category,
+            priority: formData.priority,
+            subject: formData.subject,
+            description: formData.description,
+          },
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(result.error || 'Failed to submit support ticket');
+      }
+
       setShowSuccess(true);
       setTimeout(() => {
         router.push('/support/tickets');
       }, 2000);
-    }, 1500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to submit support ticket';
+      alert(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -80,15 +80,18 @@ export default function ContactPage() {
         console.log('Note: contact_submissions table may not exist');
       }
 
-      // Send Contact Notification
-      fetch('/api/notifications', {
+      const notifyRes = await fetch('/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'contact',
-          payload: formData
-        })
-      }).catch(err => console.error('Contact notification error:', err));
+          payload: formData,
+        }),
+      });
+      const notifyResult = await notifyRes.json().catch(() => ({}));
+      if (!notifyRes.ok) {
+        throw new Error(notifyResult.error || 'Failed to send message to our team');
+      }
 
       setSubmitStatus('success');
       setFormData({ name: '', phone: '', subject: '', message: '' });

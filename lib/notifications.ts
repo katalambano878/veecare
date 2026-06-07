@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { escapeHtml } from '@/lib/sanitize';
-import { APP_TITLE, EMAIL_FROM_DEFAULT, ADMIN_EMAIL_DEFAULT, CONTACT_PHONE } from '@/lib/brand';
+import { APP_TITLE, EMAIL_FROM_DEFAULT, ADMIN_EMAIL_DEFAULT, CONTACT_PHONE, SUPPORT_EMAIL } from '@/lib/brand';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');
 
@@ -16,21 +16,113 @@ function resolveEmailFrom(): string {
     return `${APP_TITLE} <${raw}>`;
 }
 
-/** Admin inboxes that receive new-order and contact alerts. */
+function addRecipient(emails: Set<string>, raw?: string | null) {
+    const email = raw?.trim().toLowerCase();
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        emails.add(email);
+    }
+}
+
+/** Admin inboxes that receive new-order, contact, and support alerts. */
 export function getAdminRecipients(): string[] {
     const emails = new Set<string>();
     const rawList = process.env.ADMIN_EMAIL || ADMIN_EMAIL_DEFAULT;
-    for (const part of rawList.split(',')) {
-        const email = part.trim().toLowerCase();
-        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            emails.add(email);
+    for (const part of rawList.split(/[,;]/)) {
+        addRecipient(emails, part);
+    }
+    addRecipient(emails, process.env.MOOLRE_MERCHANT_EMAIL);
+    addRecipient(emails, process.env.HUBTEL_MERCHANT_EMAIL);
+    addRecipient(emails, SUPPORT_EMAIL);
+    return [...emails];
+}
+
+type AdminEmailResult = {
+    success: boolean;
+    sent: number;
+    failed: number;
+    recipients: string[];
+    errors: string[];
+};
+
+/** Send the same alert to every admin inbox individually so one bad address cannot block the rest. */
+export async function sendEmailToAdmins({
+    subject,
+    html,
+}: {
+    subject: string;
+    html: string;
+}): Promise<AdminEmailResult> {
+    const recipients = getAdminRecipients();
+    if (recipients.length === 0) {
+        console.warn('[Email] No admin recipients configured');
+        return { success: false, sent: 0, failed: 0, recipients: [], errors: ['No admin recipients configured'] };
+    }
+
+    let sent = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    for (const to of recipients) {
+        const result = await sendEmail({ to, subject, html });
+        if (result?.error) {
+            failed++;
+            const msg = result.error.message || JSON.stringify(result.error);
+            errors.push(`${maskEmail(to)}: ${msg}`);
+            console.error('[Email] Admin alert failed for', maskEmail(to), '|', msg);
+        } else {
+            sent++;
         }
     }
-    const merchant = process.env.MOOLRE_MERCHANT_EMAIL?.trim().toLowerCase();
-    if (merchant && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(merchant)) {
-        emails.add(merchant);
+
+    if (sent > 0) {
+        console.log('[Email] Admin alert sent to', sent, 'of', recipients.length, 'inboxes');
     }
-    return [...emails];
+
+    return { success: failed === 0 && sent > 0, sent, failed, recipients, errors };
+}
+
+async function markOrderNotificationSent(orderId: string, field: 'customer_email_sent_at' | 'admin_email_sent_at') {
+    const { data: order } = await supabaseAdmin
+        .from('orders')
+        .select('metadata')
+        .eq('id', orderId)
+        .single();
+
+    const metadata = {
+        ...(order?.metadata as Record<string, unknown> | null ?? {}),
+        [field]: new Date().toISOString(),
+    };
+
+    await supabaseAdmin
+        .from('orders')
+        .update({ metadata })
+        .eq('id', orderId);
+}
+
+/** Retry order emails when payment succeeded but a prior notification attempt failed. */
+export async function retryOrderNotificationsIfNeeded(orderRef: string) {
+    const { data: order, error } = await supabaseAdmin
+        .from('orders')
+        .select('id, order_number, payment_status, metadata')
+        .eq('order_number', orderRef)
+        .single();
+
+    if (error || !order) {
+        console.warn('[Notification] Cannot retry notifications — order not found:', orderRef);
+        return;
+    }
+
+    if (order.payment_status !== 'paid') {
+        return;
+    }
+
+    const metadata = (order.metadata ?? {}) as Record<string, unknown>;
+    if (metadata.admin_email_sent_at) {
+        return;
+    }
+
+    console.log('[Notification] Retrying missed order emails for:', order.order_number);
+    await sendOrderConfirmation(order);
 }
 
 function maskEmail(email: string): string {
@@ -476,6 +568,9 @@ export async function sendOrderConfirmation(order: any) {
     const itemsHtml = emailOrderItemsHtml(items);
     const totalsHtml = emailOrderTotalsHtml(o);
     const shippingHtml = formatShippingAddressBlock(shippingAddress);
+    const notificationMeta = (metadata ?? {}) as Record<string, unknown>;
+    const customerAlreadySent = Boolean(notificationMeta.customer_email_sent_at);
+    const adminAlreadySent = Boolean(notificationMeta.admin_email_sent_at);
 
     // 1. Email to Customer
     const customerEmailHtml = emailLayout(`
@@ -509,7 +604,7 @@ ${emailButton('Track Your Order', trackingUrl)}
 <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">Or copy this link: <a href="${trackingUrl}" style="color:${BRAND.color};">${trackingUrl}</a></p>
 `, `Your order #${orderNumber} is confirmed!`);
 
-    if (email) {
+    if (email && !customerAlreadySent) {
         const customerEmailResult = await sendEmail({
             to: email,
             subject: `Order Confirmed! #${orderNumber}`,
@@ -517,6 +612,8 @@ ${emailButton('Track Your Order', trackingUrl)}
         });
         if (customerEmailResult?.error) {
             console.error('[Notification] Customer confirmation email failed for order', orderNumber);
+        } else if (orderId) {
+            await markOrderNotificationSent(orderId, 'customer_email_sent_at');
         }
     }
 
@@ -557,19 +654,24 @@ ${emailShippingNotes(shippingNotes)}
 ${emailButton('View &amp; Manage Order', `${baseUrl}/admin/orders/${orderId}`)}
 `, `New order #${orderNumber} from ${name} — ${formatMoney(Number(o.total ?? 0))}`);
 
-    const adminRecipients = getAdminRecipients();
-    const adminEmailResult = await sendEmail({
-        to: adminRecipients,
-        subject: `New Order #${orderNumber} — ${formatMoney(Number(o.total ?? 0))}`,
-        html: adminEmailHtml,
-    });
-    if (adminEmailResult?.error) {
-        console.error(
-            '[Notification] Admin order email failed for order',
-            orderNumber,
-            '| recipients:',
-            adminRecipients.map(maskEmail).join(', '),
-        );
+    if (!adminAlreadySent) {
+        const adminEmailResult = await sendEmailToAdmins({
+            subject: `New Order #${orderNumber} — ${formatMoney(Number(o.total ?? 0))}`,
+            html: adminEmailHtml,
+        });
+        if (!adminEmailResult.success) {
+            console.error(
+                '[Notification] Admin order email failed for order',
+                orderNumber,
+                '| sent:',
+                adminEmailResult.sent,
+                '| failed:',
+                adminEmailResult.failed,
+                adminEmailResult.errors.join('; ') || '',
+            );
+        } else if (orderId) {
+            await markOrderNotificationSent(orderId, 'admin_email_sent_at');
+        }
     }
 
     // 3. SMS to Customer (if phone exists)
@@ -837,8 +939,7 @@ export async function sendContactMessage(data: {
           ? `https://wa.me/233${phone.replace(/\D/g, '').replace(/^0/, '')}`
           : `mailto:${adminRecipients[0] || ADMIN_EMAIL_DEFAULT}`;
 
-    await sendEmail({
-        to: adminRecipients,
+    const adminResult = await sendEmailToAdmins({
         subject: `Contact: ${subject}`,
         html: emailLayout(`
 <h2 style="margin:0 0 16px;color:#111827;font-size:20px;">&#128233; New Contact Message</h2>
@@ -853,6 +954,110 @@ export async function sendContactMessage(data: {
 </div>
 
 ${emailButton('Reply to ' + safeName, replyHref)}
-`, `New contact from ${safeName}: ${safeSubject}`)
+`, `New contact from ${safeName}: ${safeSubject}`),
     });
+
+    if (!adminResult.success) {
+        throw new Error(adminResult.errors.join('; ') || 'Failed to notify admin inboxes');
+    }
+}
+
+export async function sendSupportTicketAlert(data: {
+    name: string;
+    email: string;
+    orderNumber?: string;
+    category: string;
+    priority: string;
+    subject: string;
+    description: string;
+}) {
+    const { name, email, orderNumber, category, priority, subject, description } = data;
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeSubject = escapeHtml(subject);
+    const safeDescription = escapeHtml(description);
+
+    await sendEmail({
+        to: email,
+        subject: `Support ticket received: ${subject}`,
+        html: emailLayout(`
+<h2 style="margin:0 0 8px;color:#111827;font-size:22px;">Support Ticket Received</h2>
+<p style="margin:0 0 16px;color:#6b7280;font-size:14px;">Hi ${safeName}, we have your request and will reply within 24 hours.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:16px 0;">
+  ${emailInfoRow('Subject', safeSubject)}
+  ${emailInfoRow('Category', escapeHtml(category))}
+  ${emailInfoRow('Priority', escapeHtml(priority))}
+  ${orderNumber ? emailInfoRow('Order', escapeHtml(orderNumber)) : ''}
+</table>
+<p style="color:#374151;font-size:14px;line-height:1.6;margin:0;">${safeDescription}</p>
+`, `We received your support ticket: ${safeSubject}`),
+    });
+
+    const adminResult = await sendEmailToAdmins({
+        subject: `[Support] ${subject}`,
+        html: emailLayout(`
+<h2 style="margin:0 0 16px;color:#111827;font-size:20px;">&#127915; New Support Ticket</h2>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:16px 0;">
+  ${emailInfoRow('From', safeName)}
+  ${emailInfoRow('Email', `<a href="mailto:${safeEmail}" style="color:${BRAND.color};text-decoration:none;">${safeEmail}</a>`)}
+  ${orderNumber ? emailInfoRow('Order', escapeHtml(orderNumber)) : ''}
+  ${emailInfoRow('Category', escapeHtml(category))}
+  ${emailInfoRow('Priority', escapeHtml(priority))}
+  ${emailInfoRow('Subject', safeSubject)}
+</table>
+<div style="background-color:#f9fafb;border-left:4px solid ${BRAND.color};border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;">
+  <p style="color:#6b7280;font-size:12px;margin:0 0 6px;text-transform:uppercase;letter-spacing:0.5px;">Description</p>
+  <p style="color:#374151;font-size:14px;margin:0;line-height:1.6;">${safeDescription}</p>
+</div>
+${emailButton('Reply to ' + safeName, `mailto:${safeEmail}?subject=Re: ${encodeURIComponent(subject)}`)}
+`, `New support ticket from ${safeName}`),
+    });
+
+    if (!adminResult.success) {
+        throw new Error(adminResult.errors.join('; ') || 'Failed to notify admin inboxes');
+    }
+}
+
+export async function sendReturnRequestAlert(data: {
+    email: string;
+    orderNumber: string;
+    returnType: string;
+    items: { name: string; reason: string; price?: number }[];
+}) {
+    const { email, orderNumber, returnType, items } = data;
+    const safeEmail = escapeHtml(email);
+    const safeOrder = escapeHtml(orderNumber);
+    const itemsHtml = items.map((item) => `
+<li style="margin:0 0 8px;color:#374151;font-size:14px;">
+  <strong>${escapeHtml(item.name)}</strong> — ${escapeHtml(item.reason)}
+  ${item.price != null ? ` (${formatMoney(item.price)})` : ''}
+</li>`).join('');
+
+    await sendEmail({
+        to: email,
+        subject: `Return request received — ${orderNumber}`,
+        html: emailLayout(`
+<h2 style="margin:0 0 8px;color:#111827;font-size:22px;">Return Request Received</h2>
+<p style="margin:0 0 16px;color:#6b7280;font-size:14px;">We received your ${escapeHtml(returnType)} request for order #${safeOrder}. Our team will review it against our refund policy and contact you shortly.</p>
+<ul style="margin:0;padding-left:20px;">${itemsHtml}</ul>
+`, `Return request received for order ${orderNumber}`),
+    });
+
+    const adminResult = await sendEmailToAdmins({
+        subject: `Return request — ${orderNumber}`,
+        html: emailLayout(`
+<h2 style="margin:0 0 16px;color:#111827;font-size:20px;">&#128230; New Return Request</h2>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:16px 0;">
+  ${emailInfoRow('Order', `#${safeOrder}`)}
+  ${emailInfoRow('Customer Email', `<a href="mailto:${safeEmail}" style="color:${BRAND.color};text-decoration:none;">${safeEmail}</a>`)}
+  ${emailInfoRow('Type', escapeHtml(returnType))}
+</table>
+<ul style="margin:0;padding-left:20px;">${itemsHtml}</ul>
+${emailButton('Reply to Customer', `mailto:${safeEmail}?subject=Re: Return ${encodeURIComponent(orderNumber)}`)}
+`, `Return request for order ${orderNumber}`),
+    });
+
+    if (!adminResult.success) {
+        throw new Error(adminResult.errors.join('; ') || 'Failed to notify admin inboxes');
+    }
 }

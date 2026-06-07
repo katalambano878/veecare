@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { sendOrderConfirmation } from '@/lib/notifications';
+import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/notifications';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { isHubtelConfigured, verifyHubtelTransaction, type HubtelVerifyResult } from '@/lib/payments/hubtel';
 
@@ -40,6 +40,11 @@ export async function POST(req: Request) {
         }
 
         if (order.payment_status === 'paid') {
+            try {
+                await retryOrderNotificationsIfNeeded(orderNumber);
+            } catch (notifyError: unknown) {
+                console.error('[Hubtel Verify] Notification retry failed:', notifyError);
+            }
             return NextResponse.json({
                 success: true,
                 status: order.status,
