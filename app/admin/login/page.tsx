@@ -1,21 +1,37 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 import Logo from '@/components/Logo';
 import { BRAND_NAME, TAGLINE } from '@/lib/brand';
 
+function setAuthCookies(accessToken: string, refreshToken: string) {
+  const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `sb-access-token=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+  document.cookie = `sb-refresh-token=${refreshToken}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax${secure}`;
+}
+
 export default function AdminLoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { getToken, verifying } = useRecaptcha();
+
+  useEffect(() => {
+    const urlError = searchParams.get('error');
+    if (urlError === 'unauthorized') {
+      setError('Your account does not have admin access. Use an admin or staff email, or contact support to upgrade your role.');
+    } else if (urlError === 'session_expired') {
+      setError('Your session expired. Please sign in again.');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,15 +53,40 @@ export default function AdminLoginPage() {
 
       if (error) throw error;
 
-      if (data.session) {
-        document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax; Secure`;
-        document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax; Secure`;
-
-        router.push('/admin');
-        router.refresh();
+      if (!data.session) {
+        throw new Error('No session returned. Please try again.');
       }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.session.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        await supabase.auth.signOut();
+        throw new Error('Could not load your profile. Please try again or contact support.');
+      }
+
+      if (profile.role !== 'admin' && profile.role !== 'staff') {
+        await supabase.auth.signOut();
+        throw new Error(
+          'This account is a customer account, not admin. Sign in with your admin email (admin@veecarehera.com) or ask support to grant admin access.',
+        );
+      }
+
+      setAuthCookies(data.session.access_token, data.session.refresh_token);
+
+      const redirect = searchParams.get('redirect') || '/admin';
+      router.push(redirect.startsWith('/admin') ? redirect : '/admin');
+      router.refresh();
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      const message = err.message || 'Login failed';
+      if (message.toLowerCase().includes('invalid login credentials')) {
+        setError('Invalid email or password. The admin account is admin@veecarehera.com — reset the password in Supabase if needed.');
+      } else {
+        setError(message);
+      }
     } finally {
       setIsLoading(false);
     }

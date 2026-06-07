@@ -47,15 +47,30 @@ export async function getHomePageData(): Promise<HomePageData> {
       .limit(8),
     supabase
       .from('categories')
-      .select('id, name, slug, description, image_url')
+      .select('id, name, slug, description, image_url, metadata')
       .eq('status', 'active')
       .is('parent_id', null)
       .order('position', { ascending: true })
       .limit(12),
   ]);
 
+  if (productsResult.error) {
+    console.error('[getHomePageData] featured products:', productsResult.error.message);
+  }
+  if (categoriesResult.error) {
+    console.error('[getHomePageData] categories:', categoriesResult.error.message);
+  }
+
+  const featuredProducts = (productsResult.data ?? []).filter(
+    (product) => (product.product_images?.length ?? 0) > 0
+  );
+
+  const homepageCategories = (categoriesResult.data ?? []).filter(
+    (category) => category.metadata?.featured === true
+  );
+
   return {
-    featuredProducts: productsResult.data ?? [],
-    categories: categoriesResult.data ?? [],
+    featuredProducts,
+    categories: homepageCategories,
   };
 }

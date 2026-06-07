@@ -44,6 +44,14 @@ export async function testSmsAction(phone: string, message: string, authToken: s
             cleaned = '233' + cleaned;
         }
         const recipient = '+' + cleaned;
+        const senderId = (process.env.MOOLRE_SMS_SENDER_ID || 'VEECARE').trim();
+
+        if (!senderId) {
+            return {
+                success: false,
+                error: 'Missing MOOLRE_SMS_SENDER_ID environment variable',
+            };
+        }
 
         // Make API call per Moolre documentation
         const response = await fetch('https://api.moolre.com/open/sms/send', {
@@ -54,7 +62,7 @@ export async function testSmsAction(phone: string, message: string, authToken: s
             },
             body: JSON.stringify({
                 type: 1,
-                senderid: 'YOUR_BRAND_NAME',
+                senderid: senderId,
                 messages: [
                     {
                         recipient: recipient,
@@ -72,11 +80,18 @@ export async function testSmsAction(phone: string, message: string, authToken: s
             result = { rawResponse: responseText };
         }
 
+        const senderIdError =
+            result?.code === 'ASMS07'
+                ? `Sender ID "${senderId}" is not approved on Moolre. Register and approve it in your Moolre dashboard (SMS → Sender IDs), then set MOOLRE_SMS_SENDER_ID to the approved name.`
+                : undefined;
+
         return {
             success: result?.status === 1,
             result,
+            senderId,
             formattedPhone: recipient,
-            httpStatus: response.status
+            httpStatus: response.status,
+            error: senderIdError,
         };
     } catch (error: any) {
         // SECURITY: Don't expose stack traces

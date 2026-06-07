@@ -75,8 +75,20 @@ export default function TestSmsPage() {
                     <h2 className="text-lg font-semibold mb-4">Response & Debug Log</h2>
 
                     {result ? (
-                        <div className="bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm overflow-auto max-h-[500px]">
-                            <pre>{JSON.stringify(result, null, 2)}</pre>
+                        <div className="space-y-3">
+                            {result.error && (
+                                <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                                    {result.error}
+                                </div>
+                            )}
+                            {result.senderId && (
+                                <p className="text-sm text-gray-600">
+                                    Sender ID used: <strong>{result.senderId}</strong>
+                                </p>
+                            )}
+                            <div className="bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm overflow-auto max-h-[500px]">
+                                <pre>{JSON.stringify(result, null, 2)}</pre>
+                            </div>
                         </div>
                     ) : (
                         <div className="h-full flex items-center justify-center text-gray-400 border-2 border-dashed rounded-md min-h-[200px]">

@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 import { supabase } from '@/lib/supabase';
 import { escapeHtml } from '@/lib/sanitize';
-import { APP_TITLE, EMAIL_FROM_DEFAULT, ADMIN_EMAIL_DEFAULT } from '@/lib/brand';
+import { APP_TITLE, EMAIL_FROM_DEFAULT, ADMIN_EMAIL_DEFAULT, CONTACT_PHONE } from '@/lib/brand';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || ADMIN_EMAIL_DEFAULT;
@@ -12,7 +12,7 @@ const BRAND = {
     colorLight: '#eff6ff',
     colorDark: '#064e3b',
     url: (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, ''),
-    phone: 'YOUR_PHONE',
+    phone: CONTACT_PHONE,
 };
 
 // Reusable branded email layout
@@ -155,7 +155,7 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
             },
             body: JSON.stringify({
                 type: 1,
-                senderid: 'YOUR_BRAND_NAME',
+                senderid: process.env.MOOLRE_SMS_SENDER_ID || 'VEECARE',
                 messages: [
                     {
                         recipient: recipient,

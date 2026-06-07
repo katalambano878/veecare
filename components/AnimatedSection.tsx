@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState, ReactNode } from 'react';
+import React, { useCallback, useEffect, useRef, useState, ReactNode } from 'react';
 
 interface AnimatedSectionProps {
   children: ReactNode;
@@ -86,22 +86,38 @@ export function AnimatedGrid({
 
   const childrenArray = React.Children.toArray(children);
 
+  const revealItems = useCallback(() => {
+    childrenArray.forEach((_, index) => {
+      setTimeout(() => {
+        setVisibleItems((prev) => {
+          const newState = [...prev];
+          newState[index] = true;
+          return newState;
+        });
+      }, index * staggerDelay);
+    });
+  }, [childrenArray.length, staggerDelay]);
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    const revealIfVisible = () => {
+      const rect = container.getBoundingClientRect();
+      const inView = rect.top < window.innerHeight && rect.bottom > 0;
+      if (inView) {
+        revealItems();
+        return true;
+      }
+      return false;
+    };
+
+    if (revealIfVisible()) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          childrenArray.forEach((_, index) => {
-            setTimeout(() => {
-              setVisibleItems(prev => {
-                const newState = [...prev];
-                newState[index] = true;
-                return newState;
-              });
-            }, index * staggerDelay);
-          });
+          revealItems();
           observer.unobserve(container);
         }
       },
@@ -111,8 +127,7 @@ export function AnimatedGrid({
     observer.observe(container);
 
     return () => observer.unobserve(container);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- childrenArray identity changes every render; length + staggerDelay are sufficient
-  }, [childrenArray.length, staggerDelay]);
+  }, [childrenArray.length, staggerDelay, revealItems]);
 
   return (
     <div ref={containerRef} className={className}>
