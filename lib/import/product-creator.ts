@@ -6,6 +6,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import type { ParsedProductRow } from './csv-parser';
 import { sanitizeHtml } from '@/lib/sanitize';
+import { generateProductSku } from '@/lib/sku';
 
 const PRESET_COLOR_HEX: Record<string, string> = {
   black: '#000000',
@@ -33,12 +34,6 @@ function slugify(name: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)+/g, '');
-}
-
-function generateSku(): string {
-  const timestamp = Date.now().toString(36).toUpperCase().slice(-4);
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `SLI-${timestamp}-${random}`;
 }
 
 async function ensureUniqueSlug(baseSlug: string): Promise<string> {
@@ -163,7 +158,7 @@ export async function createProductsFromRows(
 
     const baseSlug = slugify(first.name) || 'product';
     const slug = await ensureUniqueSlug(baseSlug);
-    const sku = generateSku();
+    const sku = generateProductSku(first.name);
 
     const description = first.description ? sanitizeHtml(first.description) : null;
     const tags = first.tags?.length ? first.tags : null;

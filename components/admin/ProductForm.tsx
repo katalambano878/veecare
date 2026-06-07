@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { revalidateStorefront } from '@/lib/revalidate-storefront';
 import { slugify, validateSlug } from '@/lib/slug';
+import { generateProductSku, generateVariantSku, SKU_PREFIX } from '@/lib/sku';
 import ProductSeoPanel from '@/components/admin/ProductSeoPanel';
 
 interface ProductFormProps {
@@ -32,13 +33,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [preorderShipping, setPreorderShipping] = useState(initialData?.metadata?.preorder_shipping || '');
     const [activeTab, setActiveTab] = useState('general');
 
-    // Auto-generate SKU function
-    const generateSku = () => {
-        const prefix = 'YOUR_BRAND_NAME'; // YOUR_APP_TITLE
-        const timestamp = Date.now().toString(36).toUpperCase().slice(-4);
-        const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-        return `${prefix}-${timestamp}-${random}`;
-    };
+    const generateSku = () => generateProductSku(productName);
 
     // --- Variant System ---
     // Preset color palette
@@ -201,6 +196,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [urlSlug, setUrlSlug] = useState(initialData?.slug || '');
     const [keywords, setKeywords] = useState(initialData?.tags?.join(', ') || '');
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(isEditMode && initialData?.slug));
+    const [skuManuallyEdited, setSkuManuallyEdited] = useState(Boolean(isEditMode && initialData?.sku));
 
     const tabs = [
         { id: 'general', label: 'General', icon: 'ri-information-line' },
@@ -231,12 +227,12 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
         }
     }, [productName, slugManuallyEdited]);
 
-    // Auto-generate SKU for new products
+    // Auto-generate SKU from product name until the admin edits it manually
     useEffect(() => {
-        if (!isEditMode && !sku) {
-            setSku(generateSku());
+        if (!skuManuallyEdited && productName.trim()) {
+            setSku(generateProductSku(productName));
         }
-    }, [isEditMode]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [productName, skuManuallyEdited]);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         try {
@@ -390,12 +386,16 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 }
 
                 if (variants.length > 0) {
+                    const parentSku = productData.sku;
                     const variantInserts = variants.map(v => {
                         const colorHex = selectedColors.find(c => c.name === v.color)?.hex || null;
+                        const variantSku =
+                            v.sku?.trim() ||
+                            generateVariantSku(parentSku, { color: v.color, size: v.name });
                         return {
                             product_id: productId,
                             name: v.name || v.color || 'Default',
-                            sku: v.sku || null,
+                            sku: variantSku,
                             price: parseFloat(v.price) || 0,
                             quantity: parseInt(v.stock) || 0,
                             option1: v.name || null,
@@ -659,27 +659,35 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                            SKU (Auto-generated)
+                                            SKU (Stock Keeping Unit)
                                         </label>
                                         <div className="flex gap-2">
                                             <input
                                                 type="text"
                                                 value={sku}
-                                                onChange={(e) => setSku(e.target.value)}
-                                                className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso font-mono bg-gray-50"
-                                                placeholder="Auto-generated"
-                                                readOnly
+                                                onChange={(e) => {
+                                                    setSkuManuallyEdited(true);
+                                                    setSku(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''));
+                                                }}
+                                                className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-mauve/40 focus:border-brand-espresso font-mono"
+                                                placeholder={`${SKU_PREFIX}-EWE-A3F2`}
                                             />
                                             <button
                                                 type="button"
-                                                onClick={() => setSku(generateSku())}
+                                                onClick={() => {
+                                                    setSkuManuallyEdited(false);
+                                                    setSku(generateSku());
+                                                }}
                                                 className="px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-brand-espresso hover:bg-brand-nude/30 transition-colors cursor-pointer"
-                                                title="Generate new SKU"
+                                                title="Generate SKU from product name"
                                             >
                                                 <i className="ri-refresh-line text-lg"></i>
                                             </button>
                                         </div>
-                                        <p className="text-sm text-gray-500 mt-1">SKU is auto-generated. Click refresh to generate a new one.</p>
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            Your internal product code for inventory, orders, and POS. Auto-fills as{' '}
+                                            <span className="font-mono text-gray-700">{SKU_PREFIX}-NAME-XXXX</span> — edit freely or click refresh to regenerate.
+                                        </p>
                                     </div>
 
                                     <div>
