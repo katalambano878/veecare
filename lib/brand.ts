@@ -79,8 +79,8 @@ export const SNAPCHAT_URL = 'https://www.snapchat.com/add/veecarehera';
 export const SNAPCHAT_HANDLES = [SNAPCHAT_HANDLE];
 
 export const SUPPORT_EMAIL = 'hello@veecarehera.com';
-export const ADMIN_EMAIL_DEFAULT = 'hello@veecarehera.com';
-export const EMAIL_FROM_DEFAULT = 'Vee Care <info@veecare.shop>';
+export const ADMIN_EMAIL_DEFAULT = 'info@veecarehera.com';
+export const EMAIL_FROM_DEFAULT = 'Vee Care <info@veecarehera.com>';
 
 export const CURRENCY = 'GHS';
 export const CURRENCY_SYMBOL = 'GH₵';
@@ -108,6 +108,7 @@ export const NAV_LINKS = [
   { label: 'Shop', href: '/shop' },
   { label: 'Categories', href: '/categories' },
   { label: 'About', href: '/about' },
+  { label: 'Blog', href: '/blog' },
   { label: 'Contact', href: '/contact' },
 ] as const;
 

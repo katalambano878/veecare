@@ -1,11 +1,43 @@
 import { Resend } from 'resend';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { escapeHtml } from '@/lib/sanitize';
 import { APP_TITLE, EMAIL_FROM_DEFAULT, ADMIN_EMAIL_DEFAULT, CONTACT_PHONE } from '@/lib/brand';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || ADMIN_EMAIL_DEFAULT;
-const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_FROM_DEFAULT;
+
+function resolveEmailFrom(): string {
+    const raw = (
+        process.env.EMAIL_FROM ||
+        process.env.RESEND_FROM_EMAIL ||
+        EMAIL_FROM_DEFAULT
+    ).trim();
+    if (!raw) return EMAIL_FROM_DEFAULT;
+    if (raw.includes('<') && raw.includes('>')) return raw;
+    return `${APP_TITLE} <${raw}>`;
+}
+
+/** Admin inboxes that receive new-order and contact alerts. */
+export function getAdminRecipients(): string[] {
+    const emails = new Set<string>();
+    const rawList = process.env.ADMIN_EMAIL || ADMIN_EMAIL_DEFAULT;
+    for (const part of rawList.split(',')) {
+        const email = part.trim().toLowerCase();
+        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            emails.add(email);
+        }
+    }
+    const merchant = process.env.MOOLRE_MERCHANT_EMAIL?.trim().toLowerCase();
+    if (merchant && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(merchant)) {
+        emails.add(merchant);
+    }
+    return [...emails];
+}
+
+function maskEmail(email: string): string {
+    const [user, domain] = email.split('@');
+    if (!domain) return '***';
+    return `${user.slice(0, 2)}***@${domain}`;
+}
 const BRAND = {
     name: APP_TITLE,
     color: '#2563eb',
@@ -87,23 +119,61 @@ function maskPhone(phone: string): string {
     return phone.slice(0, 4) + '****' + phone.slice(-2);
 }
 
-export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+export async function sendEmail({
+    to,
+    subject,
+    html,
+}: {
+    to: string | string[];
+    subject: string;
+    html: string;
+}) {
     if (!process.env.RESEND_API_KEY) {
-        console.warn('[Email] RESEND_API_KEY not configured');
-        return null;
+        console.warn('[Email] RESEND_API_KEY not configured — skipping send');
+        return { error: { message: 'RESEND_API_KEY not configured' } };
     }
+
+    const recipients = (Array.isArray(to) ? to : [to]).map((e) => e.trim()).filter(Boolean);
+    if (recipients.length === 0) {
+        console.warn('[Email] No recipients provided');
+        return { error: { message: 'No recipients provided' } };
+    }
+
+    const from = resolveEmailFrom();
+
     try {
-        const data = await resend.emails.send({
-            from: EMAIL_FROM,
-            to,
+        const { data, error } = await resend.emails.send({
+            from,
+            to: recipients,
             subject,
             html,
         });
-        console.log('[Email] Sent successfully to:', to.split('@')[0] + '@***');
-        return data;
-    } catch (error: any) {
-        console.error('[Email] Failed:', error.message);
-        return null;
+
+        if (error) {
+            console.error(
+                '[Email] Resend rejected send:',
+                error.message || JSON.stringify(error),
+                '| from:',
+                from,
+                '| to:',
+                recipients.map(maskEmail).join(', '),
+            );
+            return { error };
+        }
+
+        console.log(
+            '[Email] Sent id:',
+            data?.id,
+            '| from:',
+            from,
+            '| to:',
+            recipients.map(maskEmail).join(', '),
+        );
+        return { data };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown email error';
+        console.error('[Email] Exception:', message);
+        return { error: { message } };
     }
 }
 
@@ -220,7 +290,7 @@ export async function sendOrderConfirmation(order: any) {
     // Fetch order items to get preorder_shipping info
     let shippingNotes: string[] = [];
     try {
-        const { data: items } = await supabase
+        const { data: items } = await supabaseAdmin
             .from('order_items')
             .select('product_name, metadata')
             .eq('order_id', id);
@@ -264,11 +334,14 @@ ${emailButton('Track Your Order', trackingUrl)}
 <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">Or copy this link: <a href="${trackingUrl}" style="color:${BRAND.color};">${trackingUrl}</a></p>
 `, `Your order #${order_number || id} is confirmed!`);
 
-    await sendEmail({
+    const customerEmailResult = await sendEmail({
         to: email,
         subject: `Order Confirmed! #${order_number || id}`,
         html: customerEmailHtml
     });
+    if (customerEmailResult?.error) {
+        console.error('[Notification] Customer confirmation email failed for order', order_number || id);
+    }
 
     // 2. Email to Admin
     const adminEmailHtml = emailLayout(`
@@ -287,11 +360,20 @@ ${emailShippingNotes(shippingNotes)}
 ${emailButton('View Order in Admin', `${baseUrl}/admin/orders/${id}`)}
 `, `New order #${order_number} from ${name}`);
 
-    await sendEmail({
-        to: ADMIN_EMAIL,
+    const adminRecipients = getAdminRecipients();
+    const adminEmailResult = await sendEmail({
+        to: adminRecipients,
         subject: `New Order #${order_number || id}`,
         html: adminEmailHtml
     });
+    if (adminEmailResult?.error) {
+        console.error(
+            '[Notification] Admin order email failed for order',
+            order_number || id,
+            '| recipients:',
+            adminRecipients.map(maskEmail).join(', '),
+        );
+    }
 
     // 3. SMS to Customer (if phone exists)
     if (phone) {
@@ -551,14 +633,15 @@ export async function sendContactMessage(data: {
         emailInfoRow('Subject', safeSubject),
     ].join('');
 
+    const adminRecipients = getAdminRecipients();
     const replyHref = safeEmail
         ? `mailto:${safeEmail}?subject=Re: ${encodeURIComponent(subject)}`
         : phone
           ? `https://wa.me/233${phone.replace(/\D/g, '').replace(/^0/, '')}`
-          : `mailto:${ADMIN_EMAIL}`;
+          : `mailto:${adminRecipients[0] || ADMIN_EMAIL_DEFAULT}`;
 
     await sendEmail({
-        to: ADMIN_EMAIL,
+        to: adminRecipients,
         subject: `Contact: ${subject}`,
         html: emailLayout(`
 <h2 style="margin:0 0 16px;color:#111827;font-size:20px;">&#128233; New Contact Message</h2>

@@ -221,6 +221,11 @@ export default function AdminLayout({
       icon: 'ri-message-2-line',
       path: '/admin/test-sms'
     },
+    {
+      title: 'Email Debugger',
+      icon: 'ri-mail-send-line',
+      path: '/admin/test-email'
+    },
 
     {
       title: 'Blog',

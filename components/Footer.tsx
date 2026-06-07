@@ -20,6 +20,7 @@ const SHOP_LINKS = [
   { label: 'Shop', href: '/shop' },
   { label: 'Categories', href: '/categories' },
   { label: 'About', href: '/about' },
+  { label: 'Blog', href: '/blog' },
 ];
 
 const HELP_LINKS = [
@@ -37,6 +38,12 @@ const LEGAL_LINKS = [
 
 export default function Footer() {
   const { getSetting } = useCMS();
+  const { isModuleEnabled } = useModules();
+
+  const shopLinks = [
+    ...SHOP_LINKS,
+    ...(isModuleEnabled('blog') ? [{ label: 'Blog', href: '/blog' }] : []),
+  ];
 
   const siteName = getSetting('site_name') || APP_TITLE;
   const contactPhone = getSetting('contact_phone') || CONTACT_PHONE_DISPLAY;

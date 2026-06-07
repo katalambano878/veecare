@@ -55,7 +55,7 @@ export default function HomeClient({
       : fallbackCategories;
 
   return (
-    <main className="flex-col min-h-screen relative -mt-[4.5rem] md:-mt-24 pt-0">
+    <main className="flex-col min-h-screen relative -mt-[6.25rem] md:-mt-24 pt-0">
       <HomeHero />
 
       {/* Wellness categories */}

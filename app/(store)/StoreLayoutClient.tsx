@@ -8,6 +8,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import NavigationProgress from '@/components/NavigationProgress';
 import IdleWidgets from '@/components/IdleWidgets';
 import { CMSProvider } from '@/context/CMSContext';
+import { ModulesProvider } from '@/context/ModulesContext';
 
 import dynamic from 'next/dynamic';
 
@@ -29,6 +30,7 @@ export default function StoreLayoutClient({
 }) {
   return (
     <CMSProvider>
+      <ModulesProvider>
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>
@@ -53,6 +55,7 @@ export default function StoreLayoutClient({
       <PWAInstaller />
       <PWAPrompt />
       <ChatWidget />
+      </ModulesProvider>
     </CMSProvider>
   );
 }

@@ -7,7 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useCMS } from '@/context/CMSContext';
 import Logo from '@/components/Logo';
-import { APP_TITLE, NAV_LINKS, NAV_LINKS_OPTIONAL } from '@/lib/brand';
+import { APP_TITLE, NAV_LINKS } from '@/lib/brand';
 
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -94,7 +94,7 @@ export default function Header() {
               </div>
 
               <div className="hidden lg:flex items-center justify-center gap-8 xl:gap-10">
-                {NAV_LINKS.map((link) => (
+                {navLinks.map((link) => (
                   <Link key={link.href} href={link.href} className={navLinkClass}>
                     {link.label}
                     <span className="absolute inset-x-0 bottom-0 h-px scale-x-0 bg-brand-rose transition-transform duration-300 ease-out group-hover:scale-x-100" />
@@ -156,12 +156,27 @@ export default function Header() {
                 </button>
               </div>
             </div>
+
+            {/* Mobile & tablet nav — includes Blog */}
+            <div className="lg:hidden border-t border-white/50 px-2 pb-2">
+              <div className="flex gap-1 overflow-x-auto scrollbar-hide py-1">
+                {NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="shrink-0 px-3 py-1.5 text-xs font-medium text-brand-cocoa/85 hover:text-brand-espresso rounded-full hover:bg-white/40 transition-colors whitespace-nowrap"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </nav>
         </div>
       </header>
       {/* Spacer for fixed glass header */}
-      <div className="h-[4.5rem] md:h-24 shrink-0" aria-hidden />
+      <div className="h-[6.25rem] md:h-24 shrink-0" aria-hidden />
 
       <MiniCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
