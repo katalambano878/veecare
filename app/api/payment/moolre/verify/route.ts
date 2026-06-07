@@ -82,6 +82,10 @@ export async function POST(req: Request) {
         }
 
         try {
+            // Use the actual external reference sent to Moolre during payment init,
+            // NOT the bare order number. Moolre only knows the uniqueRef with the -R{ts} suffix.
+            const externalRefToCheck = order.metadata?.moolre_externalref || orderNumber;
+
             const checkResponse = await fetch('https://api.moolre.com/embed/status', {
                 method: 'POST',
                 headers: {
@@ -89,7 +93,7 @@ export async function POST(req: Request) {
                     'X-API-USER': process.env.MOOLRE_API_USER,
                     'X-API-PUBKEY': process.env.MOOLRE_API_PUBKEY
                 },
-                body: JSON.stringify({ externalref: orderNumber })
+                body: JSON.stringify({ externalref: externalRefToCheck })
             });
 
             const checkResult = await checkResponse.json();

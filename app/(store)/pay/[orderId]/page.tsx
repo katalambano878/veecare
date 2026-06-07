@@ -5,7 +5,14 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { getInitiateEndpoint, PAYMENT_ENDPOINTS, resolvePaymentProvider } from '@/lib/payments/providers';
+import { getInitiateEndpoint, PAYMENT_ENDPOINTS, resolvePaymentProvider, type PaymentProvider } from '@/lib/payments/providers';
+
+type PaymentMethodOption = {
+  id: PaymentProvider;
+  label: string;
+  description: string;
+  icon: string;
+};
 
 export default function PaymentPage() {
   usePageTitle('Complete Payment');
@@ -17,6 +24,21 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentProvider>('moolre');
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodOption[]>([]);
+
+  useEffect(() => {
+    async function loadMethods() {
+      try {
+        const res = await fetch('/api/payment/methods');
+        const data = await res.json();
+        setPaymentMethods(data.methods || []);
+      } catch {
+        /* ignore */
+      }
+    }
+    loadMethods();
+  }, []);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -37,6 +59,8 @@ export default function PaymentPage() {
         }
 
         setOrder(data);
+        const provider = resolvePaymentProvider(data.payment_method, data.metadata);
+        setPaymentMethod(provider);
 
         // If already paid, redirect to success page
         if (data.payment_status === 'paid') {
@@ -202,10 +226,37 @@ export default function PaymentPage() {
           </div>
         )}
 
+        {paymentMethods.length > 1 && (
+          <div className="bg-white rounded-xl shadow-sm p-4 mb-6 space-y-3">
+            <p className="text-sm font-semibold text-gray-900">Choose payment method</p>
+            {paymentMethods.map((method) => (
+              <label
+                key={method.id}
+                className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer ${
+                  paymentMethod === method.id ? 'border-brand-espresso bg-brand-nude/30' : 'border-gray-200'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="retry-payment"
+                  checked={paymentMethod === method.id}
+                  onChange={() => setPaymentMethod(method.id)}
+                  className="w-4 h-4 text-brand-espresso"
+                />
+                <i className={`${method.icon} text-brand-espresso text-lg`} />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{method.label}</p>
+                  <p className="text-xs text-gray-500">{method.description}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+        )}
+
         {/* Pay Button */}
         <button
           onClick={handlePayNow}
-          disabled={processing}
+          disabled={processing || paymentMethods.length === 0}
           className="w-full bg-brand-espresso hover:bg-brand-cocoa text-white py-4 rounded-xl font-semibold text-lg transition-colors disabled:opacity-70 flex items-center justify-center cursor-pointer"
         >
           {processing ? (
@@ -219,7 +270,7 @@ export default function PaymentPage() {
           ) : (
             <>
               <i className="ri-secure-payment-line mr-2"></i>
-              Pay GH₵ {order?.total?.toFixed(2)} with {PAYMENT_ENDPOINTS[resolvePaymentProvider(order?.payment_method, order?.metadata)].label}
+              Pay GH₵ {order?.total?.toFixed(2)} with {PAYMENT_ENDPOINTS[paymentMethod]?.label || 'secure checkout'}
             </>
           )}
         </button>
@@ -228,7 +279,7 @@ export default function PaymentPage() {
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500 flex items-center justify-center">
             <i className="ri-lock-line mr-1"></i>
-            Secure payment powered by {PAYMENT_ENDPOINTS[resolvePaymentProvider(order?.payment_method, order?.metadata)].label}
+            Secure payment powered by {PAYMENT_ENDPOINTS[paymentMethod]?.label || 'our payment partner'}
           </p>
         </div>
 

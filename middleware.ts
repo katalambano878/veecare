@@ -7,6 +7,15 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
+
+    // CRITICAL: Skip middleware entirely for payment callback routes.
+    // These are called by external payment providers (Moolre, Hubtel) and
+    // must NOT be intercepted by auth checks, Supabase calls, or header
+    // logic that could fail and silently swallow the callback.
+    if (pathname.startsWith('/api/payment/') && pathname.includes('/callback')) {
+        return NextResponse.next();
+    }
+
     const response = NextResponse.next();
 
     // ============================================================

@@ -10,6 +10,13 @@ import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 
+type PaymentMethodOption = {
+  id: 'moolre' | 'hubtel';
+  label: string;
+  description: string;
+  icon: string;
+};
+
 export default function CheckoutPage() {
   usePageTitle('Checkout');
   const router = useRouter();
@@ -55,10 +62,34 @@ export default function CheckoutPage() {
   ];
 
   const [deliveryMethod, setDeliveryMethod] = useState('doorstep');
-  const [paymentMethod, setPaymentMethod] = useState('hubtel');
+  const [paymentMethod, setPaymentMethod] = useState<'moolre' | 'hubtel'>('moolre');
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodOption[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
   const [errors, setErrors] = useState<any>({});
 
 
+
+  // Load configured payment gateways
+  useEffect(() => {
+    async function loadPaymentMethods() {
+      try {
+        const res = await fetch('/api/payment/methods');
+        const data = await res.json();
+        const methods: PaymentMethodOption[] = data.methods || [];
+        setPaymentMethods(methods);
+        if (data.defaultMethod && methods.some((m) => m.id === data.defaultMethod)) {
+          setPaymentMethod(data.defaultMethod);
+        } else if (methods[0]) {
+          setPaymentMethod(methods[0].id);
+        }
+      } catch (err) {
+        console.error('Failed to load payment methods:', err);
+      } finally {
+        setPaymentsLoading(false);
+      }
+    }
+    loadPaymentMethods();
+  }, []);
 
   // Check auth and cart
   useEffect(() => {
@@ -114,9 +145,8 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleContinueToPayment = async () => {
-    // Skip step 3 and directly initiate payment with default method (Moolre/Mobile Money)
-    await handlePlaceOrder();
+  const handleContinueToPayment = () => {
+    setCurrentStep(3);
   };
 
 
@@ -161,13 +191,16 @@ export default function CheckoutPage() {
           total: total,
           shipping_method: deliveryMethod,
           payment_method: paymentMethod,
+          payment_provider: paymentMethod,
           shipping_address: shippingData,
           billing_address: shippingData, // Using same for now
           metadata: {
             guest_checkout: !user,
             first_name: shippingData.firstName,
             last_name: shippingData.lastName,
-            tracking_number: trackingNumber
+            tracking_number: trackingNumber,
+            payment_method: paymentMethod,
+            payment_provider: paymentMethod,
           }
         }])
         .select()
@@ -247,6 +280,12 @@ export default function CheckoutPage() {
       });
 
       // 4. Handle Payment Redirects or Completion
+      if (paymentMethods.length === 0) {
+        alert('Online payment is temporarily unavailable. Please contact us to complete your order.');
+        setIsLoading(false);
+        return;
+      }
+
       if (paymentMethod === 'hubtel' || paymentMethod === 'moolre') {
         try {
           const paymentEndpoint = paymentMethod === 'moolre' ? '/api/payment/moolre' : '/api/payment/hubtel';
@@ -561,20 +600,10 @@ export default function CheckoutPage() {
                     </button>
                     <button
                       onClick={handleContinueToPayment}
-                      disabled={isLoading}
+                      disabled={isLoading || paymentsLoading}
                       className="flex-1 bg-brand-espresso hover:bg-brand-cocoa text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer disabled:opacity-70 flex items-center justify-center"
                     >
-                      {isLoading ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Processing...
-                        </>
-                      ) : (
-                        'Pay Securely'
-                      )}
+                      Continue to Payment
                     </button>
                   </div>
                 </div>
@@ -583,7 +612,89 @@ export default function CheckoutPage() {
               </>
             )}
 
-            {/* Step 3 removed - payment now initiates directly from step 2 */}
+            {currentStep === 3 && (
+              <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Payment Method</h2>
+                <p className="text-sm text-gray-600 mb-6">
+                  Choose how you would like to pay. You will be redirected to a secure payment page.
+                </p>
+
+                {paymentsLoading ? (
+                  <div className="flex items-center justify-center py-8 text-gray-500">
+                    <svg className="animate-spin h-5 w-5 mr-2 text-brand-espresso" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Loading payment options...
+                  </div>
+                ) : paymentMethods.length === 0 ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+                    Online payment is not configured yet. Please contact support to complete your order.
+                  </div>
+                ) : (
+                  <div className="space-y-3 mb-6">
+                    {paymentMethods.map((method) => (
+                      <label
+                        key={method.id}
+                        className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                          paymentMethod === method.id
+                            ? 'border-brand-espresso bg-brand-nude/30'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="radio"
+                            name="payment"
+                            value={method.id}
+                            checked={paymentMethod === method.id}
+                            onChange={() => setPaymentMethod(method.id)}
+                            className="w-5 h-5 text-brand-espresso"
+                          />
+                          <div className="w-10 h-10 rounded-full bg-brand-nude/50 flex items-center justify-center flex-shrink-0">
+                            <i className={`${method.icon} text-brand-espresso text-xl`} />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">{method.label}</p>
+                            <p className="text-sm text-gray-600">{method.description}</p>
+                          </div>
+                        </div>
+                        <i className="ri-secure-payment-line text-brand-espresso text-xl" />
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex flex-col-reverse md:flex-row gap-4">
+                  <button
+                    onClick={() => setCurrentStep(2)}
+                    disabled={isLoading}
+                    className="flex-1 border-2 border-gray-300 hover:border-gray-400 text-gray-700 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handlePlaceOrder}
+                    disabled={isLoading || paymentsLoading || paymentMethods.length === 0}
+                    className="flex-1 bg-brand-espresso hover:bg-brand-cocoa text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer disabled:opacity-70 flex items-center justify-center"
+                  >
+                    {isLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </>
+                    ) : paymentMethod === 'moolre' ? (
+                      'Pay with Mobile Money'
+                    ) : (
+                      'Pay with Hubtel'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-1">

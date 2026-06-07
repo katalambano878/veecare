@@ -28,8 +28,8 @@ export async function POST(req: Request) {
         if (!isHubtelConfigured()) {
             console.error('[Hubtel] Missing credentials');
             return NextResponse.json(
-                { success: false, message: 'Payment gateway configuration error' },
-                { status: 500 }
+                { success: false, message: 'Hubtel is not configured. Please choose Mobile Money (Moolre) or contact support.' },
+                { status: 503 }
             );
         }
 

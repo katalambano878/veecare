@@ -21,8 +21,8 @@ export function resolvePaymentProvider(
     metadata?: Record<string, unknown> | null
 ): PaymentProvider {
     const method = paymentMethod || (metadata?.payment_method as string) || (metadata?.payment_provider as string);
-    if (method === 'moolre') return 'moolre';
-    return 'hubtel';
+    if (method === 'hubtel') return 'hubtel';
+    return 'moolre';
 }
 
 export function getVerifyEndpoint(order: {

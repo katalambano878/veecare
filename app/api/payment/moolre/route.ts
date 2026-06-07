@@ -66,6 +66,33 @@ export async function POST(req: Request) {
         // Generate a unique external reference for Moolre
         const uniqueRef = `${orderRef}-R${Date.now()}`;
 
+        // Persist latest payment attempt reference so verification/callback
+        // can reliably reconcile retries (matches kinagventures pattern).
+        const { data: existingOrderMeta } = await supabaseAdmin
+            .from('orders')
+            .select('metadata')
+            .eq('order_number', orderRef)
+            .single();
+
+        const mergedMetadata = {
+            ...(existingOrderMeta?.metadata || {}),
+            payment_method: 'moolre',
+            moolre_externalref: uniqueRef,
+            payment_attempted_at: new Date().toISOString()
+        };
+
+        const { error: orderUpdateError } = await supabaseAdmin
+            .from('orders')
+            .update({
+                payment_status: 'pending',
+                metadata: mergedMetadata
+            })
+            .eq('order_number', orderRef);
+
+        if (orderUpdateError) {
+            return NextResponse.json({ success: false, message: `Failed to prepare payment: ${orderUpdateError.message}` }, { status: 500 });
+        }
+
         // Moolre Payload
         const payload = {
             type: 1,
