@@ -104,6 +104,14 @@ export default function Footer() {
             >
               <i className="ri-phone-line text-lg" />
             </a>
+            <Link
+              href="/admin/login"
+              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-brand-espresso hover:bg-brand-espresso hover:text-white transition-all shadow-glass hover:shadow-glass-hover hover:-translate-y-1"
+              aria-label="Admin login"
+              title="Admin"
+            >
+              <i className="ri-shield-user-line text-lg" />
+            </Link>
           </div>
         </div>
 
