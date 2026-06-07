@@ -50,8 +50,9 @@ export async function testEmailAction(to: string, subject: string, message: stri
 
     if (result?.error) {
         const errMsg = result.error.message || JSON.stringify(result.error);
+        const fromDomain = from.match(/<([^>]+)>/)?.[1]?.split('@')[1] || from.split('@')[1] || '';
         const domainHint = errMsg.toLowerCase().includes('domain') || errMsg.toLowerCase().includes('verify')
-            ? ' Verify your sending domain in the Resend dashboard and set EMAIL_FROM to an address on that domain.'
+            ? ` Your Resend account has veecare.shop verified — set EMAIL_FROM to an @veecare.shop address (e.g. info@veecare.shop). Current from domain: ${fromDomain || 'unknown'}.`
             : '';
         return {
             success: false,

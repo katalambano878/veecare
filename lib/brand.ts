@@ -80,7 +80,7 @@ export const SNAPCHAT_HANDLES = [SNAPCHAT_HANDLE];
 
 export const SUPPORT_EMAIL = 'hello@veecarehera.com';
 export const ADMIN_EMAIL_DEFAULT = 'info@veecarehera.com';
-export const EMAIL_FROM_DEFAULT = 'Vee Care <info@veecarehera.com>';
+export const EMAIL_FROM_DEFAULT = 'Vee Care Hera <info@veecare.shop>';
 
 export const CURRENCY = 'GHS';
 export const CURRENCY_SYMBOL = 'GH₵';
