@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { getInitiateEndpoint, PAYMENT_ENDPOINTS, resolvePaymentProvider, type PaymentProvider } from '@/lib/payments/providers';
 
@@ -43,16 +42,18 @@ export default function PaymentPage() {
   useEffect(() => {
     async function fetchOrder() {
       try {
-        // Fetch order by ID (UUID) or order_number
-        let query = supabase
-          .from('orders')
-          .select('*')
-          .or(`id.eq.${orderId},order_number.eq.${orderId}`)
-          .single();
+        // Server lookup (by UUID or order number) — guest orders are no longer
+        // readable via the public API key.
+        const res = await fetch('/api/orders/pay-info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: orderId }),
+        });
 
-        const { data, error: fetchError } = await query;
+        const result = await res.json();
+        const data = result.order;
 
-        if (fetchError || !data) {
+        if (!res.ok || !data) {
           setError('Order not found. Please check your link and try again.');
           setLoading(false);
           return;

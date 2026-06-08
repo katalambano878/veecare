@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { getVerifyEndpoint } from '@/lib/payments/providers';
 
 function OrderSuccessContent() {
@@ -16,54 +15,76 @@ function OrderSuccessContent() {
   const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
-    async function fetchOrder() {
+    async function loadOrder() {
       if (!orderNumber) {
         setLoading(false);
         return;
       }
 
+      // 1. Render instantly from the local snapshot saved at checkout (this
+      //    buyer's own browser). Guest orders are no longer publicly readable,
+      //    so we never query the order table with the anon key here.
+      let base: any = null;
       try {
-        const { data: orderData, error } = await supabase
-          .from('orders')
-          .select(`
-                    *,
-                    order_items (*)
-                `)
-          .eq('order_number', orderNumber)
-          .single();
+        const raw = localStorage.getItem(`veecare_order_${orderNumber}`);
+        if (raw) base = JSON.parse(raw);
+      } catch {
+        /* localStorage unavailable */
+      }
+      if (base) setOrder(base);
 
-        if (error) throw error;
-        setOrder(orderData);
-
-        // If redirected from payment and order is still pending, try to verify
-        if (paymentSuccess === 'true' && orderData && orderData.payment_status !== 'paid') {
-          verifyPayment(orderNumber, orderData);
+      // 2. Confirm authoritative (non-PII) status from the server.
+      try {
+        const status = await fetchStatus(orderNumber);
+        if (status) {
+          setOrder((prev: any) => mergeStatus(prev || base, status));
+          if (paymentSuccess === 'true' && status.payment_status !== 'paid') {
+            verifyPayment(orderNumber, base || status);
+          }
         }
       } catch (err) {
-        console.error('Error fetching order:', err);
+        console.error('Error loading order status:', err);
       } finally {
         setLoading(false);
       }
     }
-    fetchOrder();
+    loadOrder();
   }, [orderNumber, paymentSuccess]);
+
+  // Fetch the server-confirmed, non-PII order status.
+  const fetchStatus = async (orderNum: string) => {
+    const res = await fetch('/api/orders/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderNumber: orderNum }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.order;
+  };
+
+  // Merge live server status over the local snapshot, preserving the buyer's
+  // own PII (address/email/phone) which only exists in the snapshot.
+  const mergeStatus = (prev: any, status: any) => ({
+    ...(prev || {}),
+    ...status,
+    shipping_address: prev?.shipping_address ?? status?.shipping_address,
+    email: prev?.email ?? status?.email,
+    phone: prev?.phone ?? status?.phone,
+    order_items: status?.order_items?.length ? status.order_items : prev?.order_items,
+  });
 
   // Payment verification - called when user is redirected from Moolre with payment_success=true
   const verifyPayment = async (orderNum: string, initialOrder: any) => {
     setVerifying(true);
-    
+
     // Wait 3 seconds to give the callback a chance to process first
     await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Re-fetch order to check if callback already updated it
-    const { data: refreshed } = await supabase
-      .from('orders')
-      .select('*, order_items (*)')
-      .eq('order_number', orderNum)
-      .single();
-    
+
+    // Re-check status — the callback may have marked it paid already.
+    const refreshed = await fetchStatus(orderNum);
     if (refreshed?.payment_status === 'paid') {
-      setOrder(refreshed);
+      setOrder((prev: any) => mergeStatus(prev || initialOrder, refreshed));
       setVerifying(false);
       return;
     }
@@ -75,18 +96,13 @@ function OrderSuccessContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderNumber: orderNum })
       });
-      
+
       const result = await res.json();
       console.log('Payment verification result:', result);
-      
+
       if (result.success && result.payment_status === 'paid') {
-        // Re-fetch full order data
-        const { data: updated } = await supabase
-          .from('orders')
-          .select('*, order_items (*)')
-          .eq('order_number', orderNum)
-          .single();
-        if (updated) setOrder(updated);
+        const updated = await fetchStatus(orderNum);
+        if (updated) setOrder((prev: any) => mergeStatus(prev || initialOrder, updated));
       }
     } catch (err) {
       console.error('Payment verification failed:', err);

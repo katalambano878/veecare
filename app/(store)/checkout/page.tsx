@@ -170,6 +170,9 @@ export default function CheckoutPage() {
 
     try {
       const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      // Generate the order id client-side so we don't need to read the row back
+      // under RLS (guest orders are no longer publicly selectable).
+      const orderId = crypto.randomUUID();
       // Generate tracking number: SLI-XXXXXX (6-char alphanumeric)
       const trackingId = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
       const trackingNumber = `SLI-${trackingId}`;
@@ -190,9 +193,10 @@ export default function CheckoutPage() {
       }
 
       // 1. Create Order
-      const { data: order, error: orderError } = await supabase
+      const { error: orderError } = await supabase
         .from('orders')
         .insert([{
+          id: orderId,
           order_number: orderNumber,
           user_id: user?.id || null, // Capture user_id if logged in
           email: shippingData.email,
@@ -219,9 +223,7 @@ export default function CheckoutPage() {
             payment_provider: paymentMethod,
             ...affiliateMeta,
           }
-        }])
-        .select()
-        .single();
+        }]);
 
       if (orderError) throw orderError;
 
@@ -261,7 +263,7 @@ export default function CheckoutPage() {
         const prodMeta = productMetaMap.get(productId);
         
         orderItems.push({
-          order_id: order.id,
+          order_id: orderId,
           product_id: productId,
           product_name: item.name,
           variant_name: item.variant,
@@ -281,6 +283,39 @@ export default function CheckoutPage() {
         .insert(orderItems);
 
       if (itemsError) throw itemsError;
+
+      // Save a local snapshot so the order-success page can render this buyer's
+      // own confirmation (incl. their address) without reading the order back
+      // through the public API. Survives the payment redirect (same browser).
+      try {
+        const snapshot = {
+          order_number: orderNumber,
+          status: 'pending',
+          payment_status: 'pending',
+          email: shippingData.email,
+          phone: shippingData.phone,
+          subtotal,
+          shipping_total: shippingCost,
+          total,
+          currency: 'GHS',
+          created_at: new Date().toISOString(),
+          payment_method: paymentMethod,
+          payment_provider: paymentMethod,
+          shipping_address: shippingData,
+          metadata: { tracking_number: trackingNumber, payment_method: paymentMethod, payment_provider: paymentMethod },
+          order_items: orderItems.map((it) => ({
+            id: `${it.product_id}-${it.variant_name || ''}`,
+            product_name: it.product_name,
+            variant_name: it.variant_name,
+            quantity: it.quantity,
+            unit_price: it.unit_price,
+            metadata: it.metadata,
+          })),
+        };
+        localStorage.setItem(`veecare_order_${orderNumber}`, JSON.stringify(snapshot));
+      } catch {
+        /* localStorage may be unavailable; success page falls back to server status */
+      }
 
       // Note: Stock reduction happens in mark_order_paid when payment is confirmed
 
@@ -340,7 +375,19 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'order_created',
-          payload: order
+          payload: {
+            id: orderId,
+            order_number: orderNumber,
+            email: shippingData.email,
+            phone: shippingData.phone,
+            subtotal,
+            shipping_total: shippingCost,
+            total,
+            currency: 'GHS',
+            shipping_address: shippingData,
+            payment_method: paymentMethod,
+            metadata: { tracking_number: trackingNumber, payment_method: paymentMethod },
+          }
         })
       }).catch(err => console.error('Notification trigger error:', err));
 
