@@ -72,19 +72,18 @@ export async function POST(req: Request) {
         console.log('[Callback] Data keys:', body.data ? Object.keys(body.data).join(', ') : 'no data object');
 
         // ============================================================
-        // SECURITY: Verify callback secret if configured
-        // Only reject if we have a configured secret AND the payload
-        // contains a secret field that doesn't match. If Moolre doesn't
-        // send a secret, we allow it through (matches kinagventures).
+        // SECURITY: Verify callback secret if configured.
+        // Only reject if we have a configured secret AND the payload contains a
+        // secret field that does NOT match. Moolre's payment-link init does not
+        // send our secret, so genuine callbacks may omit it — we must allow
+        // those through or every real payment fails to mark paid.
+        // Anti-forgery for this integration is enforced by (a) the amount check
+        // below and (b) the order-success page's `verify` route, which confirms
+        // payment directly against Moolre's status API.
         // ============================================================
-        // When a callback secret is configured, REQUIRE it on every callback.
-        // Moolre echoes the `secret` we set at payment init, so legitimate
-        // callbacks always include it. A spoofed callback that omits the secret
-        // is rejected here; the order-success page's server-side `verify` route
-        // (which checks Moolre's API directly) remains the backstop.
         const expectedSecret = process.env.MOOLRE_CALLBACK_SECRET;
-        if (expectedSecret && body.secret !== expectedSecret) {
-            console.error('[Callback] Missing/invalid secret — rejecting possible spoofed callback.');
+        if (expectedSecret && body.secret && body.secret !== expectedSecret) {
+            console.error('[Callback] Secret mismatch! Possible spoofed callback.');
             return NextResponse.json({ success: false, message: 'Invalid secret' }, { status: 403 });
         }
 
