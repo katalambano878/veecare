@@ -77,9 +77,14 @@ export async function POST(req: Request) {
         // contains a secret field that doesn't match. If Moolre doesn't
         // send a secret, we allow it through (matches kinagventures).
         // ============================================================
+        // When a callback secret is configured, REQUIRE it on every callback.
+        // Moolre echoes the `secret` we set at payment init, so legitimate
+        // callbacks always include it. A spoofed callback that omits the secret
+        // is rejected here; the order-success page's server-side `verify` route
+        // (which checks Moolre's API directly) remains the backstop.
         const expectedSecret = process.env.MOOLRE_CALLBACK_SECRET;
-        if (expectedSecret && body.secret && body.secret !== expectedSecret) {
-            console.error('[Callback] Secret mismatch! Possible spoofed callback.');
+        if (expectedSecret && body.secret !== expectedSecret) {
+            console.error('[Callback] Missing/invalid secret — rejecting possible spoofed callback.');
             return NextResponse.json({ success: false, message: 'Invalid secret' }, { status: 403 });
         }
 
