@@ -138,4 +138,10 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.resolve_affiliate_code(text) TO anon, authenticated;
+
+-- Lock down commission crediting to server-side (service_role) only.
+-- Postgres grants EXECUTE to PUBLIC by default, so revoke that first.
+REVOKE EXECUTE ON FUNCTION public.credit_affiliate_commission(uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.credit_affiliate_commission(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.credit_affiliate_commission(uuid) FROM authenticated;
 GRANT EXECUTE ON FUNCTION public.credit_affiliate_commission(uuid) TO service_role;
