@@ -27,7 +27,7 @@ export default function TestEmailPage() {
             <p className="text-gray-600 mb-6 max-w-2xl">
                 Uses Resend. Order and customer alerts go to every address in <code className="text-sm bg-gray-100 px-1 rounded">ADMIN_EMAIL</code>
                 {' '}(comma-separated), plus <code className="text-sm bg-gray-100 px-1 rounded">MOOLRE_MERCHANT_EMAIL</code>,{' '}
-                <code className="text-sm bg-gray-100 px-1 rounded">HUBTEL_MERCHANT_EMAIL</code>, and the support inbox.
+                <code className="text-sm bg-gray-100 px-1 rounded">PAYSTACK_MERCHANT_EMAIL</code>, and the support inbox.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -31,7 +31,7 @@ export function getAdminRecipients(): string[] {
         addRecipient(emails, part);
     }
     addRecipient(emails, process.env.MOOLRE_MERCHANT_EMAIL);
-    addRecipient(emails, process.env.HUBTEL_MERCHANT_EMAIL);
+    addRecipient(emails, process.env.PAYSTACK_MERCHANT_EMAIL);
     addRecipient(emails, SUPPORT_EMAIL);
     return [...emails];
 }

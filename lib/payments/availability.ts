@@ -1,6 +1,6 @@
-import { isHubtelConfigured } from './hubtel';
+import { isPaystackConfigured } from './paystack';
 
-export type PaymentMethodId = 'moolre' | 'hubtel';
+export type PaymentMethodId = 'moolre' | 'paystack';
 
 export interface PaymentMethodOption {
     id: PaymentMethodId;
@@ -28,11 +28,11 @@ export function getAvailablePaymentMethods(): PaymentMethodOption[] {
             available: isMoolreConfigured(),
         },
         {
-            id: 'hubtel',
-            label: 'Card Payment',
-            description: 'Pay with debit/credit card via Hubtel',
+            id: 'paystack',
+            label: 'Card & Mobile Money (Paystack)',
+            description: 'Pay with debit/credit card or Mobile Money via Paystack',
             icon: 'ri-bank-card-line',
-            available: isHubtelConfigured(),
+            available: isPaystackConfigured(),
         },
     ];
 

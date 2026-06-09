@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // CRITICAL: Skip middleware entirely for payment callback routes.
-    // These are called by external payment providers (Moolre, Hubtel) and
+    // These are called by external payment providers (Moolre, Paystack) and
     // must NOT be intercepted by auth checks, Supabase calls, or header
     // logic that could fail and silently swallow the callback.
     if (pathname.startsWith('/api/payment/') && pathname.includes('/callback')) {

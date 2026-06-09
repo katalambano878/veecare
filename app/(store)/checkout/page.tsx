@@ -12,7 +12,7 @@ import { useRecaptcha } from '@/hooks/useRecaptcha';
 import { getAffiliateCodeFromCookie } from '@/lib/affiliate';
 
 type PaymentMethodOption = {
-  id: 'moolre' | 'hubtel';
+  id: 'moolre' | 'paystack';
   label: string;
   description: string;
   icon: string;
@@ -63,7 +63,7 @@ export default function CheckoutPage() {
   ];
 
   const [deliveryMethod, setDeliveryMethod] = useState('doorstep');
-  const [paymentMethod, setPaymentMethod] = useState<'moolre' | 'hubtel'>('moolre');
+  const [paymentMethod, setPaymentMethod] = useState<'moolre' | 'paystack'>('moolre');
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodOption[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
   const [errors, setErrors] = useState<any>({});
@@ -338,9 +338,9 @@ export default function CheckoutPage() {
         return;
       }
 
-      if (paymentMethod === 'hubtel' || paymentMethod === 'moolre') {
+      if (paymentMethod === 'paystack' || paymentMethod === 'moolre') {
         try {
-          const paymentEndpoint = paymentMethod === 'moolre' ? '/api/payment/moolre' : '/api/payment/hubtel';
+          const paymentEndpoint = paymentMethod === 'moolre' ? '/api/payment/moolre' : '/api/payment/paystack';
 
           const paymentRes = await fetch(paymentEndpoint, {
             method: 'POST',

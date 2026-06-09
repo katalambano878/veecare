@@ -13,11 +13,11 @@
  *   - order_items.product_name (not name_snapshot)
  *   - order_items.unit_price, .total_price (not line_total)
  *
- * Payments use Hubtel (default) or Moolre via /api/payment/* routes.
+ * Payments use Moolre (default) or Paystack via /api/payment/* routes.
  */
 
 import { supabaseAdmin } from './supabase-admin';
-import { initiateHubtelCheckout, isHubtelConfigured } from './payments/hubtel';
+import { initiatePaystackTransaction, isPaystackConfigured } from './payments/paystack';
 import {
     BRAND_NAME,
     TAGLINE,
@@ -882,8 +882,8 @@ export async function createChatOrder(
     if (!['standard', 'express', 'pickup'].includes(deliveryMethod)) {
         return { success: false, message: 'Invalid delivery method.' };
     }
-    if (!['hubtel', 'moolre', 'cod'].includes(paymentMethod)) {
-        return { success: false, message: 'Invalid payment method. Use Hubtel, Moolre Mobile Money, or Cash on Delivery.' };
+    if (!['paystack', 'moolre', 'cod'].includes(paymentMethod)) {
+        return { success: false, message: 'Invalid payment method. Use Paystack, Moolre Mobile Money, or Cash on Delivery.' };
     }
 
     const rateLimitKey = shipping.email.toLowerCase().trim();
@@ -1023,36 +1023,33 @@ export async function createChatOrder(
         }
 
         const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
-        const customerName = `${sanitizedShipping.firstName} ${sanitizedShipping.lastName}`.trim();
 
         try {
-            if (paymentMethod === 'hubtel') {
-                if (!isHubtelConfigured()) {
+            if (paymentMethod === 'paystack') {
+                if (!isPaystackConfigured()) {
                     return {
                         success: true,
                         orderNumber,
                         total,
-                        message: `Order ${orderNumber} created (GH₵${total.toFixed(2)}), but Hubtel is not configured. Please complete checkout from the cart page or contact ${SUPPORT_EMAIL}.`,
+                        message: `Order ${orderNumber} created (GH₵${total.toFixed(2)}), but Paystack is not configured. Please complete checkout from the cart page or contact ${SUPPORT_EMAIL}.`,
                     };
                 }
 
-                const hubtelResult = await initiateHubtelCheckout({
+                const paystackResult = await initiatePaystackTransaction({
                     orderRef: orderNumber,
                     amount: total,
-                    customerName,
                     customerEmail: sanitizedShipping.email,
-                    customerPhone: sanitizedShipping.phone,
                     baseUrl,
                 });
 
-                if (hubtelResult.success && hubtelResult.checkoutUrl) {
+                if (paystackResult.success && paystackResult.authorizationUrl) {
                     await admin
                         .from('orders')
                         .update({
                             metadata: {
-                                payment_method: 'hubtel',
-                                payment_provider: 'hubtel',
-                                hubtel_client_reference: hubtelResult.clientReference,
+                                payment_method: 'paystack',
+                                payment_provider: 'paystack',
+                                paystack_reference: paystackResult.reference,
                             },
                         })
                         .eq('id', order.id);
@@ -1061,8 +1058,8 @@ export async function createChatOrder(
                         success: true,
                         orderNumber,
                         total,
-                        paymentUrl: hubtelResult.checkoutUrl,
-                        message: `Order ${orderNumber} is ready. Total GH₵${total.toFixed(2)} (incl. GH₵${shippingCost.toFixed(2)} delivery). Complete payment with the secure Hubtel link below (Mobile Money, card & more).`,
+                        paymentUrl: paystackResult.authorizationUrl,
+                        message: `Order ${orderNumber} is ready. Total GH₵${total.toFixed(2)} (incl. GH₵${shippingCost.toFixed(2)} delivery). Complete payment with the secure Paystack link below (card & Mobile Money).`,
                     };
                 }
 
@@ -1070,7 +1067,7 @@ export async function createChatOrder(
                     success: true,
                     orderNumber,
                     total,
-                    message: `Order ${orderNumber} created (GH₵${total.toFixed(2)}), but we could not open Hubtel checkout. Try paying from your cart or contact ${SUPPORT_EMAIL}.`,
+                    message: `Order ${orderNumber} created (GH₵${total.toFixed(2)}), but we could not open Paystack checkout. Try paying from your cart or contact ${SUPPORT_EMAIL}.`,
                 };
             }
 

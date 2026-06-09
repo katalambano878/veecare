@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import {
-    initiateHubtelCheckout,
-    isHubtelConfigured,
-    generateHubtelClientReference,
-} from '@/lib/payments/hubtel';
+    initiatePaystackTransaction,
+    isPaystackConfigured,
+    generatePaystackReference,
+} from '@/lib/payments/paystack';
 
 export async function POST(req: Request) {
     try {
@@ -25,29 +25,30 @@ export async function POST(req: Request) {
             );
         }
 
-        if (!isHubtelConfigured()) {
-            console.error('[Hubtel] Missing credentials');
+        if (!isPaystackConfigured()) {
+            console.error('[Paystack] Missing credentials');
             return NextResponse.json(
-                { success: false, message: 'Hubtel is not configured. Please choose Mobile Money (Moolre) or contact support.' },
+                { success: false, message: 'Paystack is not configured. Please choose Mobile Money (Moolre) or contact support.' },
                 { status: 503 }
             );
         }
 
         const body = await req.json();
-        const { orderId } = body;
+        const { orderId, customerEmail } = body;
 
         if (!orderId || typeof orderId !== 'string') {
             return NextResponse.json({ success: false, message: 'Missing or invalid orderId' }, { status: 400 });
         }
 
+        // SECURITY: fetch the order and use its DB total — never trust client amount.
         const { data: order, error: orderError } = await supabaseAdmin
             .from('orders')
-            .select('id, order_number, total, email, phone, payment_status, metadata, shipping_address')
+            .select('id, order_number, total, email, phone, payment_status, metadata')
             .eq('order_number', orderId)
             .single();
 
         if (orderError || !order) {
-            console.error('[Hubtel] Order not found:', orderId);
+            console.error('[Paystack] Order not found:', orderId);
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 
@@ -60,29 +61,26 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Invalid order amount' }, { status: 400 });
         }
 
+        const customerEmailToUse = order.email || customerEmail;
+        if (!customerEmailToUse) {
+            return NextResponse.json({ success: false, message: 'A customer email is required for Paystack' }, { status: 400 });
+        }
+
         const orderRef = order.order_number || orderId;
         const requestUrl = new URL(req.url);
         const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || requestUrl.origin).replace(/\/+$/, '');
 
-        const shipping = (order.shipping_address || {}) as Record<string, string>;
-        const customerName =
-            [shipping.firstName, shipping.lastName].filter(Boolean).join(' ') ||
-            (order.metadata as Record<string, string>)?.first_name ||
-            'Customer';
+        const reference = generatePaystackReference(orderRef);
 
-        const clientReference = generateHubtelClientReference(orderRef);
-
-        const result = await initiateHubtelCheckout({
+        const result = await initiatePaystackTransaction({
             orderRef,
             amount,
-            customerName,
-            customerEmail: order.email,
-            customerPhone: order.phone || shipping.phone || '',
+            customerEmail: customerEmailToUse,
             baseUrl,
-            clientReference,
+            reference,
         });
 
-        if (!result.success || !result.checkoutUrl) {
+        if (!result.success || !result.authorizationUrl) {
             return NextResponse.json(
                 { success: false, message: result.message || 'Failed to generate payment link' },
                 { status: 400 }
@@ -92,26 +90,27 @@ export async function POST(req: Request) {
         await supabaseAdmin
             .from('orders')
             .update({
-                payment_method: 'hubtel',
-                payment_provider: 'hubtel',
+                payment_method: 'paystack',
+                payment_provider: 'paystack',
                 metadata: {
                     ...(order.metadata || {}),
-                    payment_method: 'hubtel',
-                    payment_provider: 'hubtel',
-                    hubtel_client_reference: clientReference,
+                    payment_method: 'paystack',
+                    payment_provider: 'paystack',
+                    paystack_reference: result.reference,
+                    payment_attempted_at: new Date().toISOString(),
                 },
             })
             .eq('id', order.id);
 
-        console.log('[Hubtel] Initiated for order:', orderRef, '| Amount:', amount);
+        console.log('[Paystack] Initiated for order:', orderRef, '| Amount:', amount);
 
         return NextResponse.json({
             success: true,
-            url: result.checkoutUrl,
-            reference: clientReference,
+            url: result.authorizationUrl,
+            reference: result.reference,
         });
     } catch (error: unknown) {
-        console.error('[Hubtel] Payment API Error:', error);
+        console.error('[Paystack] Payment API Error:', error);
         return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
     }
 }

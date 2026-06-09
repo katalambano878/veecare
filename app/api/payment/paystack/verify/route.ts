@@ -3,11 +3,15 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/notifications';
 import { creditAffiliateCommission } from '@/lib/affiliate';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
-import { isHubtelConfigured, verifyHubtelTransaction, type HubtelVerifyResult } from '@/lib/payments/hubtel';
+import {
+    isPaystackConfigured,
+    verifyPaystackTransaction,
+    type PaystackVerifyResult,
+} from '@/lib/payments/paystack';
 
 /**
- * Payment verification for Hubtel orders.
- * Called from order-success after redirect. Verifies via Hubtel status API only.
+ * Payment verification for Paystack orders.
+ * Called from order-success after redirect. Verifies via Paystack's API only.
  */
 export async function POST(req: Request) {
     try {
@@ -28,7 +32,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Invalid order number format' }, { status: 400 });
         }
 
-        console.log('[Hubtel Verify] Checking payment for:', orderNumber);
+        console.log('[Paystack Verify] Checking payment for:', orderNumber);
 
         const { data: order, error: fetchError } = await supabaseAdmin
             .from('orders')
@@ -44,7 +48,7 @@ export async function POST(req: Request) {
             try {
                 await retryOrderNotificationsIfNeeded(orderNumber);
             } catch (notifyError: unknown) {
-                console.error('[Hubtel Verify] Notification retry failed:', notifyError);
+                console.error('[Paystack Verify] Notification retry failed:', notifyError);
             }
             return NextResponse.json({
                 success: true,
@@ -55,14 +59,14 @@ export async function POST(req: Request) {
         }
 
         const paymentMethod = order.payment_method || order.metadata?.payment_method;
-        if (paymentMethod && paymentMethod !== 'hubtel') {
+        if (paymentMethod && paymentMethod !== 'paystack') {
             return NextResponse.json({
                 success: false,
-                message: 'This order does not use Hubtel payment',
+                message: 'This order does not use Paystack payment',
             }, { status: 400 });
         }
 
-        if (!isHubtelConfigured()) {
+        if (!isPaystackConfigured()) {
             return NextResponse.json({
                 success: false,
                 status: order.status,
@@ -73,16 +77,16 @@ export async function POST(req: Request) {
 
         const metadata = order.metadata || {};
         const refsToTry = [
-            metadata.hubtel_client_reference as string | undefined,
+            metadata.paystack_reference as string | undefined,
             orderNumber,
         ].filter((ref): ref is string => !!ref);
 
-        let verification: HubtelVerifyResult = { verified: false };
+        let verification: PaystackVerifyResult = { verified: false };
         let matchedReference = refsToTry[0] || orderNumber;
 
         for (const ref of refsToTry) {
-            const result = await verifyHubtelTransaction(ref);
-            console.log('[Hubtel Verify] API result for', ref, ':', result);
+            const result = await verifyPaystackTransaction(ref);
+            console.log('[Paystack Verify] API result for', ref, ':', result.verified, result.status);
             if (result.verified) {
                 verification = result;
                 matchedReference = ref;
@@ -102,7 +106,7 @@ export async function POST(req: Request) {
         if (verification.amount != null) {
             const expectedAmount = Number(order.total);
             if (Math.abs(verification.amount - expectedAmount) > 0.01) {
-                console.error('[Hubtel Verify] AMOUNT MISMATCH!', expectedAmount, verification.amount);
+                console.error('[Paystack Verify] AMOUNT MISMATCH!', expectedAmount, verification.amount);
                 return NextResponse.json({
                     success: false,
                     message: 'Payment amount does not match order total',
@@ -110,15 +114,15 @@ export async function POST(req: Request) {
             }
         }
 
-        const hubtelRef = verification.transactionId || 'hubtel-api-verify';
+        const paystackRef = verification.transactionId || 'paystack-api-verify';
 
         const { data: orderJson, error: updateError } = await supabaseAdmin.rpc('mark_order_paid', {
             order_ref: orderNumber,
-            moolre_ref: hubtelRef,
+            moolre_ref: paystackRef,
         });
 
         if (updateError) {
-            console.error('[Hubtel Verify] RPC Error:', updateError.message);
+            console.error('[Paystack Verify] RPC Error:', updateError.message);
             return NextResponse.json({ success: false, message: 'Failed to update order' }, { status: 500 });
         }
 
@@ -127,10 +131,10 @@ export async function POST(req: Request) {
             .update({
                 metadata: {
                     ...(orderJson?.metadata || metadata),
-                    payment_method: 'hubtel',
-                    payment_provider: 'hubtel',
-                    hubtel_reference: hubtelRef,
-                    hubtel_client_reference: matchedReference,
+                    payment_method: 'paystack',
+                    payment_provider: 'paystack',
+                    paystack_transaction_id: paystackRef,
+                    paystack_reference: matchedReference,
                 },
             })
             .eq('order_number', orderNumber);
@@ -142,7 +146,7 @@ export async function POST(req: Request) {
                     p_order_total: orderJson.total,
                 });
             } catch (statsError: unknown) {
-                console.error('[Hubtel Verify] Customer stats failed:', statsError);
+                console.error('[Paystack Verify] Customer stats failed:', statsError);
             }
         }
 
@@ -150,7 +154,7 @@ export async function POST(req: Request) {
             try {
                 await creditAffiliateCommission(orderJson.id);
             } catch (affiliateError: unknown) {
-                console.error('[Hubtel Verify] Affiliate commission failed:', affiliateError);
+                console.error('[Paystack Verify] Affiliate commission failed:', affiliateError);
             }
         }
 
@@ -158,7 +162,7 @@ export async function POST(req: Request) {
             try {
                 await sendOrderConfirmation(orderJson);
             } catch (notifyError: unknown) {
-                console.error('[Hubtel Verify] Notification failed:', notifyError);
+                console.error('[Paystack Verify] Notification failed:', notifyError);
             }
         }
 
@@ -169,7 +173,7 @@ export async function POST(req: Request) {
             message: 'Payment verified and order updated',
         });
     } catch (error: unknown) {
-        console.error('[Hubtel Verify] Error:', error);
+        console.error('[Paystack Verify] Error:', error);
         return NextResponse.json({ success: false, message: 'Internal error' }, { status: 500 });
     }
 }

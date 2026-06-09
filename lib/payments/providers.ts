@@ -1,13 +1,13 @@
-export type PaymentProvider = 'hubtel' | 'moolre';
+export type PaymentProvider = 'paystack' | 'moolre';
 
 export const PAYMENT_ENDPOINTS: Record<
     PaymentProvider,
     { initiate: string; verify: string; label: string }
 > = {
-    hubtel: {
-        initiate: '/api/payment/hubtel',
-        verify: '/api/payment/hubtel/verify',
-        label: 'Hubtel',
+    paystack: {
+        initiate: '/api/payment/paystack',
+        verify: '/api/payment/paystack/verify',
+        label: 'Paystack',
     },
     moolre: {
         initiate: '/api/payment/moolre',
@@ -21,7 +21,7 @@ export function resolvePaymentProvider(
     metadata?: Record<string, unknown> | null
 ): PaymentProvider {
     const method = paymentMethod || (metadata?.payment_method as string) || (metadata?.payment_provider as string);
-    if (method === 'hubtel') return 'hubtel';
+    if (method === 'paystack') return 'paystack';
     return 'moolre';
 }
 
@@ -34,6 +34,6 @@ export function getVerifyEndpoint(order: {
 }
 
 export function getInitiateEndpoint(paymentMethod: string): string {
-    const provider = paymentMethod === 'moolre' ? 'moolre' : 'hubtel';
+    const provider = paymentMethod === 'paystack' ? 'paystack' : 'moolre';
     return PAYMENT_ENDPOINTS[provider].initiate;
 }

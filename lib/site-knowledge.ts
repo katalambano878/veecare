@@ -69,8 +69,8 @@ export const SITE_KNOWLEDGE: SiteKnowledgeEntry[] = [
         title: 'Payment Methods',
         path: '/checkout',
         category: 'payment',
-        content: 'Checkout uses Hubtel for secure payments in Ghana Cedis (GHS) — Mobile Money (MTN, Vodafone, AirtelTigo), bank cards, and more. Moolre Mobile Money is also supported. You can also add to cart, checkout, and pay via the AI chat assistant on the site. Guest checkout is available — no account needed. We do not accept payment on delivery.',
-        keywords: ['pay', 'payment', 'card', 'momo', 'mobile money', 'hubtel', 'moolre', 'guest checkout', 'how to pay', 'chat checkout', 'add to cart', 'cod', 'cash on delivery'],
+        content: 'Checkout uses Moolre Mobile Money (MTN, Vodafone, AirtelTigo) for secure payments in Ghana Cedis (GHS). Paystack (bank cards and Mobile Money) is also supported. You can also add to cart, checkout, and pay via the AI chat assistant on the site. Guest checkout is available — no account needed. We do not accept payment on delivery.',
+        keywords: ['pay', 'payment', 'card', 'momo', 'mobile money', 'paystack', 'moolre', 'guest checkout', 'how to pay', 'chat checkout', 'add to cart', 'cod', 'cash on delivery'],
     },
     {
         id: 'shop',

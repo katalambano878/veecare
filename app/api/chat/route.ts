@@ -297,7 +297,7 @@ const LLM_TOOLS = [
         function: {
             name: 'create_order',
             description:
-                "Create an order and return a secure payment link (Hubtel or Moolre). Use when the customer has items in their cart AND has provided all shipping info AND confirmed checkout. If items are omitted, the customer's live cart from context is used automatically.",
+                "Create an order and return a secure payment link (Moolre or Paystack). Use when the customer has items in their cart AND has provided all shipping info AND confirmed checkout. If items are omitted, the customer's live cart from context is used automatically.",
             parameters: {
                 type: 'object',
                 properties: {
@@ -334,8 +334,8 @@ const LLM_TOOLS = [
                     },
                     payment_method: {
                         type: 'string',
-                        enum: ['hubtel', 'moolre'],
-                        description: 'hubtel = Hubtel checkout (Mobile Money, card — default). moolre = Moolre Mobile Money link.',
+                        enum: ['moolre', 'paystack'],
+                        description: 'moolre = Moolre Mobile Money link (default). paystack = Paystack checkout (card & Mobile Money).',
                     },
                 },
                 required: ['shipping', 'delivery_method', 'payment_method'],
@@ -407,7 +407,7 @@ WHEN CREATING SUPPORT TICKETS:
 STORE POLICIES (quick reference):
 - Delivery: ${NO_PICKUP_NOTICE} Orders ship on ${DELIVERY_DAYS_DISPLAY}. Delivery cost confirmed after checkout. See /shipping.
 - Returns: see /returns; no refunds on opened/used products (hygiene). Damaged/defective: notify within 24 hours with photos.
-- Payment: Hubtel (Mobile Money, card) or Moolre Mobile Money (GHS). No payment on delivery.
+- Payment: Moolre Mobile Money or Paystack (card & Mobile Money) in GHS. No payment on delivery.
 - Contact: ${SUPPORT_EMAIL}, ${CONTACT_PHONE_DISPLAY}, WhatsApp ${WHATSAPP_LINK}
 - Tone: Be warm, discreet, and respectful when discussing intimate/feminine health topics.
 
@@ -443,11 +443,11 @@ You can help customers place orders and pay directly in this chat:
    - **Express** — GH₵40 (priority dispatch when available)
    - There is NO pickup — we are online-only and deliver to the customer's address.
 4. Ask them to choose a payment method:
-   - **Hubtel** — Secure checkout via Hubtel (Mobile Money, card — recommended default)
-   - **Moolre** — Mobile Money via secure Moolre link
+   - **Moolre** — Mobile Money via secure Moolre link (recommended default)
+   - **Paystack** — Secure checkout via Paystack (card & Mobile Money)
 5. Summarize the order (items, subtotal, delivery fee, total) and ask the customer to confirm.
 6. Once confirmed, call create_order with cart items (product IDs + quantities from cart context), shipping info, delivery method, and payment method.
-7. After create_order succeeds, tell the customer to tap the **Pay Now** button — it opens Hubtel or Moolre checkout. Do NOT send them to the website checkout page.
+7. After create_order succeeds, tell the customer to tap the **Pay Now** button — it opens Moolre or Paystack checkout. Do NOT send them to the website checkout page.
 IMPORTANT: Do NOT ask the customer to list cart items — you already have them. If the cart is empty, help them add products with add_to_cart first.
 
 LIMITATIONS (what you CANNOT do directly):
@@ -778,8 +778,8 @@ async function handleWithoutAI(supabase: any, userText: string, profile: ChatCus
     if (/\b(checkout|place\s+(my\s+)?order|pay\s+now|ready\s+to\s+pay|buy\s+now)\b/i.test(lower)) {
         return {
             message:
-                'I can checkout for you right here! Share your full name, email, phone, delivery address (street, city, region), delivery speed (standard GH₵20 or express GH₵40), and payment method (Hubtel or Moolre). I\'ll place the order and send a secure payment link.',
-            quickReplies: ['Standard delivery', 'Express delivery', 'Hubtel payment'],
+                'I can checkout for you right here! Share your full name, email, phone, delivery address (street, city, region), delivery speed (standard GH₵20 or express GH₵40), and payment method (Moolre or Paystack). I\'ll place the order and send a secure payment link.',
+            quickReplies: ['Standard delivery', 'Express delivery', 'Moolre payment'],
         };
     }
 
@@ -1479,7 +1479,7 @@ async function executeToolCall(
                 items: orderItems,
                 shipping: args.shipping || {},
                 deliveryMethod: args.delivery_method || 'standard',
-                paymentMethod: args.payment_method || 'hubtel',
+                paymentMethod: args.payment_method || 'moolre',
                 userId,
             });
 
