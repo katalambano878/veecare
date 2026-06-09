@@ -31,3 +31,6 @@ yarn-error.log*
 # Vercel
 .vercel
 .vercel-cli-config
+
+# MCP scratch files
+scripts/.mcp-*
