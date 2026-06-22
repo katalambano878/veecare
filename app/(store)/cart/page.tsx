@@ -2,20 +2,38 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CartCountdown from '@/components/CartCountdown';
 import AdvancedCouponSystem from '@/components/AdvancedCouponSystem';
 import { useCart } from '@/context/CartContext';
 import PageHero from '@/components/PageHero';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { APPLIED_COUPON_STORAGE_KEY, type StoredAppliedCoupon } from '@/lib/coupons';
 
 export default function CartPage() {
   usePageTitle('Shopping Cart');
   const { cart: cartItems, removeFromCart, updateQuantity, subtotal, addToCart } = useCart();
-  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<StoredAppliedCoupon | null>(null);
   const [savedItems, setSavedItems] = useState<any[]>([]);
 
-  // Function to move item to saved for later (local state only for now)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(APPLIED_COUPON_STORAGE_KEY);
+      if (raw) setAppliedCoupon(JSON.parse(raw));
+    } catch {
+      localStorage.removeItem(APPLIED_COUPON_STORAGE_KEY);
+    }
+  }, []);
+
+  const applyCoupon = (coupon: StoredAppliedCoupon) => {
+    setAppliedCoupon(coupon);
+    localStorage.setItem(APPLIED_COUPON_STORAGE_KEY, JSON.stringify(coupon));
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    localStorage.removeItem(APPLIED_COUPON_STORAGE_KEY);
+  };
   const saveForLater = (id: string) => {
     const item = cartItems.find(item => item.id === id);
     if (item) {
@@ -33,28 +51,12 @@ export default function CartPage() {
     }
   };
 
-  const applyCoupon = (coupon: any) => {
-    setAppliedCoupon(coupon);
-  };
-
-  const removeCoupon = () => {
-    setAppliedCoupon(null);
-  };
-
-  // Savings calculation is tricky without originalPrice in Context.
+  // Function to move item to saved for later (local state only for now)
   // Assuming 0 for now unless we update Context.
   const savings = 0;
 
-  let couponDiscount = 0;
-  if (appliedCoupon) {
-    if (appliedCoupon.type === 'percentage') {
-      couponDiscount = subtotal * (appliedCoupon.discount / 100);
-    } else {
-      couponDiscount = appliedCoupon.discount;
-    }
-  }
-
   const shipping = subtotal >= 200 ? 0 : 15;
+  const couponDiscount = appliedCoupon?.discountAmount ?? 0;
   const total = subtotal - couponDiscount + shipping;
 
   return (
@@ -235,6 +237,7 @@ export default function CartPage() {
 
                     <AdvancedCouponSystem
                       subtotal={subtotal}
+                      shippingCost={shipping}
                       onApply={applyCoupon}
                       onRemove={removeCoupon}
                       appliedCoupon={appliedCoupon}

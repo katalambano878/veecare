@@ -10,6 +10,11 @@ import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 import { getAffiliateCodeFromCookie } from '@/lib/affiliate';
+import AdvancedCouponSystem from '@/components/AdvancedCouponSystem';
+import {
+  APPLIED_COUPON_STORAGE_KEY,
+  type StoredAppliedCoupon,
+} from '@/lib/coupons';
 
 type PaymentMethodOption = {
   id: 'moolre' | 'paystack';
@@ -67,6 +72,39 @@ export default function CheckoutPage() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodOption[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
   const [errors, setErrors] = useState<any>({});
+  const [appliedCoupon, setAppliedCoupon] = useState<StoredAppliedCoupon | null>(null);
+
+  // Restore coupon from cart and re-validate against current subtotal
+  useEffect(() => {
+    async function loadCoupon() {
+      try {
+        const raw = localStorage.getItem(APPLIED_COUPON_STORAGE_KEY);
+        if (!raw) return;
+        const stored = JSON.parse(raw) as StoredAppliedCoupon;
+        const res = await fetch('/api/coupons/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: stored.code,
+            subtotal: cartSubtotal,
+            shippingCost: 0,
+          }),
+        });
+        const data = await res.json();
+        if (data.valid && data.coupon) {
+          const refreshed = { ...data.coupon, discountAmount: data.discountAmount ?? 0 };
+          setAppliedCoupon(refreshed);
+          localStorage.setItem(APPLIED_COUPON_STORAGE_KEY, JSON.stringify(refreshed));
+        } else {
+          setAppliedCoupon(null);
+          localStorage.removeItem(APPLIED_COUPON_STORAGE_KEY);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    if (cartSubtotal > 0) loadCoupon();
+  }, [cartSubtotal]);
 
 
 
@@ -123,7 +161,18 @@ export default function CheckoutPage() {
   const subtotal = cartSubtotal;
   const shippingCost = 0; // Delivery options temporarily disabled
   const tax = 0; // No Tax
-  const total = subtotal + shippingCost + tax;
+  const couponDiscount = appliedCoupon?.discountAmount ?? 0;
+  const total = Math.max(0, subtotal - couponDiscount + shippingCost + tax);
+
+  const applyCoupon = (coupon: StoredAppliedCoupon) => {
+    setAppliedCoupon(coupon);
+    localStorage.setItem(APPLIED_COUPON_STORAGE_KEY, JSON.stringify(coupon));
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    localStorage.removeItem(APPLIED_COUPON_STORAGE_KEY);
+  };
 
   const validateShipping = () => {
     const newErrors: any = {};
@@ -207,7 +256,7 @@ export default function CheckoutPage() {
           subtotal: subtotal,
           tax_total: tax,
           shipping_total: shippingCost,
-          discount_total: 0,
+          discount_total: couponDiscount,
           total: total,
           shipping_method: deliveryMethod,
           payment_method: paymentMethod,
@@ -221,6 +270,13 @@ export default function CheckoutPage() {
             tracking_number: trackingNumber,
             payment_method: paymentMethod,
             payment_provider: paymentMethod,
+            ...(appliedCoupon
+              ? {
+                  coupon_code: appliedCoupon.code,
+                  coupon_id: appliedCoupon.id,
+                  coupon_discount: couponDiscount,
+                }
+              : {}),
             ...affiliateMeta,
           }
         }]);
@@ -283,6 +339,22 @@ export default function CheckoutPage() {
         .insert(orderItems);
 
       if (itemsError) throw itemsError;
+
+      // Record coupon usage (best-effort — order is already created)
+      if (appliedCoupon) {
+        fetch('/api/coupons/redeem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: appliedCoupon.code,
+            orderNumber,
+            subtotal,
+            discountAmount: couponDiscount,
+          }),
+        }).catch((err) => console.error('Coupon redeem error:', err));
+        localStorage.removeItem(APPLIED_COUPON_STORAGE_KEY);
+        setAppliedCoupon(null);
+      }
 
       // Save a local snapshot so the order-success page can render this buyer's
       // own confirmation (incl. their address) without reading the order back
@@ -767,8 +839,19 @@ export default function CheckoutPage() {
               subtotal={subtotal}
               shipping={shippingCost}
               tax={tax}
+              discount={couponDiscount}
+              couponCode={appliedCoupon?.code}
               total={total}
             />
+            <div className="mt-4 bg-white rounded-xl shadow-sm p-6">
+              <AdvancedCouponSystem
+                subtotal={subtotal}
+                shippingCost={shippingCost}
+                onApply={applyCoupon}
+                onRemove={removeCoupon}
+                appliedCoupon={appliedCoupon}
+              />
+            </div>
           </div>
         </div>
       </div>
