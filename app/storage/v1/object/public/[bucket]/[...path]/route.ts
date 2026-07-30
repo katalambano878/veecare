@@ -1,13 +1,12 @@
 import { createReadStream, existsSync, statSync } from "fs";
 import { Readable } from "stream";
-import path from "path";
 import { guessPublicObjectContentType, resolvePublicObjectPath } from "@/lib/db/storage";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   ctx: { params: Promise<{ bucket: string; path: string[] }> }
 ): Promise<Response> {
   const { bucket, path: parts } = await ctx.params;
@@ -33,6 +32,15 @@ export async function GET(
   const stat = statSync(full);
   const contentType = guessPublicObjectContentType(full, objectPath);
   const nodeStream = createReadStream(full);
+  // Avoid uncaught "Controller is already closed" when clients abort mid-stream
+  const onAbort = () => {
+    nodeStream.destroy();
+  };
+  req.signal.addEventListener("abort", onAbort);
+  nodeStream.on("error", () => {
+    /* client disconnect / destroy */
+  });
+
   const webStream = Readable.toWeb(nodeStream) as ReadableStream;
 
   return new Response(webStream, {
@@ -42,6 +50,7 @@ export async function GET(
       "Content-Length": String(stat.size),
       "Cache-Control": "public, max-age=604800, stale-while-revalidate=86400, immutable",
       "Access-Control-Allow-Origin": "*",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }

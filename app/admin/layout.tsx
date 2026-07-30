@@ -271,21 +271,21 @@ export default function AdminLayout({
       {/* Sidebar - Mobile: Transform / Desktop: Width transition */}
       <aside
         className={`fixed top-0 left-0 z-40 h-screen bg-brand-espresso border-r border-brand-cocoa/20 transition-all duration-300
-          w-64
+          w-52
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-          ${isSidebarOpen ? 'lg:w-64' : 'lg:w-0 lg:overflow-hidden'}
+          ${isSidebarOpen ? 'lg:w-52' : 'lg:w-0 lg:overflow-hidden'}
           lg:translate-x-0
         `}
       >
-        <div className="h-full px-4 py-6 overflow-y-auto">
-          <Link href="/admin" className="flex items-center gap-3 mb-8 px-2 cursor-pointer group">
-            <Logo className="h-10 w-auto max-w-[140px] object-contain brightness-0 invert opacity-95 group-hover:opacity-100 transition-opacity" />
-            <span className="text-[10px] font-semibold tracking-[0.2em] text-brand-nude/80 uppercase shrink-0">
+        <div className="h-full px-3 py-4 overflow-y-auto text-sm">
+          <Link href="/admin" className="flex items-center gap-2 mb-5 px-1.5 cursor-pointer group">
+            <Logo className="h-8 w-auto max-w-[110px] object-contain brightness-0 invert opacity-95 group-hover:opacity-100 transition-opacity" />
+            <span className="text-[9px] font-semibold tracking-[0.18em] text-brand-nude/80 uppercase shrink-0">
               Admin
             </span>
           </Link>
 
-          <nav className="space-y-1">
+          <nav className="space-y-0.5">
             {visibleMenuItems.map((item) => {
               const isActive = item.exact ? pathname === item.path : pathname.startsWith(item.path);
               return (
@@ -293,17 +293,17 @@ export default function AdminLayout({
                   key={item.path}
                   href={item.path}
                   onClick={() => window.innerWidth < 1024 && setIsSidebarOpen(false)} // Close on mobile click
-                  className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors cursor-pointer ${isActive
+                  className={`flex items-center justify-between px-3 py-2 rounded-md transition-colors cursor-pointer ${isActive
                     ? 'bg-brand-champagne/25 text-brand-nude font-semibold'
                     : 'text-brand-nude/75 hover:bg-white/10 hover:text-brand-nude'
                     }`}
                 >
-                  <div className="flex items-center space-x-3">
-                    <i className={`${item.icon} text-xl w-5 h-5 flex items-center justify-center`}></i>
-                    <span>{item.title}</span>
+                  <div className="flex items-center space-x-2.5">
+                    <i className={`${item.icon} text-base w-4 h-4 flex items-center justify-center`}></i>
+                    <span className="text-[13px]">{item.title}</span>
                   </div>
                   {item.badge && (
-                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">
+                    <span className="bg-red-100 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                       {item.badge}
                     </span>
                   )}
@@ -312,59 +312,59 @@ export default function AdminLayout({
             })}
           </nav>
 
-          <div className="mt-8 pt-8 border-t border-white/15">
+          <div className="mt-5 pt-5 border-t border-white/15">
             <Link
               href="/"
               target="_blank"
               onClick={() => window.innerWidth < 1024 && setIsSidebarOpen(false)}
-              className="flex items-center space-x-3 px-4 py-3 text-brand-nude/75 hover:bg-white/10 hover:text-brand-nude rounded-lg transition-colors cursor-pointer"
+              className="flex items-center space-x-2.5 px-3 py-2 text-brand-nude/75 hover:bg-white/10 hover:text-brand-nude rounded-md transition-colors cursor-pointer"
             >
-              <i className="ri-external-link-line text-xl w-5 h-5 flex items-center justify-center"></i>
-              <span>View Store</span>
+              <i className="ri-external-link-line text-base w-4 h-4 flex items-center justify-center"></i>
+              <span className="text-[13px]">View Store</span>
             </Link>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className={`transition-all duration-300 ml-0 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-0'}`}>
+      <div className={`transition-all duration-300 ml-0 ${isSidebarOpen ? 'lg:ml-52' : 'lg:ml-0'}`}>
         <header className="bg-white/90 backdrop-blur-sm border-b border-brand-nude sticky top-0 z-30 shadow-sm">
-          <div className="px-4 py-4 lg:px-6 flex items-center justify-between">
+          <div className="px-3 py-2.5 lg:px-4 flex items-center justify-between">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="w-10 h-10 flex items-center justify-center text-brand-cocoa hover:text-brand-espresso hover:bg-brand-nude/40 rounded-lg transition-colors cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center text-brand-cocoa hover:text-brand-espresso hover:bg-brand-nude/40 rounded-lg transition-colors cursor-pointer"
             >
-              <i className={`${isSidebarOpen ? 'ri-menu-fold-line' : 'ri-menu-unfold-line'} text-xl`}></i>
+              <i className={`${isSidebarOpen ? 'ri-menu-fold-line' : 'ri-menu-unfold-line'} text-lg`}></i>
             </button>
 
-            <div className="flex items-center space-x-2 lg:space-x-4">
-              <button className="relative w-10 h-10 flex items-center justify-center text-brand-cocoa hover:text-brand-espresso hover:bg-brand-nude/40 rounded-lg transition-colors cursor-pointer">
-                <i className="ri-notification-3-line text-xl"></i>
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            <div className="flex items-center space-x-1.5 lg:space-x-3">
+              <button className="relative w-8 h-8 flex items-center justify-center text-brand-cocoa hover:text-brand-espresso hover:bg-brand-nude/40 rounded-lg transition-colors cursor-pointer">
+                <i className="ri-notification-3-line text-lg"></i>
+                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
               </button>
 
               <div className="relative user-menu-container">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center space-x-2 lg:space-x-3 px-2 lg:px-3 py-2 hover:bg-brand-nude/30 rounded-lg transition-colors cursor-pointer"
+                  className="flex items-center space-x-2 px-1.5 lg:px-2 py-1.5 hover:bg-brand-nude/30 rounded-lg transition-colors cursor-pointer"
                 >
-                  <div className="w-8 h-8 lg:w-9 lg:h-9 flex items-center justify-center bg-brand-nude text-brand-espresso rounded-full font-semibold">
+                  <div className="w-7 h-7 flex items-center justify-center bg-brand-nude text-brand-espresso rounded-full font-semibold text-sm">
                     {user?.email?.charAt(0).toUpperCase() || 'A'}
                   </div>
                   <div className="text-left hidden md:block">
-                    <p className="text-sm font-semibold text-brand-espresso capitalize">{userRole || 'Admin'}</p>
-                    <p className="text-xs text-brand-cocoa/70 max-w-[100px] truncate">{user?.email}</p>
+                    <p className="text-xs font-semibold text-brand-espresso capitalize">{userRole || 'Admin'}</p>
+                    <p className="text-[11px] text-brand-cocoa/70 max-w-[100px] truncate">{user?.email}</p>
                   </div>
-                  <i className="ri-arrow-down-s-line text-gray-600"></i>
+                  <i className="ri-arrow-down-s-line text-gray-600 text-sm"></i>
                 </button>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-20">
+                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-20">
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-200 text-left cursor-pointer"
+                      className="w-full flex items-center space-x-2.5 px-3 py-2.5 hover:bg-gray-50 transition-colors border-t border-gray-200 text-left cursor-pointer text-sm"
                     >
-                      <i className="ri-logout-box-line text-red-600 w-5 h-5 flex items-center justify-center"></i>
+                      <i className="ri-logout-box-line text-red-600 w-4 h-4 flex items-center justify-center"></i>
                       <span className="text-red-600">Logout</span>
                     </button>
                   </div>
@@ -374,7 +374,7 @@ export default function AdminLayout({
           </div>
         </header>
 
-        <main className="p-4 lg:p-6">
+        <main className="p-3 lg:p-4 text-sm">
           {children}
         </main>
       </div>

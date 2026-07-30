@@ -19,7 +19,7 @@ const HomeFaqSection = dynamic(() => import('@/components/home/HomeFaqSection'),
 const NewsletterSection = dynamic(() => import('@/components/NewsletterSection'), { ssr: true });
 
 const CATEGORY_CARD_CLASS =
-  'flex-shrink-0 w-[58vw] max-w-[220px] sm:w-[200px] md:w-[220px] lg:w-[240px]';
+  'flex-shrink-0 w-[52vw] max-w-[190px] sm:w-[180px] md:w-[200px] lg:w-[210px]';
 
 type HomeClientProps = {
   initialFeaturedProducts?: HomeProduct[];
