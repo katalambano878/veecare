@@ -55,6 +55,7 @@
   },
   "scripts": {
     "build": "next build",
+    "start": "next start -H 0.0.0.0 -p 3000",
     "dev": "next dev -H 0.0.0.0 -p 3000",
     "lint": "next lint",
     "supabase:link": "supabase link --project-ref YOUR_PROJECT_ID",
