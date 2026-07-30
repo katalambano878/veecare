@@ -165,7 +165,7 @@ CREATE INDEX IF NOT EXISTS idx_support_kb_published ON public.support_knowledge_
 CREATE INDEX IF NOT EXISTS idx_support_kb_category  ON public.support_knowledge_base USING btree (category);
 CREATE INDEX IF NOT EXISTS idx_support_kb_tags      ON public.support_knowledge_base USING gin (tags);
 CREATE INDEX IF NOT EXISTS idx_support_kb_title_trgm
-  ON public.support_knowledge_base USING gin (title gin_trgm_ops)
+  ON public.support_knowledge_base USING gin (title extensions.gin_trgm_ops)
   WHERE is_published = true;
 
 DROP TRIGGER IF EXISTS update_support_kb_updated_at ON public.support_knowledge_base;

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { setAffiliateCookie } from '@/lib/affiliate';
+import { setAffiliateCookie } from '@/lib/affiliate-client';
 
 /** Saves ?ref=CODE to a 30-day cookie so checkout can attribute the order. */
 export default function AffiliateCapture() {

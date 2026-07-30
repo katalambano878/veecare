@@ -1,9 +1,6 @@
 import { MetadataRoute } from 'next';
-import { createClient } from '@supabase/supabase-js';
 import { SITE_URL } from '@/lib/seo';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_URL;
@@ -83,16 +80,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let categoryPages: MetadataRoute.Sitemap = [];
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     // Fetch active products
-    const { data: products } = await supabase
+    const { data: products } = await supabaseAdmin
       .from('products')
       .select('slug, updated_at')
       .eq('status', 'active');
 
     if (products) {
-      productPages = products.map((product) => ({
+      productPages = (products as { slug: string; updated_at: string }[]).map((product) => ({
         url: `${baseUrl}/product/${product.slug}`,
         lastModified: new Date(product.updated_at),
         changeFrequency: 'weekly' as const,
@@ -101,13 +96,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
 
     // Fetch categories
-    const { data: categories } = await supabase
+    const { data: categories } = await supabaseAdmin
       .from('categories')
       .select('slug, updated_at')
       .eq('status', 'active');
 
     if (categories) {
-      categoryPages = categories.map((category) => ({
+      categoryPages = (categories as { slug: string; updated_at: string }[]).map((category) => ({
         url: `${baseUrl}/shop?category=${category.slug}`,
         lastModified: new Date(category.updated_at),
         changeFrequency: 'weekly' as const,

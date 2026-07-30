@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { buildAffiliateLink, normalizeAffiliateCode, DEFAULT_COMMISSION_RATE } from '@/lib/affiliate';
+import { buildAffiliateLink, normalizeAffiliateCode, DEFAULT_COMMISSION_RATE } from '@/lib/affiliate-client';
 
 type Affiliate = {
   id: string;

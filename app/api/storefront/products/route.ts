@@ -1,23 +1,16 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { getPublicSupabaseCredentials, isSupabaseConfigured } from '@/lib/supabase-config';
+import { isSupabaseConfigured } from '@/lib/supabase-config';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
     PRODUCTS_CACHE_TTL,
     getProductsCache,
     setProductsCacheEntry,
 } from '@/lib/storefront-cache';
 
-function getSupabase() {
-    const { url, anonKey } = getPublicSupabaseCredentials();
-    return createClient(url, anonKey);
-}
-
 export async function GET(request: Request) {
     if (!isSupabaseConfigured()) {
         return NextResponse.json([]);
     }
-
-    const supabase = getSupabase();
     const { searchParams } = new URL(request.url);
     const featured = searchParams.get('featured') === 'true';
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -39,7 +32,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        let query = supabase
+        let query = supabaseAdmin
             .from('products')
             .select(`
                 id, name, slug, price, compare_at_price, quantity, description, metadata,

@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { getPublicSupabaseCredentials, isSupabaseConfigured } from '@/lib/supabase-config';
+import { isSupabaseConfigured } from '@/lib/supabase-config';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export type HomeCategory = {
   id: string;
@@ -34,18 +34,15 @@ export async function getHomePageData(): Promise<HomePageData> {
     return { featuredProducts: [], categories: [] };
   }
 
-  const { url, anonKey } = getPublicSupabaseCredentials();
-  const supabase = createClient(url, anonKey);
-
   const [productsResult, categoriesResult] = await Promise.all([
-    supabase
+    supabaseAdmin
       .from('products')
       .select('*, product_variants(*), product_images(*)')
       .eq('status', 'active')
       .eq('featured', true)
       .order('created_at', { ascending: false })
       .limit(8),
-    supabase
+    supabaseAdmin
       .from('categories')
       .select('id, name, slug, description, image_url, metadata')
       .eq('status', 'active')
@@ -61,13 +58,21 @@ export async function getHomePageData(): Promise<HomePageData> {
     console.error('[getHomePageData] categories:', categoriesResult.error.message);
   }
 
-  const featuredProducts = (productsResult.data ?? []).filter(
+  const featuredProducts = ((productsResult.data ?? []) as HomeProduct[]).filter(
     (product) => (product.product_images?.length ?? 0) > 0
   );
 
-  const homepageCategories = (categoriesResult.data ?? []).filter(
-    (category) => category.metadata?.featured === true
-  );
+  const homepageCategories = (
+    (categoriesResult.data ?? []) as Array<HomeCategory & { metadata?: { featured?: boolean } }>
+  )
+    .filter((category) => category.metadata?.featured === true)
+    .map(({ id, name, slug, description, image_url }) => ({
+      id,
+      name,
+      slug,
+      description,
+      image_url,
+    }));
 
   return {
     featuredProducts,

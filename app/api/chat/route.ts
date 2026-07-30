@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
     searchProducts,
     getProductForCart,
@@ -40,11 +40,10 @@ import {
     getClientIdentifier,
     RATE_LIMITS as SHARED_RATE_LIMITS,
 } from '@/lib/rate-limit';
-import { getPublicSupabaseCredentials, isSupabaseConfigured } from '@/lib/supabase-config';
+import { isSupabaseConfigured } from '@/lib/supabase-config';
 
 // ─── Env ────────────────────────────────────────────────────────────────────
 
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const groqKey = process.env.GROQ_API_KEY;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -532,8 +531,6 @@ Address the customer by their first name. You can access their orders and profil
 
 async function detectAuth(
     request: Request,
-    supabaseUrl: string,
-    supabaseAnonKey: string,
 ): Promise<{ userId: string | null; email: string | null }> {
     try {
         const cookieHeader = request.headers.get('cookie') || '';
@@ -558,11 +555,7 @@ async function detectAuth(
         const accessToken = typeof tokenData === 'string' ? tokenData : tokenData?.[0] || tokenData?.access_token;
         if (!accessToken) return { userId: null, email: null };
 
-        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-            global: { headers: { Authorization: `Bearer ${accessToken}` } },
-        });
-
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseAdmin.auth.getUser(accessToken);
         if (user) {
             return { userId: user.id, email: user.email || null };
         }
@@ -614,19 +607,11 @@ export async function POST(request: Request) {
             }
         }
 
-        const { url: supabaseUrl, anonKey: supabaseKey } = getPublicSupabaseCredentials();
-
-        const { userId, email: userEmail } = await detectAuth(request, supabaseUrl, supabaseKey);
-
-        // SECURITY: tools that act on behalf of the (possibly unauthenticated)
-        // caller run with the ANON key so RLS protects other customers' data.
-        // Writes / privileged reads use the service-role client.
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        const supabaseWriter = supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey) : supabase;
+        const { userId, email: userEmail } = await detectAuth(request);
 
         let profile: ChatCustomerProfile | null = null;
         if (userId) {
-            profile = await getCustomerProfile(supabaseWriter, userId);
+            profile = await getCustomerProfile(supabaseAdmin, userId);
         }
 
         // Fetch AI memories for this customer (RPC returns up to 25 ordered by
@@ -635,7 +620,7 @@ export async function POST(request: Request) {
         let aiMemories: AiMemoryRow[] = [];
         if (userId || userEmail) {
             try {
-                const { data: memData } = await supabaseWriter.rpc('get_ai_memories', {
+                const { data: memData } = await supabaseAdmin.rpc('get_ai_memories', {
                     p_customer_id: userId || null,
                     p_customer_email: userEmail || null,
                 });
@@ -647,22 +632,22 @@ export async function POST(request: Request) {
 
         // Fetch a few relevant KB articles to ground the AI's answers. Uses a
         // simple ILIKE OR-search over title and content.
-        const kbContext = await fetchKnowledgeBaseContext(supabaseWriter, userText);
+        const kbContext = await fetchKnowledgeBaseContext(supabaseAdmin, userText);
 
         // Pull live categories AND a compact product catalog snapshot so the
         // AI never has to guess what the store carries — at the category
         // level OR the individual product level. Both get injected into the
         // system prompt below.
         const [categories, catalog] = await Promise.all([
-            getStoreCategories(supabase),
-            getStoreCatalogSummary(supabase),
+            getStoreCategories(supabaseAdmin),
+            getStoreCatalogSummary(supabaseAdmin),
         ]);
 
         let result: any;
         if (groqKey) {
             result = await handleWithAI(
-                supabase,
-                supabaseWriter,
+                supabaseAdmin,
+                supabaseAdmin,
                 messages,
                 userText,
                 groqKey,
@@ -678,14 +663,14 @@ export async function POST(request: Request) {
                 catalog,
             );
         } else {
-            result = await handleWithoutAI(supabase, userText, profile);
+            result = await handleWithoutAI(supabaseAdmin, userText, profile);
         }
 
         // Fire-and-forget: persist transcript, derive analytics, refresh
         // insights, save auto-memories. None of this blocks the response.
         if (sessionId) {
             persistConversation(
-                supabaseWriter,
+                supabaseAdmin,
                 sessionId,
                 userId,
                 userEmail,
@@ -699,7 +684,7 @@ export async function POST(request: Request) {
 
         if (userId || userEmail) {
             Promise.resolve(
-                supabaseWriter.rpc('upsert_customer_insight', {
+                supabaseAdmin.rpc('upsert_customer_insight', {
                     p_customer_id: userId || null,
                     p_customer_email: userEmail || null,
                     p_customer_name: profile?.name || null,

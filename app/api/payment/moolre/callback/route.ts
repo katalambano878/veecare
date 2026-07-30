@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/notifications';
 import { creditAffiliateCommission } from '@/lib/affiliate';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { verifyMoolreExternalRef } from '@/lib/payments/moolre-verify';
 
 /**
  * Moolre Callback Payload Structure (from their actual API):
@@ -72,14 +73,9 @@ export async function POST(req: Request) {
         console.log('[Callback] Data keys:', body.data ? Object.keys(body.data).join(', ') : 'no data object');
 
         // ============================================================
-        // SECURITY: Verify callback secret if configured.
-        // Only reject if we have a configured secret AND the payload contains a
-        // secret field that does NOT match. Moolre's payment-link init does not
-        // send our secret, so genuine callbacks may omit it — we must allow
-        // those through or every real payment fails to mark paid.
-        // Anti-forgery for this integration is enforced by (a) the amount check
-        // below and (b) the order-success page's `verify` route, which confirms
-        // payment directly against Moolre's status API.
+        // SECURITY: Callback secret (when present) must match.
+        // Even when secret is omitted by Moolre, we still verify the payment
+        // against Moolre's status API before marking paid (see below).
         // ============================================================
         const expectedSecret = process.env.MOOLRE_CALLBACK_SECRET;
         if (expectedSecret && body.secret && body.secret !== expectedSecret) {
@@ -175,18 +171,35 @@ export async function POST(req: Request) {
             }
 
             // ============================================================
-            // SECURITY: Verify amount matches — REJECT if mismatch
+            // SECURITY: amount from callback + independent Moolre status API
             // ============================================================
+            const expectedAmount = Number(existingOrder.total);
             const callbackAmount = data.amount ? parseFloat(data.amount) : (body.amount ? parseFloat(body.amount) : null);
-            if (callbackAmount !== null) {
-                const expectedAmount = Number(existingOrder.total);
-                if (Math.abs(callbackAmount - expectedAmount) > 0.01) {
-                    console.error('[Callback] AMOUNT MISMATCH — REJECTING! Expected:', expectedAmount, 'Got:', callbackAmount, 'Order:', merchantOrderRef);
-                    return NextResponse.json({
-                        success: false,
-                        message: 'Payment amount does not match order total'
-                    }, { status: 400 });
-                }
+            if (callbackAmount !== null && Math.abs(callbackAmount - expectedAmount) > 0.01) {
+                console.error('[Callback] AMOUNT MISMATCH — REJECTING! Expected:', expectedAmount, 'Got:', callbackAmount, 'Order:', merchantOrderRef);
+                return NextResponse.json({
+                    success: false,
+                    message: 'Payment amount does not match order total'
+                }, { status: 400 });
+            }
+
+            const { data: orderMetaRow } = await supabaseAdmin
+                .from('orders')
+                .select('metadata')
+                .eq('id', existingOrder.id)
+                .single();
+            const externalRefToCheck =
+                (orderMetaRow?.metadata as Record<string, unknown> | null)?.moolre_externalref ||
+                rawExternalRef ||
+                merchantOrderRef;
+
+            const apiCheck = await verifyMoolreExternalRef(String(externalRefToCheck), expectedAmount);
+            if (!apiCheck.verified) {
+                console.error('[Callback] Moolre status API did not confirm payment:', apiCheck.error || apiCheck.rawStatus, '| Order:', merchantOrderRef);
+                return NextResponse.json({
+                    success: false,
+                    message: 'Payment not confirmed by provider'
+                }, { status: 402 });
             }
 
             // Mark order as paid via RPC

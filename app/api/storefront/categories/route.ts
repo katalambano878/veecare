@@ -1,23 +1,16 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { getPublicSupabaseCredentials, isSupabaseConfigured } from '@/lib/supabase-config';
+import { isSupabaseConfigured } from '@/lib/supabase-config';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   CATEGORIES_CACHE_TTL,
   getCategoriesCache,
   setCategoriesCache,
 } from '@/lib/storefront-cache';
 
-function getSupabase() {
-  const { url, anonKey } = getPublicSupabaseCredentials();
-  return createClient(url, anonKey);
-}
-
 export async function GET() {
   if (!isSupabaseConfigured()) {
     return NextResponse.json([]);
   }
-
-  const supabase = getSupabase();
   const cached = getCategoriesCache();
 
   if (cached && Date.now() - cached.timestamp < CATEGORIES_CACHE_TTL) {
@@ -30,7 +23,7 @@ export async function GET() {
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('categories')
       .select('id, name, slug, image_url, parent_id, metadata, description, position')
       .eq('status', 'active')

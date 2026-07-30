@@ -1,13 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
-import { getPublicSupabaseCredentials, isSupabaseConfigured } from '@/lib/supabase-config';
+import { isSupabaseConfigured } from '@/lib/supabase-config';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function getEnabledModuleIds(): Promise<string[]> {
     if (!isSupabaseConfigured()) return [];
 
-    const { url, anonKey } = getPublicSupabaseCredentials();
-    const supabase = createClient(url, anonKey);
-
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
         .from('store_modules')
         .select('id')
         .eq('enabled', true);
@@ -17,7 +14,7 @@ export async function getEnabledModuleIds(): Promise<string[]> {
         return [];
     }
 
-    return (data ?? []).map((row) => row.id);
+    return ((data ?? []) as { id: string }[]).map((row) => row.id);
 }
 
 export async function isStoreModuleEnabled(moduleId: string): Promise<boolean> {

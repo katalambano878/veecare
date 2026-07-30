@@ -9,7 +9,7 @@ import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
-import { getAffiliateCodeFromCookie } from '@/lib/affiliate';
+import { getAffiliateCodeFromCookie } from '@/lib/affiliate-client';
 import AdvancedCouponSystem from '@/components/AdvancedCouponSystem';
 import {
   APPLIED_COUPON_STORAGE_KEY,

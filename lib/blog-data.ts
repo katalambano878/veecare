@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { getPublicSupabaseCredentials, isSupabaseConfigured } from '@/lib/supabase-config';
+import { isSupabaseConfigured } from '@/lib/supabase-config';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export type BlogPostSummary = {
     id: string;
@@ -127,10 +127,7 @@ const DEMO_BLOG_DETAILS: Record<string, BlogPostDetail> = {
 export async function getPublishedBlogPosts(): Promise<BlogPostSummary[]> {
     if (!isSupabaseConfigured()) return DEMO_BLOG_POSTS;
 
-    const { url, anonKey } = getPublicSupabaseCredentials();
-    const supabase = createClient(url, anonKey);
-
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
         .from('blog_posts')
         .select('id, slug, title, excerpt, content, featured_image, published_at, created_at, tags')
         .eq('status', 'published')
@@ -143,7 +140,7 @@ export async function getPublishedBlogPosts(): Promise<BlogPostSummary[]> {
 
     if (!data?.length) return DEMO_BLOG_POSTS;
 
-    return data.map((row) => mapDbPost(row));
+    return (data as Parameters<typeof mapDbPost>[0][]).map((row) => mapDbPost(row));
 }
 
 export async function getBlogPostBySlugOrId(slugOrId: string): Promise<BlogPostDetail | null> {
@@ -158,12 +155,9 @@ export async function getBlogPostBySlugOrId(slugOrId: string): Promise<BlogPostD
 
     if (!isSupabaseConfigured()) return null;
 
-    const { url, anonKey } = getPublicSupabaseCredentials();
-    const supabase = createClient(url, anonKey);
-
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
 
-    let query = supabase
+    let query = supabaseAdmin
         .from('blog_posts')
         .select('id, slug, title, excerpt, content, featured_image, published_at, created_at, tags')
         .eq('status', 'published');

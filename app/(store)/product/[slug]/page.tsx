@@ -1,15 +1,9 @@
 import type { Metadata } from 'next';
-import { createClient } from '@supabase/supabase-js';
 import ProductDetailClient from './ProductDetailClient';
 import { BRAND_NAME, APP_TITLE } from '@/lib/brand';
 import { SEO_ASSETS, SITE_URL } from '@/lib/seo';
-
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key);
-}
+import { isSupabaseConfigured } from '@/lib/supabase-config';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function generateMetadata({
   params,
@@ -17,7 +11,6 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = getSupabase();
 
   const fallback: Metadata = {
     title: `Product | ${APP_TITLE}`,
@@ -27,9 +20,9 @@ export async function generateMetadata({
     },
   };
 
-  if (!supabase) return fallback;
+  if (!isSupabaseConfigured()) return fallback;
 
-  const { data: product } = await supabase
+  const { data: product } = await supabaseAdmin
     .from('products')
     .select('name, slug, short_description, description, price, seo_title, seo_description, product_images(url, position)')
     .eq('slug', slug)

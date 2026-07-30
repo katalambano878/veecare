@@ -27,6 +27,14 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+complete-envs.local
+complete-envs/
+*.env.local
+
+# Migration dumps / downloaded storage (may contain PII)
+migration-artifacts/dumps/
+migration-artifacts/storage/
+migration-artifacts/storage.tar.gz
 
 # Vercel
 .vercel

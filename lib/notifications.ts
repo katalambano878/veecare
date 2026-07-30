@@ -81,7 +81,10 @@ export async function sendEmailToAdmins({
     return { success: failed === 0 && sent > 0, sent, failed, recipients, errors };
 }
 
-async function markOrderNotificationSent(orderId: string, field: 'customer_email_sent_at' | 'admin_email_sent_at') {
+async function markOrderNotificationSent(
+    orderId: string,
+    field: 'customer_email_sent_at' | 'admin_email_sent_at' | 'customer_sms_sent_at'
+) {
     const { data: order } = await supabaseAdmin
         .from('orders')
         .select('metadata')
@@ -483,6 +486,8 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
 
     try {
         console.log(`[SMS] Sending to ${maskPhone(recipient)}`);
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 15_000);
         const response = await fetch('https://api.moolre.com/open/sms/send', {
             method: 'POST',
             headers: {
@@ -498,8 +503,10 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
                         message: message
                     }
                 ]
-            })
+            }),
+            signal: controller.signal,
         });
+        clearTimeout(timer);
 
         const contentType = response.headers.get('content-type') || '';
         if (!contentType.includes('application/json')) {
@@ -674,16 +681,20 @@ ${emailButton('View &amp; Manage Order', `${baseUrl}/admin/orders/${orderId}`)}
         }
     }
 
-    // 3. SMS to Customer (if phone exists)
-    if (phone) {
+    // 3. SMS to Customer (if phone exists) — idempotent via metadata flag
+    const customerSmsAlreadySent = Boolean(notificationMeta.customer_sms_sent_at);
+    if (phone && !customerSmsAlreadySent) {
         const smsMessage = trackingNumber
             ? `Hi ${name}, your order #${orderNumber} is confirmed! Tracking: ${trackingNumber}. Track here: ${trackingUrl}${shippingNotesSms}`
             : `Hi ${name}, your order #${orderNumber} at ${APP_TITLE} is confirmed! Track here: ${trackingUrl}${shippingNotesSms}`;
 
-        await sendSMS({
+        const smsResult = await sendSMS({
             to: phone,
             message: smsMessage,
         });
+        if (orderId && smsResult && Number(smsResult.status) === 1) {
+            await markOrderNotificationSent(orderId, 'customer_sms_sent_at');
+        }
     }
 }
 
