@@ -5,6 +5,7 @@
 // `supabase.storage.from(bucket).upload()/createSignedUrl()/getPublicUrl()`.
 
 import { createHmac } from "crypto";
+import { readFileSync } from "fs";
 import { promises as fs } from "fs";
 import path from "path";
 
@@ -57,6 +58,21 @@ function safeJoin(bucket: string, objectPath: string): string {
   return full;
 }
 
+/** Absolute on-disk path for a public storage object (throws on traversal). */
+export function resolvePublicObjectPath(bucket: string, objectPath: string): string {
+  return safeJoin(bucket, objectPath);
+}
+
+export function guessPublicObjectContentType(fullPath: string, objectPath: string): string {
+  try {
+    const meta = JSON.parse(readFileSync(fullPath + ".meta.json", "utf8"));
+    if (meta?.contentType) return String(meta.contentType);
+  } catch {
+    /* fall through */
+  }
+  return guessContentType(objectPath);
+}
+
 export async function readObject(
   bucket: string,
   objectPath: string
@@ -64,13 +80,7 @@ export async function readObject(
   try {
     const full = safeJoin(bucket, objectPath);
     const bytes = await fs.readFile(full);
-    let contentType = "application/octet-stream";
-    try {
-      const meta = JSON.parse(await fs.readFile(full + ".meta.json", "utf8"));
-      if (meta.contentType) contentType = meta.contentType;
-    } catch {
-      contentType = guessContentType(objectPath);
-    }
+    const contentType = guessPublicObjectContentType(full, objectPath);
     return { bytes, contentType };
   } catch {
     return null;

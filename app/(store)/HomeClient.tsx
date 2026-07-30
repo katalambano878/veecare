@@ -19,7 +19,7 @@ const HomeFaqSection = dynamic(() => import('@/components/home/HomeFaqSection'),
 const NewsletterSection = dynamic(() => import('@/components/NewsletterSection'), { ssr: true });
 
 const CATEGORY_CARD_CLASS =
-  'flex-shrink-0 w-[72vw] max-w-[300px] sm:w-[280px] md:w-[300px] lg:w-[320px]';
+  'flex-shrink-0 w-[58vw] max-w-[220px] sm:w-[200px] md:w-[220px] lg:w-[240px]';
 
 type HomeClientProps = {
   initialFeaturedProducts?: HomeProduct[];
@@ -90,7 +90,7 @@ export default function HomeClient({
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className={`${CATEGORY_CARD_CLASS} aspect-[3/4] rounded-[2.5rem] bg-brand-nude/30 animate-pulse border border-white/50 glass-card`}
+                  className={`${CATEGORY_CARD_CLASS} aspect-[4/5] rounded-2xl sm:rounded-[1.75rem] bg-brand-nude/30 animate-pulse border border-white/50 glass-card`}
                 />
               ))}
             </HorizontalScroll>
@@ -100,10 +100,10 @@ export default function HomeClient({
                 <Link
                   href={`/shop?category=${category.slug}`}
                   key={category.id}
-                  className={`group block ${CATEGORY_CARD_CLASS} transform transition-all duration-500 hover:-translate-y-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-espresso rounded-[2.5rem]`}
+                  className={`group block ${CATEGORY_CARD_CLASS} transform transition-all duration-500 hover:-translate-y-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-espresso rounded-2xl sm:rounded-[1.75rem]`}
                   draggable={false}
                 >
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-[2.5rem] glass-card shadow-glass group-hover:shadow-glass-strong border-2 border-white/60">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-2xl sm:rounded-[1.75rem] glass-card shadow-glass group-hover:shadow-glass-strong border border-white/60">
                     {'image_url' in category && category.image_url ? (
                       <>
                         <img
@@ -120,9 +120,9 @@ export default function HomeClient({
                       <div className={`absolute inset-0 bg-gradient-to-br ${'tint' in category ? category.tint : 'from-brand-blush to-brand-ivory'} opacity-80 group-hover:opacity-100 transition-all duration-700 ease-out group-hover:scale-105`} />
                     )}
                     
-                    <div className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-end pointer-events-none">
+                    <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-end pointer-events-none">
                       <div className="relative transform transition-transform duration-500 group-hover:translate-y-0 translate-y-1">
-                        <h3 className={`font-display text-2xl lg:text-3xl font-medium mb-1 transition-colors ${
+                        <h3 className={`font-display text-lg sm:text-xl lg:text-2xl font-medium mb-0.5 transition-colors ${
                           'image_url' in category && category.image_url
                             ? 'text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] group-hover:text-brand-cream'
                             : 'text-brand-cocoa group-hover:text-brand-espresso'
@@ -175,13 +175,13 @@ export default function HomeClient({
           </AnimatedSection>
 
           {productsLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
               {[...Array(4)].map((_, i) => (
                 <ProductCardSkeleton key={i} />
               ))}
             </div>
           ) : featuredProducts.length > 0 ? (
-            <AnimatedGrid className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <AnimatedGrid className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
               {featuredProducts.map((product) => {
                 const variants = product.product_variants || [];
                 const hasVariants = variants.length > 0;

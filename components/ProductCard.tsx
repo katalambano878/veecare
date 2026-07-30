@@ -82,8 +82,8 @@ export default function ProductCard({
   const formatPrice = (val: number) => `GH\u20B5${val.toFixed(2)}`;
 
   return (
-    <div className="group glass-card rounded-[1.5rem] sm:rounded-[2rem] h-full flex flex-col hover-lift border border-white/60 shadow-glass hover:shadow-glass-strong bg-white/40">
-      <Link href={`/product/${slug}`} className="relative block aspect-[3/4] overflow-hidden rounded-t-[1.5rem] sm:rounded-t-[2rem] rounded-b-xl bg-brand-nude/20 mb-2 sm:mb-4">
+    <div className="group glass-card rounded-2xl sm:rounded-[1.5rem] h-full flex flex-col hover-lift border border-white/60 shadow-glass hover:shadow-glass-strong bg-white/40">
+      <Link href={`/product/${slug}`} className="relative block aspect-[4/5] overflow-hidden rounded-t-2xl sm:rounded-t-[1.5rem] rounded-b-lg bg-brand-nude/20 mb-1.5 sm:mb-3">
         <LazyImage
           src={image}
           alt={name}
@@ -92,14 +92,14 @@ export default function ProductCard({
 
         <div className="absolute inset-0 bg-gradient-to-t from-brand-espresso/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden lg:block pointer-events-none mix-blend-multiply" />
 
-        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-1.5 sm:gap-2 z-10">
+        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-1.5 z-10">
           {badge && (
-            <span className="glass text-brand-espresso border border-white/60 text-[9px] sm:text-xs font-semibold tracking-wider uppercase px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-glass backdrop-blur-md">
+            <span className="glass text-brand-espresso border border-white/60 text-[8px] sm:text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-glass backdrop-blur-md">
               {badge}
             </span>
           )}
           {discount > 0 && (
-            <span className="glass text-brand-rose border border-brand-rose/20 text-[9px] sm:text-xs font-bold tracking-wider px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-glass backdrop-blur-md bg-white/70">
+            <span className="glass text-brand-rose border border-brand-rose/20 text-[8px] sm:text-[10px] font-bold tracking-wider px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-glass backdrop-blur-md bg-white/70">
               -{discount}%
             </span>
           )}
@@ -134,9 +134,9 @@ export default function ProductCard({
         )}
       </Link>
 
-      <div className="flex flex-col flex-grow px-3 sm:px-5 pb-4 sm:pb-5">
+      <div className="flex flex-col flex-grow px-2.5 sm:px-4 pb-3 sm:pb-4">
         <Link href={`/product/${slug}`}>
-          <h3 className="font-display text-[0.95rem] sm:text-lg md:text-xl font-medium leading-snug text-brand-cocoa mb-1 group-hover:text-brand-espresso transition-colors duration-300 line-clamp-2">
+          <h3 className="font-display text-[0.85rem] sm:text-base md:text-lg font-medium leading-snug text-brand-cocoa mb-0.5 group-hover:text-brand-espresso transition-colors duration-300 line-clamp-2">
             {name}
           </h3>
         </Link>

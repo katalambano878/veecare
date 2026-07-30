@@ -1,5 +1,5 @@
 // Vee Care - Service Worker
-const CACHE_VERSION = 'app-v1.0';
+const CACHE_VERSION = 'app-v1.1';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `images-${CACHE_VERSION}`;
@@ -97,12 +97,41 @@ self.addEventListener('fetch', (event) => {
   }
   if (url.pathname.startsWith('/admin')) return;
 
-  // Strategy: Images - Cache First (long-lived)
+  // Strategy: Local storage images — network first (avoid stale/failed cache)
+  if (url.pathname.startsWith('/storage/v1/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(IMAGE_CACHE).then((cache) => {
+              cache.put(request, clone);
+              trimCache(IMAGE_CACHE, IMAGE_CACHE_LIMIT);
+            });
+          }
+          return response;
+        })
+        .catch(() =>
+          caches.open(IMAGE_CACHE).then((cache) =>
+            cache.match(request).then(
+              (cached) =>
+                cached ||
+                new Response(
+                  '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect fill="#f3f4f6" width="200" height="200"/><text fill="#9ca3af" font-family="sans-serif" font-size="14" text-anchor="middle" x="100" y="105">Image unavailable</text></svg>',
+                  { headers: { 'Content-Type': 'image/svg+xml' } }
+                )
+            )
+          )
+        )
+    );
+    return;
+  }
+
+  // Strategy: Other images - Cache First (long-lived)
   if (
     request.destination === 'image' ||
     url.pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/) ||
-    (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/')) ||
-    url.pathname.startsWith('/storage/v1/')
+    (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/'))
   ) {
     event.respondWith(
       caches.open(IMAGE_CACHE).then((cache) => {

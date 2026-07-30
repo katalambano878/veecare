@@ -148,8 +148,7 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith('/api/') ||
     pathname.startsWith('/rest/') ||
-    pathname.startsWith('/auth/v1') ||
-    pathname.startsWith('/storage/')
+    pathname.startsWith('/auth/v1')
   ) {
     response.headers.set('Cache-Control', 'no-store');
   }
@@ -163,6 +162,7 @@ export const config = {
     '/api/:path*',
     '/rest/:path*',
     '/auth/v1/:path*',
-    '/storage/:path*',
+    // Intentionally omit /storage — public image bytes must not go through
+    // auth middleware (no-store + RSC vary headers break/slow browser loads).
   ],
 };

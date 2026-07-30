@@ -1,7 +1,7 @@
 export default function ProductCardSkeleton() {
   return (
-    <div className="flex flex-col h-full glass-card rounded-[2rem] p-4 border border-white/50 shadow-glass animate-pulse">
-      <div className="relative aspect-[3/4] bg-brand-blush/40 rounded-[1.5rem] mb-4 overflow-hidden">
+    <div className="flex flex-col h-full glass-card rounded-2xl p-3 border border-white/50 shadow-glass animate-pulse">
+      <div className="relative aspect-[4/5] bg-brand-blush/40 rounded-xl mb-3 overflow-hidden">
         <div className="absolute inset-0 crystal-shimmer opacity-60" />
       </div>
       <div className="flex flex-col flex-grow space-y-3 px-1">
