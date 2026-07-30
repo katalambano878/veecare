@@ -79,7 +79,7 @@ export async function verifyMoolreExternalRef(
       return {
         verified: false,
         amount,
-        rawStatus: String(txStatus ?? statusStr || ''),
+        rawStatus: String(txStatus ?? statusStr ?? ''),
         error: 'amount_mismatch',
       };
     }
@@ -87,7 +87,7 @@ export async function verifyMoolreExternalRef(
     return {
       verified,
       amount,
-      rawStatus: String(txStatus ?? statusStr || checkResult.message || '') || null,
+      rawStatus: String(txStatus ?? statusStr ?? checkResult.message ?? '') || null,
       error: verified ? undefined : String(checkResult.message || checkResult.code || 'not_paid'),
     };
   } catch (err: unknown) {
