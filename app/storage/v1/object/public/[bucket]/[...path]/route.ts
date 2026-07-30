@@ -1,9 +1,12 @@
-import { createReadStream, existsSync, statSync } from "fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "fs";
 import { Readable } from "stream";
 import { guessPublicObjectContentType, resolvePublicObjectPath } from "@/lib/db/storage";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+/** Small product photos: buffer once (avoids slow stream plumbing through Next/Traefik). */
+const BUFFER_MAX_BYTES = 512 * 1024;
 
 export async function GET(
   req: Request,
@@ -31,8 +34,20 @@ export async function GET(
 
   const stat = statSync(full);
   const contentType = guessPublicObjectContentType(full, objectPath);
+  const headers: Record<string, string> = {
+    "Content-Type": contentType,
+    "Content-Length": String(stat.size),
+    "Cache-Control": "public, max-age=31536000, immutable",
+    "Access-Control-Allow-Origin": "*",
+    "X-Content-Type-Options": "nosniff",
+  };
+
+  if (stat.size <= BUFFER_MAX_BYTES) {
+    const body = readFileSync(full);
+    return new Response(body, { status: 200, headers });
+  }
+
   const nodeStream = createReadStream(full);
-  // Avoid uncaught "Controller is already closed" when clients abort mid-stream
   const onAbort = () => {
     nodeStream.destroy();
   };
@@ -41,16 +56,8 @@ export async function GET(
     /* client disconnect / destroy */
   });
 
-  const webStream = Readable.toWeb(nodeStream) as ReadableStream;
-
-  return new Response(webStream, {
+  return new Response(Readable.toWeb(nodeStream) as ReadableStream, {
     status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Content-Length": String(stat.size),
-      "Cache-Control": "public, max-age=604800, stale-while-revalidate=86400, immutable",
-      "Access-Control-Allow-Origin": "*",
-      "X-Content-Type-Options": "nosniff",
-    },
+    headers,
   });
 }

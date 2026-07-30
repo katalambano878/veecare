@@ -136,7 +136,7 @@ export default function ProductCard({
 
       <div className="flex flex-col flex-grow px-2.5 sm:px-4 pb-3 sm:pb-4">
         <Link href={`/product/${slug}`}>
-          <h3 className="font-display text-[0.85rem] sm:text-base md:text-lg font-medium leading-snug text-brand-cocoa mb-0.5 group-hover:text-brand-espresso transition-colors duration-300 line-clamp-2">
+          <h3 className="font-display text-[0.8rem] sm:text-sm md:text-base font-medium leading-snug text-brand-cocoa mb-0.5 group-hover:text-brand-espresso transition-colors duration-300 line-clamp-2">
             {name}
           </h3>
         </Link>

@@ -90,7 +90,14 @@ const nextConfig: NextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=2592000, stale-while-revalidate=86400' }
         ]
       },
-      // Cache static images in public (hero, logos, etc.) for 1 year when served directly
+      // Product / storage uploads (and public/*.jpeg etc.)
+      {
+        source: '/storage/v1/object/public/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'CDN-Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ]
+      },
       {
         source: '/:path*.jpeg',
         headers: [
