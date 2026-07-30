@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/notifications';
 import { creditAffiliateCommission } from '@/lib/affiliate';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { verifyMoolreExternalRef } from '@/lib/payments/moolre-verify';
 
 /**
  * Payment verification endpoint.
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
         // 3. ONLY verify with Moolre's API — no more trusting client-side flags
         let moolreApiVerified = false;
 
-        if (!process.env.MOOLRE_API_USER || !process.env.MOOLRE_API_PUBKEY) {
+        if (!process.env.MOOLRE_API_USER || !process.env.MOOLRE_API_PUBKEY || !process.env.MOOLRE_ACCOUNT_NUMBER) {
             console.error('[Verify] Missing Moolre API credentials');
             return NextResponse.json({
                 success: false,
@@ -87,43 +88,12 @@ export async function POST(req: Request) {
             }, { status: 503 });
         }
 
-        try {
-            // Use the actual external reference sent to Moolre during payment init,
-            // NOT the bare order number. Moolre only knows the uniqueRef with the -R{ts} suffix.
-            const externalRefToCheck = order.metadata?.moolre_externalref || orderNumber;
-
-            const checkResponse = await fetch('https://api.moolre.com/embed/status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-API-USER': process.env.MOOLRE_API_USER,
-                    'X-API-PUBKEY': process.env.MOOLRE_API_PUBKEY
-                },
-                body: JSON.stringify({ externalref: externalRefToCheck })
-            });
-
-            const checkResult = await checkResponse.json();
-            console.log('[Verify] Moolre API response:', JSON.stringify(checkResult));
-
-            // Strict verification: require explicit success status
-            const statusStr = String(checkResult.data?.status || '').toLowerCase();
-            moolreApiVerified =
-                (checkResult.status === 1 && checkResult.data) &&
-                (statusStr === 'success' || statusStr === 'successful' || statusStr === 'completed' || statusStr === 'paid');
-
-            // Also verify the amount matches
-            if (moolreApiVerified && checkResult.data?.amount) {
-                const paidAmount = parseFloat(checkResult.data.amount);
-                const expectedAmount = Number(order.total);
-                if (Math.abs(paidAmount - expectedAmount) > 0.01) {
-                    console.error('[Verify] AMOUNT MISMATCH! Expected:', expectedAmount, 'Got:', paidAmount);
-                    moolreApiVerified = false;
-                }
-            }
-
-        } catch (moolreError: any) {
-            console.warn('[Verify] Moolre API check failed:', moolreError.message);
-        }
+        // Use the actual external reference sent to Moolre during payment init,
+        // NOT the bare order number. Moolre only knows the uniqueRef with the -R{ts} suffix.
+        const externalRefToCheck = order.metadata?.moolre_externalref || orderNumber;
+        const apiCheck = await verifyMoolreExternalRef(String(externalRefToCheck), Number(order.total));
+        console.log('[Verify] Moolre status:', apiCheck.rawStatus, apiCheck.error || 'ok', 'amount=', apiCheck.amount);
+        moolreApiVerified = apiCheck.verified;
 
         // 4. Only proceed if Moolre API confirmed payment
         if (!moolreApiVerified) {
