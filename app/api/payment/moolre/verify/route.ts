@@ -108,11 +108,12 @@ export async function POST(req: Request) {
 
         console.log('[Verify] Marking order paid via moolre-api for:', orderNumber);
 
-        // 5. Mark as paid
+        // 5. Mark as paid (prefer real Moolre transaction id when present in status payload)
+        const moolreRef = apiCheck.transactionId || 'moolre-api-verify';
         const { data: orderJson, error: updateError } = await supabaseAdmin
             .rpc('mark_order_paid', {
                 order_ref: orderNumber,
-                moolre_ref: 'moolre-api-verify'
+                moolre_ref: String(moolreRef).slice(0, 64)
             });
 
         if (updateError) {

@@ -94,10 +94,10 @@ export async function POST(req: Request) {
         }
 
         // Moolre Payload
-        const payload = {
+        const payload: Record<string, unknown> = {
             type: 1,
             amount: amount.toString(),
-            email: process.env.MOOLRE_MERCHANT_EMAIL || 'admin@standardecom.com',
+            email: process.env.MOOLRE_MERCHANT_EMAIL || process.env.ADMIN_EMAIL || 'info@veecare.shop',
             externalref: uniqueRef,
             callback: `${baseUrl}/api/payment/moolre/callback`,
             redirect: `${baseUrl}/order-success?order=${orderRef}&payment_success=true`,
@@ -109,6 +109,9 @@ export async function POST(req: Request) {
                 original_order_number: orderRef
             }
         };
+        if (process.env.MOOLRE_CALLBACK_SECRET) {
+            payload.secret = process.env.MOOLRE_CALLBACK_SECRET;
+        }
 
         console.log('[Payment] Initiating for order:', orderRef, '| Amount from DB:', amount, '| Callback:', payload.callback);
 

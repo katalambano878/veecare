@@ -78,7 +78,8 @@ export async function sendEmailToAdmins({
         console.log('[Email] Admin alert sent to', sent, 'of', recipients.length, 'inboxes');
     }
 
-    return { success: failed === 0 && sent > 0, sent, failed, recipients, errors };
+    // Mark success if at least one admin inbox received the alert (don't block on a bad CC).
+    return { success: sent > 0, sent, failed, recipients, errors };
 }
 
 async function markOrderNotificationSent(
@@ -120,11 +121,15 @@ export async function retryOrderNotificationsIfNeeded(orderRef: string) {
     }
 
     const metadata = (order.metadata ?? {}) as Record<string, unknown>;
-    if (metadata.admin_email_sent_at) {
+    const needsRetry =
+        !metadata.admin_email_sent_at ||
+        !metadata.customer_email_sent_at ||
+        !metadata.customer_sms_sent_at;
+    if (!needsRetry) {
         return;
     }
 
-    console.log('[Notification] Retrying missed order emails for:', order.order_number);
+    console.log('[Notification] Retrying missed order notifications for:', order.order_number);
     await sendOrderConfirmation(order);
 }
 
@@ -508,14 +513,15 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
         });
         clearTimeout(timer);
 
-        const contentType = response.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-            const text = await response.text();
+        // Moolre often returns JSON with Content-Type: text/html — parse body anyway.
+        const text = await response.text();
+        let result: any;
+        try {
+            result = JSON.parse(text);
+        } catch {
             console.error('[SMS] Non-JSON response:', text.slice(0, 200));
             return { status: 0, error: text.slice(0, 200) };
         }
-
-        const result = await response.json();
         console.log('[SMS] Result:', result.status === 1 ? 'Success' : 'Failed', '| Code:', result.code);
         if (result.status !== 1) {
             console.log('[SMS] Full Response:', JSON.stringify(result, null, 2));

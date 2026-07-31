@@ -77,16 +77,17 @@ export async function POST(req: Request) {
         // Even when secret is omitted by Moolre, we still verify the payment
         // against Moolre's status API before marking paid (see below).
         // ============================================================
-        const expectedSecret = process.env.MOOLRE_CALLBACK_SECRET;
-        if (expectedSecret && body.secret && body.secret !== expectedSecret) {
-            console.error('[Callback] Secret mismatch! Possible spoofed callback.');
-            return NextResponse.json({ success: false, message: 'Invalid secret' }, { status: 403 });
-        }
-
         // ============================================================
         // EXTRACT FIELDS - Moolre nests payment data inside body.data
         // ============================================================
         const data = body.data || {};
+
+        const expectedSecret = process.env.MOOLRE_CALLBACK_SECRET;
+        const providedSecret = body.secret || data.secret;
+        if (expectedSecret && providedSecret && providedSecret !== expectedSecret) {
+            console.error('[Callback] Secret mismatch! Possible spoofed callback.');
+            return NextResponse.json({ success: false, message: 'Invalid secret' }, { status: 403 });
+        }
 
         // Order reference: check body.data.externalref first, then top-level fallbacks
         const rawExternalRef =
@@ -110,10 +111,11 @@ export async function POST(req: Request) {
             'callback';
 
         // Payment status: body.status === 1 means API call succeeded,
-        // body.data.txtstatus === 1 means transaction was successful
+        // body.data.txstatus / txtstatus === 1 means transaction was successful
         const apiStatus = body.status;
-        const txStatus = data.txtstatus;
+        const txStatus = data.txstatus ?? data.txtstatus;
         const messageStr = String(body.message || '').toLowerCase();
+        const secretMatches = Boolean(expectedSecret && providedSecret && providedSecret === expectedSecret);
 
         console.log('[Callback] Order ref:', merchantOrderRef,
             '| API status:', apiStatus,
@@ -195,11 +197,22 @@ export async function POST(req: Request) {
 
             const apiCheck = await verifyMoolreExternalRef(String(externalRefToCheck), expectedAmount);
             if (!apiCheck.verified) {
-                console.error('[Callback] Moolre status API did not confirm payment:', apiCheck.error || apiCheck.rawStatus, '| Order:', merchantOrderRef);
-                return NextResponse.json({
-                    success: false,
-                    message: 'Payment not confirmed by provider'
-                }, { status: 402 });
+                // Fallback: trusted callback (matching secret + amount + success signals).
+                // Needed when Moolre status CT/body quirks would otherwise leave paid orders stuck.
+                if (secretMatches && callbackAmount !== null) {
+                    console.warn(
+                        '[Callback] Status API failed (',
+                        apiCheck.error || apiCheck.rawStatus,
+                        ') but callback secret+amount OK — marking paid. Order:',
+                        merchantOrderRef
+                    );
+                } else {
+                    console.error('[Callback] Moolre status API did not confirm payment:', apiCheck.error || apiCheck.rawStatus, '| Order:', merchantOrderRef);
+                    return NextResponse.json({
+                        success: false,
+                        message: 'Payment not confirmed by provider'
+                    }, { status: 402 });
+                }
             }
 
             // Mark order as paid via RPC

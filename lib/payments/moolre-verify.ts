@@ -7,6 +7,7 @@ export type MoolreStatusResult = {
   verified: boolean;
   amount: number | null;
   rawStatus: string | null;
+  transactionId?: string | null;
   error?: string;
 };
 
@@ -41,22 +42,18 @@ export async function verifyMoolreExternalRef(
     });
     clearTimeout(timer);
 
-    const contentType = checkResponse.headers.get('content-type') || '';
+    // Moolre often returns JSON with Content-Type: text/html — parse body, don't trust CT.
     const rawText = await checkResponse.text();
-    if (!contentType.includes('application/json')) {
-      return {
-        verified: false,
-        amount: null,
-        rawStatus: null,
-        error: `non_json_status_http_${checkResponse.status}`,
-      };
-    }
-
     let checkResult: any;
     try {
       checkResult = JSON.parse(rawText);
     } catch {
-      return { verified: false, amount: null, rawStatus: null, error: 'invalid_json_status' };
+      return {
+        verified: false,
+        amount: null,
+        rawStatus: null,
+        error: `invalid_json_status_http_${checkResponse.status}`,
+      };
     }
 
     // Success: status=1 and data.txstatus=1 (also accept legacy data.status strings)
@@ -88,6 +85,9 @@ export async function verifyMoolreExternalRef(
       verified,
       amount,
       rawStatus: String(txStatus ?? statusStr ?? checkResult.message ?? '') || null,
+      transactionId: checkResult.data?.transactionid
+        ? String(checkResult.data.transactionid)
+        : null,
       error: verified ? undefined : String(checkResult.message || checkResult.code || 'not_paid'),
     };
   } catch (err: unknown) {
