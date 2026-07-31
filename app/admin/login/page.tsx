@@ -71,7 +71,7 @@ export default function AdminLoginPage() {
       if (profile.role !== 'admin' && profile.role !== 'staff') {
         await supabase.auth.signOut();
         throw new Error(
-          'This account is a customer account, not admin. Sign in with your admin email (admin@veecarehera.com) or ask support to grant admin access.',
+          'This account is a customer account, not admin. Sign in with admin@veecare.shop or ask support to grant admin access.',
         );
       }
 
@@ -83,7 +83,7 @@ export default function AdminLoginPage() {
     } catch (err: any) {
       const message = err.message || 'Login failed';
       if (message.toLowerCase().includes('invalid login credentials')) {
-        setError('Invalid email or password. The admin account is admin@veecarehera.com — reset the password in Supabase if needed.');
+        setError('Invalid email or password. Use admin@veecare.shop with the admin password.');
       } else {
         setError(message);
       }
