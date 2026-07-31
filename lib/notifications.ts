@@ -23,16 +23,14 @@ function addRecipient(emails: Set<string>, raw?: string | null) {
     }
 }
 
-/** Admin inboxes that receive new-order, contact, and support alerts. */
+/** Admin inboxes that receive new-order, contact, and support alerts.
+ *  Only ADMIN_EMAIL (comma/semicolon list) — do not auto-CC merchant/support. */
 export function getAdminRecipients(): string[] {
     const emails = new Set<string>();
     const rawList = process.env.ADMIN_EMAIL || ADMIN_EMAIL_DEFAULT;
     for (const part of rawList.split(/[,;]/)) {
         addRecipient(emails, part);
     }
-    addRecipient(emails, process.env.MOOLRE_MERCHANT_EMAIL);
-    addRecipient(emails, process.env.PAYSTACK_MERCHANT_EMAIL);
-    addRecipient(emails, SUPPORT_EMAIL);
     return [...emails];
 }
 
