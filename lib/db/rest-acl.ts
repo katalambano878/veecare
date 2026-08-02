@@ -106,7 +106,14 @@ export function authorizeRestTable(
       return allow({ [scopeCol]: actor.userId });
     }
 
-    if (t === "customers" || t === "contact_submissions" || t === "audit_logs") {
+    if (
+      t === "customers" ||
+      t === "contact_submissions" ||
+      t === "audit_logs" ||
+      t === "payment_events" ||
+      t === "sms_messages" ||
+      t === "schema_migrations"
+    ) {
       return deny("Admin access required");
     }
 

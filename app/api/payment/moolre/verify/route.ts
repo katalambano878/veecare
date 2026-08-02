@@ -4,6 +4,7 @@ import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/no
 import { creditAffiliateCommission } from '@/lib/affiliate';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { verifyMoolreExternalRef } from '@/lib/payments/moolre-verify';
+import { recordPaymentEvent } from '@/lib/payments/payment-events';
 
 /**
  * Payment verification endpoint.
@@ -110,6 +111,15 @@ export async function POST(req: Request) {
 
         // 5. Mark as paid (prefer real Moolre transaction id when present in status payload)
         const moolreRef = apiCheck.transactionId || 'moolre-api-verify';
+        await recordPaymentEvent({
+            gateway: 'moolre',
+            eventType: 'verify',
+            externalEventId: `verify:${orderNumber}:${moolreRef}`,
+            orderNumber,
+            reference: String(externalRefToCheck),
+            processingStatus: 'received',
+        });
+
         const { data: orderJson, error: updateError } = await supabaseAdmin
             .rpc('mark_order_paid', {
                 order_ref: orderNumber,
@@ -118,6 +128,15 @@ export async function POST(req: Request) {
 
         if (updateError) {
             console.error('[Verify] RPC Error:', updateError.message);
+            await recordPaymentEvent({
+                gateway: 'moolre',
+                eventType: 'verify_result',
+                externalEventId: `verify:${orderNumber}:${moolreRef}:fail`,
+                orderNumber,
+                reference: String(moolreRef),
+                processingStatus: 'failed',
+                errorMessage: updateError.message,
+            });
             return NextResponse.json({ success: false, message: 'Failed to update order' }, { status: 500 });
         }
 
@@ -152,6 +171,15 @@ export async function POST(req: Request) {
                 console.error('[Verify] Notification failed:', notifyError.message);
             }
         }
+
+        await recordPaymentEvent({
+            gateway: 'moolre',
+            eventType: 'verify_result',
+            externalEventId: `verify:${orderNumber}:${moolreRef}:ok`,
+            orderNumber,
+            reference: String(moolreRef),
+            processingStatus: 'processed',
+        });
 
         return NextResponse.json({
             success: true,

@@ -4,6 +4,7 @@ import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/no
 import { creditAffiliateCommission } from '@/lib/affiliate';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { verifyMoolreExternalRef } from '@/lib/payments/moolre-verify';
+import { recordPaymentEvent } from '@/lib/payments/payment-events';
 
 /**
  * Moolre Callback Payload Structure (from their actual API):
@@ -149,6 +150,17 @@ export async function POST(req: Request) {
         if (isSuccess) {
             console.log(`[Callback] Payment SUCCESS for Order ${merchantOrderRef}`);
 
+            await recordPaymentEvent({
+                gateway: 'moolre',
+                eventType: 'callback',
+                externalEventId: String(moolreReference),
+                orderNumber: merchantOrderRef,
+                reference: String(rawExternalRef || merchantOrderRef),
+                payload: { status: body.status, message: body.message, data },
+                signatureStatus: secretMatches ? 'matched' : providedSecret ? 'present' : 'absent',
+                processingStatus: 'received',
+            });
+
             // Check if order exists
             const { data: existingOrder, error: fetchError } = await supabaseAdmin
                 .from('orders')
@@ -158,6 +170,15 @@ export async function POST(req: Request) {
 
             if (fetchError || !existingOrder) {
                 console.error('[Callback] Order not found:', merchantOrderRef);
+                await recordPaymentEvent({
+                    gateway: 'moolre',
+                    eventType: 'callback_result',
+                    externalEventId: `${moolreReference}:not_found`,
+                    orderNumber: merchantOrderRef,
+                    reference: String(moolreReference),
+                    processingStatus: 'failed',
+                    errorMessage: 'Order not found',
+                });
                 return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
             }
 
@@ -169,6 +190,15 @@ export async function POST(req: Request) {
                 } catch (notifyError: unknown) {
                     console.error('[Callback] Notification retry failed:', notifyError);
                 }
+                await recordPaymentEvent({
+                    gateway: 'moolre',
+                    eventType: 'callback_result',
+                    externalEventId: `${moolreReference}:already_paid`,
+                    orderNumber: merchantOrderRef,
+                    reference: String(moolreReference),
+                    processingStatus: 'ignored',
+                    errorMessage: 'Order already paid',
+                });
                 return NextResponse.json({ success: true, message: 'Order already processed' });
             }
 
@@ -260,6 +290,15 @@ export async function POST(req: Request) {
             } catch (notifyError: any) {
                 console.error('[Callback] Notification failed:', notifyError.message);
             }
+
+            await recordPaymentEvent({
+                gateway: 'moolre',
+                eventType: 'callback_result',
+                externalEventId: `${moolreReference}:processed`,
+                orderNumber: merchantOrderRef,
+                reference: String(moolreReference),
+                processingStatus: 'processed',
+            });
 
             return NextResponse.json({ success: true, message: 'Payment verified and Order Updated' });
 

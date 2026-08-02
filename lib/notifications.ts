@@ -474,7 +474,17 @@ function formatPhoneNumber(phone: string): string {
     return '+' + cleaned;
 }
 
-export async function sendSMS({ to, message }: { to: string; message: string }) {
+export async function sendSMS({
+    to,
+    message,
+    messageType = 'generic',
+    relatedOrderId = null,
+}: {
+    to: string;
+    message: string;
+    messageType?: string;
+    relatedOrderId?: string | null;
+}) {
     // Moolre SMS API only requires X-API-VASKEY header for authentication
     // See: https://docs.moolre.com/#/send-sms
     // Allow MOOLRE_SMS_API_KEY or fall back to MOOLRE_API_KEY
@@ -486,6 +496,7 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
     }
 
     const recipient = formatPhoneNumber(to);
+    const { recordSmsMessage } = await import('@/lib/sms/record-sms');
 
     try {
         console.log(`[SMS] Sending to ${maskPhone(recipient)}`);
@@ -518,15 +529,37 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
             result = JSON.parse(text);
         } catch {
             console.error('[SMS] Non-JSON response:', text.slice(0, 200));
+            await recordSmsMessage({
+                recipient,
+                messageType,
+                relatedOrderId,
+                status: 'failed',
+                failureReason: text.slice(0, 200),
+            });
             return { status: 0, error: text.slice(0, 200) };
         }
         console.log('[SMS] Result:', result.status === 1 ? 'Success' : 'Failed', '| Code:', result.code);
         if (result.status !== 1) {
             console.log('[SMS] Full Response:', JSON.stringify(result, null, 2));
         }
+        await recordSmsMessage({
+            recipient,
+            messageType,
+            relatedOrderId,
+            providerMessageId: result?.data?.messageid || result?.code || null,
+            status: Number(result.status) === 1 ? 'sent' : 'failed',
+            failureReason: Number(result.status) === 1 ? null : String(result.message || result.code || 'failed'),
+        });
         return result;
     } catch (error: any) {
         console.error('[SMS] Error:', error.message);
+        await recordSmsMessage({
+            recipient,
+            messageType,
+            relatedOrderId,
+            status: 'failed',
+            failureReason: error.message,
+        });
         return null;
     }
 }
@@ -695,6 +728,8 @@ ${emailButton('View &amp; Manage Order', `${baseUrl}/admin/orders/${orderId}`)}
         const smsResult = await sendSMS({
             to: phone,
             message: smsMessage,
+            messageType: 'order_confirmation',
+            relatedOrderId: orderId || null,
         });
         if (orderId && smsResult && Number(smsResult.status) === 1) {
             await markOrderNotificationSent(orderId, 'customer_sms_sent_at');
