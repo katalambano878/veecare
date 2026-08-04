@@ -24,48 +24,72 @@ export default function AdminLayout({
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
 
   useEffect(() => {
-    async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (pathname === '/admin/login') {
+    let cancelled = false;
+    const authTimeout = window.setTimeout(() => {
+      if (!cancelled && pathname !== '/admin/login') {
+        console.error('[Admin] Auth check timed out');
         setIsLoading(false);
-        return;
+        router.push('/admin/login?error=session_expired');
       }
+    }, 15_000);
 
-      if (!session) {
-        router.push('/admin/login');
-        return;
+    async function checkAuth() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (pathname === '/admin/login') {
+          if (!cancelled) setIsLoading(false);
+          return;
+        }
+
+        if (!session) {
+          if (!cancelled) setIsLoading(false);
+          router.push('/admin/login');
+          return;
+        }
+
+        // Ensure auth cookie is set (in case user already had a session from before)
+        document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax; Secure`;
+
+        // Check user role from profiles table
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError || !profile) {
+          console.error('Failed to fetch user profile');
+          if (!cancelled) setIsLoading(false);
+          router.push('/admin/login');
+          return;
+        }
+
+        // Only allow admin and staff roles
+        if (profile.role !== 'admin' && profile.role !== 'staff') {
+          console.warn('User does not have admin/staff role');
+          document.cookie = 'sb-access-token=; path=/; max-age=0; SameSite=Lax; Secure';
+          await supabase.auth.signOut();
+          if (!cancelled) setIsLoading(false);
+          router.push('/admin/login?error=unauthorized');
+          return;
+        }
+
+        if (!cancelled) {
+          setUser(session.user);
+          setUserRole(profile.role);
+          setIsAuthenticated(true);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error('[Admin] Auth check failed:', err);
+        if (!cancelled) {
+          setIsLoading(false);
+          router.push('/admin/login?error=session_expired');
+        }
+      } finally {
+        window.clearTimeout(authTimeout);
       }
-
-      // Ensure auth cookie is set (in case user already had a session from before)
-      document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax; Secure`;
-
-      // Check user role from profiles table
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profileError || !profile) {
-        console.error('Failed to fetch user profile');
-        router.push('/admin/login');
-        return;
-      }
-
-      // Only allow admin and staff roles
-      if (profile.role !== 'admin' && profile.role !== 'staff') {
-        console.warn('User does not have admin/staff role');
-        document.cookie = 'sb-access-token=; path=/; max-age=0; SameSite=Lax; Secure';
-        await supabase.auth.signOut();
-        router.push('/admin/login?error=unauthorized');
-        return;
-      }
-
-      setUser(session.user);
-      setUserRole(profile.role);
-      setIsAuthenticated(true);
-      setIsLoading(false);
     }
 
     checkAuth();
@@ -81,7 +105,11 @@ export default function AdminLayout({
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(authTimeout);
+      subscription.unsubscribe();
+    };
   }, [pathname, router]);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface LazyImageProps {
   src: string;
@@ -16,6 +16,9 @@ interface LazyImageProps {
 /**
  * Plain <img> for storefront media — Next/Image remote optimization was
  * unreliable with local /storage/v1 URLs on Coolify (timeouts → "No Image").
+ *
+ * Cached images often finish before onLoad is attached; check img.complete
+ * so they do not stay stuck at opacity-0 ("missing" images).
  */
 export default function LazyImage({
   src,
@@ -28,6 +31,25 @@ export default function LazyImage({
 }: LazyImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+  }, [src]);
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img) return;
+    if (img.complete && img.naturalWidth > 0) {
+      setIsLoaded(true);
+      onLoad?.();
+    } else if (img.complete && img.naturalWidth === 0) {
+      setHasError(true);
+      setIsLoaded(true);
+      onLoad?.();
+    }
+  }, [src, onLoad]);
 
   if (!src || hasError) {
     return (
@@ -46,6 +68,7 @@ export default function LazyImage({
         <div className="absolute inset-0 bg-gray-200 animate-pulse z-10" />
       )}
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
         width={width}

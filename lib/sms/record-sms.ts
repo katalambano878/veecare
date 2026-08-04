@@ -31,6 +31,8 @@ export async function recordSmsMessage(input: RecordSmsInput): Promise<void> {
       sent_at: input.status === 'sent' ? new Date().toISOString() : null,
     });
     if (error) {
+      // Unique partial index on order_confirmation — safe to ignore duplicates.
+      if (/duplicate|unique/i.test(error.message || '')) return;
       console.error('[SMS Record] Insert failed:', error.message);
     }
   } catch (err: unknown) {

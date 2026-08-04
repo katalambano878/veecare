@@ -234,19 +234,51 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
         }
     }, [productName, skuManuallyEdited]);
 
+    const normalizeStorageUrl = (url: string) => {
+        // Persist relative paths so images work on www / apex / preview hosts.
+        try {
+            if (url.startsWith('/storage/')) return url;
+            const u = new URL(url);
+            if (u.pathname.startsWith('/storage/')) return u.pathname;
+        } catch {
+            /* keep as-is */
+        }
+        return url;
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         try {
             if (!e.target.files || e.target.files.length === 0) return;
+            if (images.length >= 10) {
+                alert('Maximum 10 images per product.');
+                return;
+            }
 
             setUploading(true);
             const file = e.target.files[0];
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random()}.${fileExt}`;
-            const filePath = `${fileName}`;
+            const maxBytes = 5 * 1024 * 1024;
+            if (file.size > maxBytes) {
+                throw new Error('Image must be 5MB or smaller.');
+            }
+            if (!file.type.startsWith('image/')) {
+                throw new Error('Please choose an image file (JPEG, PNG, or WebP).');
+            }
+
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (!sessionData.session) {
+                throw new Error('Your admin session expired. Sign in again, then retry the upload.');
+            }
+
+            const rawExt = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const fileExt = rawExt || 'jpg';
+            const filePath = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${fileExt}`;
 
             const { error: uploadError } = await supabase.storage
                 .from('products')
-                .upload(filePath, file);
+                .upload(filePath, file, {
+                    contentType: file.type || `image/${fileExt}`,
+                    upsert: false,
+                });
 
             if (uploadError) throw uploadError;
 
@@ -254,12 +286,14 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 .from('products')
                 .getPublicUrl(filePath);
 
-            setImages([...images, { url: publicUrl, position: images.length }]);
+            const url = normalizeStorageUrl(publicUrl);
+            setImages((prev) => [...prev, { url, position: prev.length }]);
 
         } catch (error: any) {
-            alert('Error uploading image: ' + error.message);
+            alert('Error uploading image: ' + (error?.message || 'Upload failed'));
         } finally {
             setUploading(false);
+            e.target.value = '';
         }
     };
 
@@ -364,16 +398,23 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
                 // 1. Images
                 if (isEditMode) {
-                    await supabase.from('product_images').delete().eq('product_id', productId);
+                    const { error: delImgError } = await supabase
+                        .from('product_images')
+                        .delete()
+                        .eq('product_id', productId);
+                    if (delImgError) throw delImgError;
                 }
                 if (images.length > 0) {
                     const imageInserts = images.map((img, idx) => ({
                         product_id: productId,
-                        url: img.url,
+                        url: normalizeStorageUrl(img.url),
                         position: idx,
                         alt_text: productName
                     }));
-                    await supabase.from('product_images').insert(imageInserts);
+                    const { error: imgError } = await supabase
+                        .from('product_images')
+                        .insert(imageInserts);
+                    if (imgError) throw imgError;
                 }
 
                 // 2. Variants
