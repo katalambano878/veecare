@@ -167,6 +167,12 @@ export const RATE_LIMITS = {
     windowSeconds: 60 // 20 TTS calls per minute
   },
 
+  // Browser companion CAPI (ViewContent / AddToCart / InitiateCheckout)
+  analytics: {
+    maxRequests: 40,
+    windowSeconds: 60
+  },
+
   // General API - default limits
   default: {
     maxRequests: 100,

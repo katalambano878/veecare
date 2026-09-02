@@ -233,6 +233,11 @@ export default function AdminLayout({
       path: '/admin/coupons'
     },
     {
+      title: 'Loyalty',
+      icon: 'ri-trophy-line',
+      path: '/admin/loyalty'
+    },
+    {
       title: 'Affiliates',
       icon: 'ri-share-forward-line',
       path: '/admin/affiliates'

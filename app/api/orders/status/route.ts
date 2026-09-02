@@ -24,6 +24,7 @@ export async function POST(req: Request) {
         const { data: order, error } = await supabaseAdmin
             .from('orders')
             .select(`
+                id,
                 order_number,
                 status,
                 payment_status,
@@ -32,10 +33,12 @@ export async function POST(req: Request) {
                 total,
                 subtotal,
                 shipping_total,
+                currency,
                 created_at,
                 metadata,
                 order_items (
                     id,
+                    product_id,
                     product_name,
                     variant_name,
                     quantity,
@@ -56,10 +59,14 @@ export async function POST(req: Request) {
         }
 
         // Only surface a non-sensitive subset of metadata.
-        const trackingNumber = (order.metadata as Record<string, unknown> | null)?.tracking_number ?? null;
+        const meta = (order.metadata as Record<string, unknown> | null) ?? {};
+        const trackingNumber = meta.tracking_number ?? null;
+        const metaPurchaseEventId =
+            typeof meta.meta_purchase_event_id === 'string' ? meta.meta_purchase_event_id : null;
 
         return NextResponse.json({
             order: {
+                id: order.id,
                 order_number: order.order_number,
                 status: order.status,
                 payment_status: order.payment_status,
@@ -68,8 +75,10 @@ export async function POST(req: Request) {
                 total: order.total,
                 subtotal: order.subtotal,
                 shipping_total: order.shipping_total,
+                currency: order.currency || 'GHS',
                 created_at: order.created_at,
                 tracking_number: trackingNumber,
+                meta_purchase_event_id: metaPurchaseEventId,
                 order_items: order.order_items,
             },
         });

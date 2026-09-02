@@ -10,8 +10,39 @@ export const runtime = "nodejs";
 /**
  * Supabase Storage upload:
  *   POST /storage/v1/object/{bucket}/{path}
- *   body = raw file bytes
+ *   body = raw file bytes OR multipart/form-data (browser supabase-js client)
  */
+async function readUploadBody(
+  req: NextRequest
+): Promise<{ buf: Buffer; contentType: string } | { error: string }> {
+  const contentTypeHeader = req.headers.get("content-type") || "application/octet-stream";
+
+  // @supabase/supabase-js sends browser uploads as multipart/form-data.
+  if (contentTypeHeader.includes("multipart/form-data")) {
+    const formData = await req.formData();
+    for (const [, value] of formData.entries()) {
+      if (
+        typeof value === "object" &&
+        value !== null &&
+        typeof (value as Blob).arrayBuffer === "function" &&
+        (value as Blob).size > 0
+      ) {
+        const blob = value as Blob;
+        return {
+          buf: Buffer.from(await blob.arrayBuffer()),
+          contentType: blob.type || "application/octet-stream",
+        };
+      }
+    }
+    return { error: "No file found in multipart upload body" };
+  }
+
+  return {
+    buf: Buffer.from(await req.arrayBuffer()),
+    contentType: contentTypeHeader.split(";")[0].trim() || "application/octet-stream",
+  };
+}
+
 export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ bucket: string; path: string[] }> }
@@ -29,10 +60,13 @@ export async function POST(
   const { bucket, path } = await ctx.params;
   const objectPath = path.map(decodeURIComponent).join("/");
   const upsert = (req.headers.get("x-upsert") || "").toLowerCase() === "true";
-  const contentType =
-    req.headers.get("content-type") || "application/octet-stream";
 
-  const buf = Buffer.from(await req.arrayBuffer());
+  const body = await readUploadBody(req);
+  if ("error" in body) {
+    return NextResponse.json({ error: body.error }, { status: 400 });
+  }
+  const { buf, contentType } = body;
+
   const storage = createStorageClient();
   const { data, error } = await storage.from(bucket).upload(objectPath, buf, {
     contentType,

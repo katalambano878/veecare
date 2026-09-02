@@ -138,6 +138,17 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
         .eq('id', order.id);
 
       if (error) throw error;
+      if (statusToUpdate === 'cancelled' || statusToUpdate === 'refunded') {
+        const { data: { session } } = await supabase.auth.getSession();
+        await fetch('/api/admin/affiliates', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({ action: 'reverse-order-earning', orderId: order.id }),
+        }).catch(() => undefined);
+      }
 
       // Update local state
       setOrder({
@@ -438,6 +449,20 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                   <span>Total</span>
                   <span>GH₵ {order.total?.toFixed(2)}</span>
                 </div>
+                {order.metadata?.reseller && (
+                  <div className="mt-4 rounded-lg bg-brand-nude/30 p-4 text-sm space-y-2">
+                    <p className="font-semibold text-brand-espresso">Affiliate / reseller breakdown</p>
+                    <p>Customer paid: GH₵{Number(order.metadata.reseller.final_total ?? order.total).toFixed(2)}</p>
+                    <p>Vee-care product base: GH₵{Number(order.metadata.reseller.subtotal_base_amount).toFixed(2)}</p>
+                    <p>Affiliate earning: GH₵{Number(order.metadata.reseller.affiliate_markup_total).toFixed(2)}</p>
+                    <p>Shipping: GH₵{Number(order.metadata.reseller.shipping_amount ?? order.shipping_total ?? 0).toFixed(2)}</p>
+                    <p>Discount: GH₵{Number(order.metadata.reseller.discount_amount ?? order.discount_total ?? 0).toFixed(2)}</p>
+                    <p>Affiliate: {String(order.metadata.reseller.affiliate_code || '')}</p>
+                    {order.metadata.reseller.self_referral_flag && (
+                      <p className="text-amber-800 font-medium">Flagged: possible self-referral (email/phone match)</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -547,6 +572,32 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               </div>
             </div>
 
+            {(order.metadata?.utm_source || order.metadata?.utm_campaign || order.metadata?.fbclid || order.metadata?.landing_page) && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Ad Attribution</h2>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between gap-3">
+                  <span className="text-gray-600">Source</span>
+                  <span className="font-semibold text-gray-900 text-right">{order.metadata?.utm_source || '—'}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-gray-600">Campaign</span>
+                  <span className="font-semibold text-gray-900 text-right break-all">{order.metadata?.utm_campaign || '—'}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-gray-600">Landing page</span>
+                  <span className="text-gray-900 text-right break-all">{order.metadata?.landing_page || '—'}</span>
+                </div>
+                {order.metadata?.fbclid && (
+                  <div className="flex justify-between gap-3">
+                    <span className="text-gray-600">Facebook click</span>
+                    <span className="text-xs text-gray-700 font-mono truncate max-w-[160px]">{String(order.metadata.fbclid)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            )}
+
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Payment Info</h2>
               <div className="space-y-3">
@@ -567,6 +618,44 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                     {order.metadata?.moolre_reference || order.payment_transaction_id || 'N/A'}
                   </span>
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Traffic source</h2>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between gap-4">
+                  <span className="text-gray-600">Source</span>
+                  <span className="font-semibold text-gray-900 text-right">
+                    {order.metadata?.utm_source || '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-gray-600">Medium</span>
+                  <span className="font-semibold text-gray-900 text-right">
+                    {order.metadata?.utm_medium || '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-gray-600">Campaign</span>
+                  <span className="font-semibold text-gray-900 text-right break-all">
+                    {order.metadata?.utm_campaign || '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-gray-600">Landing page</span>
+                  <span className="font-semibold text-gray-900 text-right break-all">
+                    {order.metadata?.landing_page || '—'}
+                  </span>
+                </div>
+                {order.metadata?.fbclid && (
+                  <div className="flex justify-between gap-4">
+                    <span className="text-gray-600">Facebook click</span>
+                    <span className="text-xs text-gray-700 font-mono truncate max-w-[160px]" title={String(order.metadata.fbclid)}>
+                      {String(order.metadata.fbclid)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

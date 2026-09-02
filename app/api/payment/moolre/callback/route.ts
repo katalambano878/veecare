@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/notifications';
 import { creditAffiliateCommission } from '@/lib/affiliate';
+import { awardLoyaltyForPaidOrder } from '@/lib/loyalty';
+import { scheduleMetaPurchaseForPaidOrder } from '@/lib/meta/purchase';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { verifyMoolreExternalRef } from '@/lib/payments/moolre-verify';
 import { recordPaymentEvent } from '@/lib/payments/payment-events';
@@ -190,6 +192,7 @@ export async function POST(req: Request) {
                 } catch (notifyError: unknown) {
                     console.error('[Callback] Notification retry failed:', notifyError);
                 }
+                scheduleMetaPurchaseForPaidOrder(existingOrder);
                 await recordPaymentEvent({
                     gateway: 'moolre',
                     eventType: 'callback_result',
@@ -281,6 +284,13 @@ export async function POST(req: Request) {
             } catch (affiliateError: unknown) {
                 console.error('[Callback] Affiliate commission failed:', affiliateError);
             }
+
+            try {
+                await awardLoyaltyForPaidOrder(orderJson);
+            } catch (loyaltyError: unknown) {
+                console.error('[Callback] Loyalty award failed:', loyaltyError);
+            }
+            scheduleMetaPurchaseForPaidOrder(orderJson);
 
             // Send SMS + Email notifications
             try {

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCart } from '@/context/CartContext';
+import { useResellerPrices } from '@/hooks/useResellerPrices';
 
 interface MiniCartProps {
   isOpen: boolean;
@@ -12,6 +13,13 @@ interface MiniCartProps {
 
 export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
   const { cart, removeFromCart, updateQuantity, subtotal } = useCart();
+  const { sellingPrice } = useResellerPrices(
+    cart.map((item) => ({ id: item.id, quantity: item.quantity, variant: item.variant }))
+  );
+  const displaySubtotal = cart.reduce(
+    (sum, item) => sum + sellingPrice(item.id, item.variant, item.price) * item.quantity,
+    0
+  ) || subtotal;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -111,7 +119,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                       )}
 
                       <p className="mt-2 font-display text-lg font-semibold text-brand-espresso">
-                        GH₵{item.price.toFixed(2)}
+                        GH₵{sellingPrice(item.id, item.variant, item.price).toFixed(2)}
                       </p>
 
                       <div className="mt-3 flex items-center justify-between gap-2">
@@ -142,7 +150,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                           </button>
                         </div>
                         <span className="text-xs font-medium text-brand-cocoa/60 whitespace-nowrap">
-                          GH₵{(item.price * item.quantity).toFixed(2)}
+                          GH₵{(sellingPrice(item.id, item.variant, item.price) * item.quantity).toFixed(2)}
                         </span>
                       </div>
 
@@ -162,7 +170,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
               <div className="mb-4 flex items-center justify-between">
                 <span className="text-sm font-medium text-brand-cocoa/80">Subtotal</span>
                 <span className="font-display text-2xl font-semibold text-brand-espresso">
-                  GH₵{subtotal.toFixed(2)}
+                  GH₵{displaySubtotal.toFixed(2)}
                 </span>
               </div>
               <p className="mb-4 text-center text-xs text-brand-cocoa/60">

@@ -31,6 +31,14 @@ function preferReturn(req: NextRequest): boolean {
   return prefer.includes("return=representation") || prefer.includes("resolution=");
 }
 
+function preferUpsert(req: NextRequest): boolean {
+  const prefer = (req.headers.get("prefer") || "").toLowerCase();
+  return (
+    prefer.includes("resolution=merge-duplicates") ||
+    prefer.includes("resolution=ignore-duplicates")
+  );
+}
+
 function preferCount(req: NextRequest): boolean {
   const prefer = req.headers.get("prefer") || "";
   return prefer.includes("count=exact");
@@ -150,6 +158,25 @@ export async function POST(
     }));
     if (!Array.isArray(body)) payload = payload[0];
   }
+  if (!actor.isStaff && !actor.isServiceRole && table === "reviews") {
+    const rows = Array.isArray(payload) ? payload : [payload];
+    const locked = [];
+    for (const row of rows) {
+      const guestName = String(row.guest_name || "").trim().slice(0, 80);
+      const guestEmail = String(row.guest_email || "").trim().toLowerCase().slice(0, 120);
+      if (!actor.userId && (!guestName || !guestEmail.includes("@"))) {
+        return jsonError("Name and email are required to leave a review", 400);
+      }
+      locked.push({
+        ...row,
+        status: "pending",
+        user_id: actor.userId || null,
+        guest_name: guestName || null,
+        guest_email: actor.userId ? null : guestEmail || null,
+      });
+    }
+    payload = Array.isArray(payload) ? locked : locked[0];
+  }
   if (!actor.isStaff && !actor.isServiceRole && table === "profiles" && actor.userId) {
     if (Array.isArray(body)) {
       payload = body.map((row: Record<string, unknown>) => ({
@@ -163,7 +190,10 @@ export async function POST(
   }
 
   const client = createClient();
-  let qb: any = client.from(table).insert(payload);
+  const onConflict = req.nextUrl.searchParams.get("on_conflict") || undefined;
+  let qb: any = preferUpsert(req)
+    ? client.from(table).upsert(payload, onConflict ? { onConflict } : undefined)
+    : client.from(table).insert(payload);
   if (preferReturn(req) || preferSingle(req)) {
     qb = qb.select("*");
   }

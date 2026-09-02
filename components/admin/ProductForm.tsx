@@ -31,6 +31,14 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [status, setStatus] = useState(initialData?.status || 'active');
     const [featured, setFeatured] = useState(initialData?.featured || false);
     const [preorderShipping, setPreorderShipping] = useState(initialData?.metadata?.preorder_shipping || '');
+    const [affiliateEnabled, setAffiliateEnabled] = useState(initialData?.metadata?.affiliate_enabled !== false);
+    const [affiliateMarkupType, setAffiliateMarkupType] = useState(initialData?.metadata?.affiliate_markup_type || 'percentage');
+    const [affiliateMarkupRate, setAffiliateMarkupRate] = useState(initialData?.metadata?.affiliate_markup_rate ?? '');
+    const [affiliateFixedMarkup, setAffiliateFixedMarkup] = useState(initialData?.metadata?.affiliate_fixed_markup ?? '');
+    const [affiliateCustomAllowed, setAffiliateCustomAllowed] = useState(initialData?.metadata?.affiliate_custom_price_allowed === true);
+    const [affiliateMinSelling, setAffiliateMinSelling] = useState(initialData?.metadata?.affiliate_min_selling_price ?? '');
+    const [affiliateMaxSelling, setAffiliateMaxSelling] = useState(initialData?.metadata?.affiliate_max_selling_price ?? '');
+    const [affiliateDefaultSelling, setAffiliateDefaultSelling] = useState(initialData?.metadata?.affiliate_default_selling_price ?? '');
     const [activeTab, setActiveTab] = useState('general');
 
     const generateSku = () => generateProductSku(productName);
@@ -203,6 +211,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
         { id: 'pricing', label: 'Pricing & Inventory', icon: 'ri-price-tag-3-line' },
         { id: 'variants', label: 'Variants', icon: 'ri-layout-grid-line' },
         { id: 'images', label: 'Images', icon: 'ri-image-line' },
+        { id: 'affiliate', label: 'Affiliate', icon: 'ri-share-forward-line' },
         { id: 'seo', label: 'SEO', icon: 'ri-search-line' }
     ];
 
@@ -362,8 +371,17 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 seo_description: metaDescription,
                 tags: (keywords as string).split(',').map((k: string) => k.trim()).filter(Boolean),
                 metadata: {
+                    ...(initialData?.metadata || {}),
                     low_stock_threshold: parseInt(lowStockThreshold) || 5,
-                    preorder_shipping: preorderShipping.trim() || null
+                    preorder_shipping: preorderShipping.trim() || null,
+                    affiliate_enabled: affiliateEnabled,
+                    affiliate_markup_type: affiliateMarkupType,
+                    affiliate_markup_rate: affiliateMarkupRate ? parseFloat(String(affiliateMarkupRate)) : null,
+                    affiliate_fixed_markup: affiliateFixedMarkup ? parseFloat(String(affiliateFixedMarkup)) : null,
+                    affiliate_custom_price_allowed: affiliateCustomAllowed,
+                    affiliate_min_selling_price: affiliateMinSelling ? parseFloat(String(affiliateMinSelling)) : null,
+                    affiliate_max_selling_price: affiliateMaxSelling ? parseFloat(String(affiliateMaxSelling)) : null,
+                    affiliate_default_selling_price: affiliateDefaultSelling ? parseFloat(String(affiliateDefaultSelling)) : null,
                 }
             };
 
@@ -1115,6 +1133,53 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     Supported formats: JPG, PNG, WebP (max 5MB each).
                                 </p>
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'affiliate' && (
+                        <div className="space-y-4 max-w-xl">
+                            <label className="flex items-center gap-2 text-sm font-medium">
+                                <input type="checkbox" checked={affiliateEnabled} onChange={(e) => setAffiliateEnabled(e.target.checked)} />
+                                Enable affiliate selling
+                            </label>
+                            <label className="block text-sm">
+                                Markup type
+                                <select
+                                    className="mt-1 w-full border rounded-lg px-3 py-2"
+                                    value={affiliateMarkupType}
+                                    onChange={(e) => setAffiliateMarkupType(e.target.value)}
+                                >
+                                    <option value="percentage">Percentage</option>
+                                    <option value="fixed">Fixed amount</option>
+                                </select>
+                            </label>
+                            <label className="block text-sm">
+                                Default markup rate (%)
+                                <input
+                                    className="mt-1 w-full border rounded-lg px-3 py-2"
+                                    value={affiliateMarkupRate}
+                                    onChange={(e) => setAffiliateMarkupRate(e.target.value)}
+                                    placeholder="Uses affiliate rate if empty"
+                                />
+                            </label>
+                            <label className="block text-sm">
+                                Fixed markup (GH₵)
+                                <input
+                                    className="mt-1 w-full border rounded-lg px-3 py-2"
+                                    value={affiliateFixedMarkup}
+                                    onChange={(e) => setAffiliateFixedMarkup(e.target.value)}
+                                />
+                            </label>
+                            <label className="flex items-center gap-2 text-sm font-medium">
+                                <input type="checkbox" checked={affiliateCustomAllowed} onChange={(e) => setAffiliateCustomAllowed(e.target.checked)} />
+                                Allow custom selling price
+                            </label>
+                            <div className="grid grid-cols-3 gap-3">
+                                <input className="border rounded-lg px-3 py-2 text-sm" placeholder="Min GH₵" value={affiliateMinSelling} onChange={(e) => setAffiliateMinSelling(e.target.value)} />
+                                <input className="border rounded-lg px-3 py-2 text-sm" placeholder="Recommended" value={affiliateDefaultSelling} onChange={(e) => setAffiliateDefaultSelling(e.target.value)} />
+                                <input className="border rounded-lg px-3 py-2 text-sm" placeholder="Max GH₵" value={affiliateMaxSelling} onChange={(e) => setAffiliateMaxSelling(e.target.value)} />
+                            </div>
+                            <p className="text-xs text-gray-500">Vee-care base price is always a hard floor. Custom prices are off unless you enable them here.</p>
                         </div>
                     )}
 

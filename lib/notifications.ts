@@ -1111,3 +1111,78 @@ ${emailButton('Reply to Customer', `mailto:${safeEmail}?subject=Re: Return ${enc
         throw new Error(adminResult.errors.join('; ') || 'Failed to notify admin inboxes');
     }
 }
+
+export async function sendAffiliateApprovedEmail(affiliate: {
+    name: string;
+    email: string;
+    code: string;
+    commission_rate?: number | string | null;
+}) {
+    const email = affiliate.email?.trim();
+    if (!email) {
+        return { error: { message: 'Affiliate email missing' } };
+    }
+
+    const name = escapeHtml(affiliate.name?.trim() || 'there');
+    const code = escapeHtml(String(affiliate.code || '').toUpperCase());
+    const rate = Number(affiliate.commission_rate);
+    const rateLabel = Number.isFinite(rate) ? `${rate}%` : 'your agreed';
+  const portalUrl = `${BRAND.url}/affiliate/dashboard`;
+  const referralLink = `${BRAND.url}/?ref=${encodeURIComponent(String(affiliate.code || '').toUpperCase())}`;
+
+    const result = await sendEmail({
+        to: email,
+        subject: `You're approved — start sharing your ${BRAND.name} referral link`,
+        html: emailLayout(`
+<div style="text-align:center;margin-bottom:24px;">
+  <div style="width:64px;height:64px;background-color:${BRAND.colorLight};border-radius:50%;margin:0 auto 16px;line-height:64px;font-size:28px;">&#10003;</div>
+  <h2 style="margin:0 0 4px;color:#111827;font-size:22px;">You're in, ${name}!</h2>
+  <p style="margin:0;color:#6b7280;font-size:15px;">Your affiliate application has been approved.</p>
+</div>
+
+<p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+  You can now generate selling links. Customers pay your marked-up price. ${escapeHtml(BRAND.name)} keeps the full product base price, and you earn the markup (currently ${escapeHtml(rateLabel)}).
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:20px 0;">
+  ${emailInfoRow('Your code', code)}
+  ${emailInfoRow('Commission', escapeHtml(rateLabel))}
+  ${emailInfoRow('Referral link', `<a href="${escapeHtml(referralLink)}" style="color:${BRAND.color};text-decoration:none;word-break:break-all;">${escapeHtml(referralLink)}</a>`)}
+</table>
+
+<p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 8px;">
+  Sign in with this email. We will send a one-time code — your public referral code is not a password.
+</p>
+
+${emailButton('Open Affiliate Dashboard', portalUrl)}
+`, `Your ${BRAND.name} affiliate account is approved`),
+    });
+
+    if (result?.error) {
+        console.error('[Email] Affiliate approval email failed for', maskEmail(email));
+    } else {
+        console.log('[Email] Affiliate approval sent to', maskEmail(email));
+    }
+
+    return result;
+}
+
+export async function sendAffiliateOtpEmail(affiliate: { name?: string | null; email: string }, otp: string) {
+    const email = affiliate.email?.trim();
+    if (!email) return { error: { message: 'Affiliate email missing' } };
+    const name = escapeHtml(affiliate.name?.trim() || 'there');
+    const portalUrl = `${BRAND.url}/affiliate`;
+    return sendEmail({
+        to: email,
+        subject: `Your ${BRAND.name} affiliate sign-in code`,
+        html: emailLayout(`
+<h2 style="margin:0 0 8px;color:#111827;font-size:22px;">Sign in, ${name}</h2>
+<p style="margin:0 0 16px;color:#6b7280;font-size:14px;">Use this one-time code within 10 minutes. Do not share it.</p>
+<div style="text-align:center;margin:24px 0;">
+  <div style="display:inline-block;letter-spacing:8px;font-size:32px;font-weight:700;color:#111827;background:#f9fafb;padding:16px 24px;border-radius:12px;">${escapeHtml(otp)}</div>
+</div>
+<p style="color:#6b7280;font-size:13px;">If you did not request this, you can ignore the email.</p>
+${emailButton('Open affiliate portal', portalUrl)}
+`, 'Your affiliate sign-in code'),
+    });
+}

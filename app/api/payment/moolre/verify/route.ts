@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/notifications';
 import { creditAffiliateCommission } from '@/lib/affiliate';
+import { awardLoyaltyForPaidOrder } from '@/lib/loyalty';
+import { scheduleMetaPurchaseForPaidOrder } from '@/lib/meta/purchase';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { verifyMoolreExternalRef } from '@/lib/payments/moolre-verify';
 import { recordPaymentEvent } from '@/lib/payments/payment-events';
@@ -60,6 +62,7 @@ export async function POST(req: Request) {
             } catch (notifyError: unknown) {
                 console.error('[Verify] Notification retry failed:', notifyError);
             }
+            scheduleMetaPurchaseForPaidOrder(order, { clientIp: clientId });
             return NextResponse.json({
                 success: true,
                 status: order.status,
@@ -160,6 +163,12 @@ export async function POST(req: Request) {
             } catch (affiliateError: unknown) {
                 console.error('[Verify] Affiliate commission failed:', affiliateError);
             }
+            try {
+                await awardLoyaltyForPaidOrder(orderJson);
+            } catch (loyaltyError: unknown) {
+                console.error('[Verify] Loyalty award failed:', loyaltyError);
+            }
+            scheduleMetaPurchaseForPaidOrder(orderJson, { clientIp: clientId });
         }
 
         // 7. Send notifications (SMS + Email)

@@ -178,6 +178,9 @@ export async function signInWithPassword(
   ).catch(() => {});
 
   const session = await mintSession(row);
+  void import('@/lib/loyalty')
+    .then((m) => m.claimLoyaltyForUser(row.id, normalized))
+    .catch((err) => console.error('[loyalty] claim on login failed:', err));
   return { session, error: null };
 }
 
@@ -226,6 +229,9 @@ export async function signUpWithPassword(opts: {
 
   const { rows } = await query(`SELECT * FROM auth.users WHERE id = $1`, [id]);
   const session = await mintSession(rows[0]);
+  void import('@/lib/loyalty')
+    .then((m) => m.claimLoyaltyForUser(id, email))
+    .catch((err) => console.error('[loyalty] claim on signup failed:', err));
   return { session, user: session.user, error: null };
 }
 

@@ -53,6 +53,8 @@ const USER_SCOPED_GET: Record<string, string> = {
   notifications: "user_id",
   return_requests: "user_id",
   affiliates: "user_id",
+  loyalty_accounts: "user_id",
+  loyalty_ledger: "user_id",
 };
 
 /** RPCs callable without staff privileges (storefront / checkout). */
@@ -73,6 +75,7 @@ const STAFF_RPC = new Set([
   "apply_store_wide_discount",
   "clear_store_wide_discount",
   "credit_affiliate_commission",
+  "increment_affiliate_link_clicks",
   "upsert_chat_conversation",
   "get_ai_memories",
   "upsert_customer_insight",
@@ -117,7 +120,13 @@ export function authorizeRestTable(
       return deny("Admin access required");
     }
 
-    if (t === "order_items" || t === "affiliate_commissions") {
+    if (
+      t === "order_items" ||
+      t === "affiliate_commissions" ||
+      t === "affiliate_links" ||
+      t === "affiliate_visits" ||
+      t === "affiliate_audit_log"
+    ) {
       return deny(`Direct ${t} access is restricted`);
     }
 

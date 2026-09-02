@@ -34,9 +34,9 @@ export default function AdminReviewsPage() {
         const formatted = data.map((r: any) => ({
           id: r.id,
           customer: {
-            name: r.profiles?.full_name || 'Anonymous',
-            email: r.profiles?.email || 'N/A',
-            avatar: getInitials(r.profiles?.full_name || r.profiles?.email)
+            name: r.profiles?.full_name || r.guest_name || 'Guest',
+            email: r.profiles?.email || r.guest_email || 'N/A',
+            avatar: getInitials(r.profiles?.full_name || r.guest_name || r.profiles?.email || r.guest_email)
           },
           product: {
             name: r.products?.name || 'Unknown Product',
@@ -46,7 +46,7 @@ export default function AdminReviewsPage() {
           title: r.title,
           comment: r.content,
           date: new Date(r.created_at).toLocaleDateString(),
-          status: r.status || 'Pending',
+          status: String(r.status || 'pending').toLowerCase(),
           helpful: r.helpful || 0
         }));
         setReviews(formatted);
@@ -80,10 +80,10 @@ export default function AdminReviewsPage() {
     rejected: reviews.filter(r => r.status.toLowerCase() === 'rejected').length
   };
 
-  const statusColors: any = {
-    'Pending': 'bg-amber-100 text-amber-700',
-    'Approved': 'bg-brand-nude/50 text-brand-espresso',
-    'Rejected': 'bg-red-100 text-red-700'
+  const statusColors: Record<string, string> = {
+    pending: 'bg-amber-100 text-amber-700',
+    approved: 'bg-brand-nude/50 text-brand-espresso',
+    rejected: 'bg-red-100 text-red-700',
   };
 
   const handleSelectAll = () => {
@@ -106,8 +106,8 @@ export default function AdminReviewsPage() {
     if (selectedReviews.length === 0) return;
     try {
       let newStatus = '';
-      if (action === 'Approve') newStatus = 'Approved';
-      if (action === 'Reject') newStatus = 'Rejected';
+      if (action === 'Approve') newStatus = 'approved';
+      if (action === 'Reject') newStatus = 'rejected';
 
       if (newStatus) {
         const { error } = await supabase
@@ -286,7 +286,7 @@ export default function AdminReviewsPage() {
                     <td className="py-4 px-4 text-sm text-gray-600 whitespace-nowrap">{review.date}</td>
                     <td className="py-4 px-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${statusColors[review.status] || 'bg-gray-100'}`}>
-                        {review.status}
+                        {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
                       </span>
                     </td>
                   </tr>

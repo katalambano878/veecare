@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { notifyConsentUpdated } from '@/lib/analytics/consent';
 
 export default function CookieConsent() {
   const [showBanner, setShowBanner] = useState(false);
@@ -31,6 +32,7 @@ export default function CookieConsent() {
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('cookieConsent', JSON.stringify(allAccepted));
+    notifyConsentUpdated();
     setShowBanner(false);
   };
 
@@ -43,6 +45,7 @@ export default function CookieConsent() {
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('cookieConsent', JSON.stringify(rejected));
+    notifyConsentUpdated();
     setShowBanner(false);
   };
 
@@ -52,6 +55,7 @@ export default function CookieConsent() {
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('cookieConsent', JSON.stringify(saved));
+    notifyConsentUpdated();
     setShowBanner(false);
     setShowPreferences(false);
   };

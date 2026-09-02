@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendOrderConfirmation, retryOrderNotificationsIfNeeded } from '@/lib/notifications';
 import { creditAffiliateCommission } from '@/lib/affiliate';
+import { awardLoyaltyForPaidOrder } from '@/lib/loyalty';
+import { scheduleMetaPurchaseForPaidOrder } from '@/lib/meta/purchase';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import {
     stripPaystackRetrySuffix,
@@ -76,6 +78,7 @@ export async function POST(req: Request) {
             } catch (notifyError: unknown) {
                 console.error('[Paystack Callback] Notification retry failed:', notifyError);
             }
+            scheduleMetaPurchaseForPaidOrder(existingOrder);
             return NextResponse.json({ success: true, message: 'Order already processed' });
         }
 
@@ -155,6 +158,13 @@ export async function POST(req: Request) {
         } catch (affiliateError: unknown) {
             console.error('[Paystack Callback] Affiliate commission failed:', affiliateError);
         }
+
+        try {
+            await awardLoyaltyForPaidOrder(orderJson);
+        } catch (loyaltyError: unknown) {
+            console.error('[Paystack Callback] Loyalty award failed:', loyaltyError);
+        }
+        scheduleMetaPurchaseForPaidOrder(orderJson);
 
         try {
             await sendOrderConfirmation(orderJson);

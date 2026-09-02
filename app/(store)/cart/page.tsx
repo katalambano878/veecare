@@ -9,10 +9,18 @@ import { useCart } from '@/context/CartContext';
 import PageHero from '@/components/PageHero';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { APPLIED_COUPON_STORAGE_KEY, type StoredAppliedCoupon } from '@/lib/coupons';
+import { useResellerPrices } from '@/hooks/useResellerPrices';
 
 export default function CartPage() {
   usePageTitle('Shopping Cart');
   const { cart: cartItems, removeFromCart, updateQuantity, subtotal, addToCart } = useCart();
+  const { sellingPrice } = useResellerPrices(
+    cartItems.map((item) => ({ id: item.id, quantity: item.quantity, variant: item.variant }))
+  );
+  const displaySubtotal = cartItems.reduce(
+    (sum, item) => sum + sellingPrice(item.id, item.variant, item.price) * item.quantity,
+    0
+  ) || subtotal;
   const [appliedCoupon, setAppliedCoupon] = useState<StoredAppliedCoupon | null>(null);
   const [savedItems, setSavedItems] = useState<any[]>([]);
 
@@ -55,9 +63,9 @@ export default function CartPage() {
   // Assuming 0 for now unless we update Context.
   const savings = 0;
 
-  const shipping = subtotal >= 200 ? 0 : 15;
+  const shipping = 0;
   const couponDiscount = appliedCoupon?.discountAmount ?? 0;
-  const total = subtotal - couponDiscount + shipping;
+  const total = Math.max(0, displaySubtotal - couponDiscount + shipping);
 
   return (
     <div className="min-h-screen relative">
@@ -120,7 +128,7 @@ export default function CartPage() {
 
                             <div className="flex items-center justify-between flex-wrap gap-4">
                               <div className="flex items-baseline space-x-3">
-                                <span className="font-display text-xl font-semibold text-brand-espresso">GH₵{item.price.toFixed(2)}</span>
+                                <span className="font-display text-xl font-semibold text-brand-espresso">GH₵{sellingPrice(item.id, item.variant, item.price).toFixed(2)}</span>
                               </div>
 
                               <div className="flex items-center space-x-4">
@@ -204,7 +212,7 @@ export default function CartPage() {
                     <div className="space-y-4 mb-6">
                       <div className="flex justify-between text-brand-cocoa/80">
                         <span>Subtotal</span>
-                        <span className="font-semibold">GH₵{subtotal.toFixed(2)}</span>
+                        <span className="font-semibold">GH₵{displaySubtotal.toFixed(2)}</span>
                       </div>
 
                       {appliedCoupon && (
@@ -218,7 +226,7 @@ export default function CartPage() {
 
                       <div className="flex justify-between text-brand-cocoa/80">
                         <span>Shipping</span>
-                        <span className="font-semibold">{shipping === 0 ? 'FREE' : `GH₵${shipping.toFixed(2)}`}</span>
+                        <span className="font-semibold">FREE</span>
                       </div>
 
                       {shipping > 0 && (
@@ -236,7 +244,7 @@ export default function CartPage() {
                     </div>
 
                     <AdvancedCouponSystem
-                      subtotal={subtotal}
+                      subtotal={displaySubtotal}
                       shippingCost={shipping}
                       onApply={applyCoupon}
                       onRemove={removeCoupon}

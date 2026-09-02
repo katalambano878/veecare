@@ -58,6 +58,7 @@
     "start": "next start -H 0.0.0.0 -p 3000",
     "dev": "next dev -H 0.0.0.0 -p 3000",
     "lint": "next lint",
+    "test": "node --test tests/reseller-pricing.test.mjs",
     "supabase:link": "supabase link --project-ref YOUR_PROJECT_ID",
     "supabase:push": "supabase db push",
     "supabase:migrate": "supabase link --project-ref YOUR_PROJECT_ID && supabase db push",

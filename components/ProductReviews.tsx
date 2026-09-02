@@ -32,7 +32,9 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   const [reviewForm, setReviewForm] = useState({
     rating: 5,
     title: '',
-    content: ''
+    content: '',
+    guestName: '',
+    guestEmail: '',
   });
   const { getToken, verifying } = useRecaptcha();
 
@@ -63,7 +65,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       if (data) {
         const formattedReviews = data.map((r: any) => ({
           id: r.id,
-          author: 'Verified Customer',
+          author: r.guest_name || 'Customer',
           rating: r.rating,
           date: r.created_at,
           verified: r.verified_purchase,
@@ -100,8 +102,8 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      alert('Please login to submit a review');
+    if (!user && (!reviewForm.guestName.trim() || !reviewForm.guestEmail.includes('@'))) {
+      alert('Please enter your name and email so we can publish your review.');
       return;
     }
 
@@ -116,19 +118,23 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     try {
       const { error } = await supabase.from('reviews').insert([{
         product_id: productId,
-        user_id: user.id,
+        user_id: user?.id || null,
         rating: reviewForm.rating,
         title: reviewForm.title,
         content: reviewForm.content,
-        status: 'approved',
-        verified_purchase: false
+        status: 'pending',
+        verified_purchase: false,
+        guest_name: user
+          ? (user.user_metadata?.full_name || user.email?.split('@')[0] || 'Customer')
+          : reviewForm.guestName.trim(),
+        guest_email: user ? null : reviewForm.guestEmail.trim().toLowerCase(),
       }]);
 
       if (error) throw error;
 
-      alert('Review submitted successfully!');
+      alert('Thank you. Your review will appear on the product page after an admin approves it.');
       setShowReviewForm(false);
-      setReviewForm({ rating: 5, title: '', content: '' });
+      setReviewForm({ rating: 5, title: '', content: '', guestName: '', guestEmail: '' });
       invalidateCache(`reviews:${productId}`);
       fetchReviews();
 
@@ -246,8 +252,30 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           </div>
 
           {!user && (
-            <div className="mb-4 p-4 bg-amber-50 text-amber-800 rounded-xl border border-amber-200">
-              You must be logged in to submit a review.
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-brand-espresso mb-2">Your name *</label>
+                <input
+                  type="text"
+                  value={reviewForm.guestName}
+                  onChange={(e) => setReviewForm({ ...reviewForm, guestName: e.target.value })}
+                  className="w-full px-4 py-3 border-2 border-brand-nude/70 rounded-xl focus:ring-2 focus:ring-brand-mauve/30 focus:border-brand-espresso bg-white"
+                  placeholder="e.g. Ama"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-brand-espresso mb-2">Email *</label>
+                <input
+                  type="email"
+                  value={reviewForm.guestEmail}
+                  onChange={(e) => setReviewForm({ ...reviewForm, guestEmail: e.target.value })}
+                  className="w-full px-4 py-3 border-2 border-brand-nude/70 rounded-xl focus:ring-2 focus:ring-brand-mauve/30 focus:border-brand-espresso bg-white"
+                  placeholder="you@email.com"
+                  required
+                />
+                <p className="text-xs text-brand-cocoa/60 mt-1">Used only so admin can see who left the review. Not shown publicly.</p>
+              </div>
             </div>
           )}
 
@@ -260,7 +288,6 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               className="w-full px-4 py-3 border-2 border-brand-nude/70 rounded-xl focus:ring-2 focus:ring-brand-mauve/30 focus:border-brand-espresso bg-white"
               placeholder="Sum up your experience"
               required
-              disabled={!user}
             />
           </div>
 
@@ -273,14 +300,13 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               className="w-full px-4 py-3 border-2 border-brand-nude/70 rounded-xl focus:ring-2 focus:ring-brand-mauve/30 focus:border-brand-espresso bg-white"
               placeholder="Share your experience with this product"
               required
-              disabled={!user}
             ></textarea>
           </div>
 
           <div className="flex space-x-3">
             <button
               type="submit"
-              disabled={isSubmitting || !user}
+              disabled={isSubmitting}
               className="btn-luxury-primary px-6 py-3 disabled:opacity-50"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Review'}

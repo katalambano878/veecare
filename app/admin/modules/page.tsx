@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 interface Module {
@@ -140,7 +141,10 @@ export default function ModulesPage() {
     try {
       const { error } = await supabase
         .from('store_modules')
-        .upsert({ id, enabled: newState, updated_at: new Date().toISOString() });
+        .upsert(
+          { id, enabled: newState, updated_at: new Date().toISOString() },
+          { onConflict: 'id' }
+        );
 
       if (error) {
         throw error;
@@ -148,9 +152,13 @@ export default function ModulesPage() {
 
       window.location.reload();
 
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error updating module:', err);
-      alert('Failed to update settings');
+      setModules(modules.map(m =>
+        m.id === id ? { ...m, enabled: currentState } : m
+      ));
+      const message = err instanceof Error ? err.message : 'Failed to update settings';
+      alert(message);
     }
   };
 
@@ -282,6 +290,14 @@ export default function ModulesPage() {
                         <span className={`text-xs font-bold px-2 py-1 rounded-full ${module.enabled ? 'bg-brand-nude/50 text-brand-espresso' : 'bg-gray-100 text-gray-600'}`}>
                           {module.enabled ? 'Enabled' : 'Disabled'}
                         </span>
+                        {module.id === 'loyalty-program' && (
+                          <Link
+                            href="/admin/loyalty"
+                            className="text-xs font-semibold text-brand-espresso hover:underline"
+                          >
+                            Open Loyalty
+                          </Link>
+                        )}
                       </div>
                     </div>
                   ))}

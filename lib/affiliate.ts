@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { creditAffiliateEarning } from '@/lib/reseller/earnings';
 
 export {
   AFFILIATE_COOKIE,
@@ -15,16 +15,10 @@ export {
 export async function creditAffiliateCommission(orderId: string) {
   if (!orderId) return;
   try {
-    const { data, error } = await supabaseAdmin.rpc('credit_affiliate_commission', {
-      p_order_id: orderId,
-    });
-    if (error) {
-      console.error('[Affiliate] RPC error:', error.message);
-      return;
-    }
-    if (data?.credited) {
+    const data = await creditAffiliateEarning(orderId);
+    if (data.credited) {
       console.log(
-        '[Affiliate] Commission credited for order',
+        '[Affiliate] Earning credited for order',
         orderId,
         '| amount:',
         data.commission_amount

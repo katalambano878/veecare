@@ -26,6 +26,9 @@ type Commission = {
   order_total: number;
   commission_amount: number;
   commission_rate: number;
+  base_amount?: number | null;
+  selling_amount?: number | null;
+  affiliate_amount?: number | null;
   status: 'pending' | 'approved' | 'paid' | 'cancelled';
   paid_at: string | null;
   created_at: string;
@@ -67,6 +70,8 @@ export default function AdminAffiliatesPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
+  const [emailingAll, setEmailingAll] = useState(false);
 
   useEffect(() => {
     fetchAffiliates();
@@ -166,6 +171,33 @@ export default function AdminAffiliatesPage() {
         if (error) throw error;
       }
 
+      const becameActive =
+        form.status === 'active' && (!editingAffiliate || editingAffiliate.status !== 'active');
+      if (becameActive) {
+        const id = editingAffiliate?.id;
+        if (id) {
+          try {
+            await adminFetch({ action: 'notify-approved', id });
+          } catch (mailErr) {
+            console.error('Affiliate approval email failed:', mailErr);
+          }
+        } else {
+          const { data: created } = await supabase
+            .from('affiliates')
+            .select('id')
+            .eq('email', email)
+            .eq('code', code)
+            .maybeSingle();
+          if (created?.id) {
+            try {
+              await adminFetch({ action: 'notify-approved', id: created.id });
+            } catch (mailErr) {
+              console.error('Affiliate approval email failed:', mailErr);
+            }
+          }
+        }
+      }
+
       setShowModal(false);
       await fetchAffiliates();
     } catch (err: unknown) {
@@ -239,17 +271,69 @@ export default function AdminAffiliatesPage() {
     }
   };
 
+  const adminFetch = async (body: Record<string, string>) => {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    const res = await fetch('/api/admin/affiliates', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(typeof json.error === 'string' ? json.error : 'Request failed');
+    }
+    return json as { success?: boolean; emailSent?: boolean; emailed?: number; failed?: number; total?: number };
+  };
+
+  const emailAllActive = async () => {
+    const activeCount = affiliates.filter((a) => a.status === 'active').length;
+    if (!activeCount) {
+      alert('There are no active affiliates to email.');
+      return;
+    }
+    if (!window.confirm(`Send the approval email to all ${activeCount} active affiliate${activeCount === 1 ? '' : 's'}?`)) {
+      return;
+    }
+    try {
+      setEmailingAll(true);
+      const result = await adminFetch({ action: 'notify-all-active' });
+      alert(
+        `Approval emails sent: ${result.emailed ?? 0} of ${result.total ?? activeCount}` +
+          (result.failed ? `. ${result.failed} failed.` : '.')
+      );
+    } catch (err) {
+      console.error('Bulk affiliate email failed:', err);
+      alert('Could not send approval emails.');
+    } finally {
+      setEmailingAll(false);
+    }
+  };
+
   const updateAffiliateStatus = async (affiliate: Affiliate, status: Affiliate['status']) => {
     try {
-      const { error } = await supabase
-        .from('affiliates')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', affiliate.id);
-      if (error) throw error;
+      setStatusUpdatingId(affiliate.id);
+      const result = await adminFetch({
+        action: 'set-status',
+        id: affiliate.id,
+        status,
+      });
       await fetchAffiliates();
+      if (status === 'active') {
+        alert(
+          result.emailSent
+            ? `${affiliate.name} is approved. An email was sent to ${affiliate.email}.`
+            : `${affiliate.name} is approved, but the email could not be sent. Check RESEND_API_KEY.`
+        );
+      }
     } catch (err) {
       console.error('Status update failed:', err);
       alert('Failed to update affiliate status.');
+    } finally {
+      setStatusUpdatingId(null);
     }
   };
 
@@ -275,13 +359,22 @@ export default function AdminAffiliatesPage() {
           <h1 className="text-3xl font-bold text-gray-900">Affiliates</h1>
           <p className="text-gray-600 mt-1">Manage partners, commissions, and payouts</p>
         </div>
-        <button
-          onClick={openCreate}
-          className="bg-brand-espresso hover:bg-brand-cocoa text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
-        >
-          <i className="ri-add-line mr-2"></i>
-          Add Affiliate
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={emailAllActive}
+            disabled={emailingAll}
+            className="border-2 border-gray-300 hover:border-gray-400 text-gray-800 px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
+          >
+            {emailingAll ? 'Sending emails…' : 'Email all approved'}
+          </button>
+          <button
+            onClick={openCreate}
+            className="bg-brand-espresso hover:bg-brand-cocoa text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+          >
+            <i className="ri-add-line mr-2"></i>
+            Add Affiliate
+          </button>
+        </div>
       </div>
 
       {pendingCount > 0 && (
@@ -407,13 +500,15 @@ export default function AdminAffiliatesPage() {
                             <>
                               <button
                                 onClick={() => updateAffiliateStatus(affiliate, 'active')}
-                                className="text-xs px-3 py-1.5 bg-brand-espresso text-white rounded-lg hover:bg-brand-cocoa cursor-pointer font-semibold"
+                                disabled={statusUpdatingId === affiliate.id}
+                                className="text-xs px-3 py-1.5 bg-brand-espresso text-white rounded-lg hover:bg-brand-cocoa cursor-pointer font-semibold disabled:opacity-50"
                               >
-                                Approve
+                                {statusUpdatingId === affiliate.id ? 'Approving…' : 'Approve'}
                               </button>
                               <button
                                 onClick={() => updateAffiliateStatus(affiliate, 'suspended')}
-                                className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer"
+                                disabled={statusUpdatingId === affiliate.id}
+                                className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer disabled:opacity-50"
                               >
                                 Reject
                               </button>
@@ -495,9 +590,14 @@ export default function AdminAffiliatesPage() {
                       <p className="font-medium">{commission.affiliates?.name || '—'}</p>
                       <p className="text-xs text-gray-500">{commission.affiliates?.code}</p>
                     </td>
-                    <td className="py-4 px-4">GH₵{Number(commission.order_total).toFixed(2)}</td>
+                    <td className="py-4 px-4">
+                      <p>Customer GH₵{Number(commission.selling_amount ?? commission.order_total).toFixed(2)}</p>
+                      <p className="text-xs text-gray-500">
+                        Base GH₵{Number(commission.base_amount ?? 0).toFixed(2)}
+                      </p>
+                    </td>
                     <td className="py-4 px-4 font-semibold">
-                      GH₵{Number(commission.commission_amount).toFixed(2)}
+                      GH₵{Number(commission.affiliate_amount ?? commission.commission_amount).toFixed(2)}
                       <span className="text-xs text-gray-500 ml-1">
                         ({Number(commission.commission_rate)}%)
                       </span>

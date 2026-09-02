@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
 import { getVerifyEndpoint } from '@/lib/payments/providers';
+import { purchaseEventId } from '@/lib/analytics/event-id';
+import { trackPurchase } from '@/lib/analytics/events';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -13,6 +15,7 @@ function OrderSuccessContent() {
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(true);
   const [verifying, setVerifying] = useState(false);
+  const [serverPaid, setServerPaid] = useState(false);
 
   useEffect(() => {
     async function loadOrder() {
@@ -38,6 +41,7 @@ function OrderSuccessContent() {
         const status = await fetchStatus(orderNumber);
         if (status) {
           setOrder((prev: any) => mergeStatus(prev || base, status));
+          if (status.payment_status === 'paid') setServerPaid(true);
           if (paymentSuccess === 'true' && status.payment_status !== 'paid') {
             verifyPayment(orderNumber, base || status);
           }
@@ -50,6 +54,33 @@ function OrderSuccessContent() {
     }
     loadOrder();
   }, [orderNumber, paymentSuccess]);
+
+  useEffect(() => {
+    if (!serverPaid || !order?.id || !order.order_number) return;
+    const storageKey = `veecare_meta_purchase_${order.order_number}`;
+    try {
+      if (sessionStorage.getItem(storageKey)) return;
+    } catch {
+      /* continue */
+    }
+    const items = Array.isArray(order.order_items) ? order.order_items : [];
+    trackPurchase({
+      eventId: order.meta_purchase_event_id || purchaseEventId(order.id),
+      orderNumber: order.order_number,
+      value: Number(order.total) || 0,
+      currency: order.currency || 'GHS',
+      items: items.map((item: { product_id?: string; quantity?: number; unit_price?: number }) => ({
+        id: String(item.product_id || ''),
+        quantity: Number(item.quantity) || 1,
+        price: Number(item.unit_price) || 0,
+      })),
+    });
+    try {
+      sessionStorage.setItem(storageKey, '1');
+    } catch {
+      /* ignore */
+    }
+  }, [order, serverPaid]);
 
   // Fetch the server-confirmed, non-PII order status.
   const fetchStatus = async (orderNum: string) => {
@@ -85,6 +116,7 @@ function OrderSuccessContent() {
     const refreshed = await fetchStatus(orderNum);
     if (refreshed?.payment_status === 'paid') {
       setOrder((prev: any) => mergeStatus(prev || initialOrder, refreshed));
+      setServerPaid(true);
       setVerifying(false);
       return;
     }
@@ -101,6 +133,7 @@ function OrderSuccessContent() {
       console.log('Payment verification result:', result);
 
       if (result.success && result.payment_status === 'paid') {
+        setServerPaid(true);
         const updated = await fetchStatus(orderNum);
         if (updated) setOrder((prev: any) => mergeStatus(prev || initialOrder, updated));
       }

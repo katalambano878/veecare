@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { trackAddToCart } from '@/lib/analytics/events';
 
 export type CartItem = {
     id: string;
@@ -101,6 +102,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (options?.openDrawer !== false) {
             setIsCartOpen(true);
         }
+
+        trackAddToCart({
+            id: newItem.id,
+            name: newItem.name,
+            price: newItem.price,
+            quantity: newItem.quantity,
+        });
     };
 
     const removeFromCart = (itemId: string, variant?: string) => {

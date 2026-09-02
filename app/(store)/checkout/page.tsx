@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import CheckoutSteps from '@/components/CheckoutSteps';
 import OrderSummary from '@/components/OrderSummary';
@@ -9,12 +9,16 @@ import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
-import { getAffiliateCodeFromCookie } from '@/lib/affiliate-client';
 import AdvancedCouponSystem from '@/components/AdvancedCouponSystem';
+import { useResellerPrices } from '@/hooks/useResellerPrices';
 import {
   APPLIED_COUPON_STORAGE_KEY,
   type StoredAppliedCoupon,
 } from '@/lib/coupons';
+import { quoteRedeemDiscount, type LoyaltySettings } from '@/lib/loyalty-math';
+import { getAttributionForOrder } from '@/lib/analytics/attribution';
+import { hasMarketingConsent } from '@/lib/analytics/consent';
+import { trackCheckout } from '@/lib/analytics/events';
 
 type PaymentMethodOption = {
   id: 'moolre' | 'paystack';
@@ -27,6 +31,14 @@ export default function CheckoutPage() {
   usePageTitle('Checkout');
   const router = useRouter();
   const { cart, subtotal: cartSubtotal, clearCart } = useCart();
+  const { sellingPrice } = useResellerPrices(
+    cart.map((item) => ({ id: item.id, quantity: item.quantity, variant: item.variant }))
+  );
+  const displayCartSubtotal = cart.reduce(
+    (sum, item) => sum + sellingPrice(item.id, item.variant, item.price) * item.quantity,
+    0
+  ) || cartSubtotal;
+  const checkoutTracked = useRef(false);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,6 +85,10 @@ export default function CheckoutPage() {
   const [paymentsLoading, setPaymentsLoading] = useState(true);
   const [errors, setErrors] = useState<any>({});
   const [appliedCoupon, setAppliedCoupon] = useState<StoredAppliedCoupon | null>(null);
+  const [loyaltyEnabled, setLoyaltyEnabled] = useState(false);
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
+  const [loyaltySettings, setLoyaltySettings] = useState<LoyaltySettings | null>(null);
+  const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
 
   // Restore coupon from cart and re-validate against current subtotal
   useEffect(() => {
@@ -86,7 +102,7 @@ export default function CheckoutPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             code: stored.code,
-            subtotal: cartSubtotal,
+            subtotal: displayCartSubtotal,
             shippingCost: 0,
           }),
         });
@@ -103,8 +119,8 @@ export default function CheckoutPage() {
         /* ignore */
       }
     }
-    if (cartSubtotal > 0) loadCoupon();
-  }, [cartSubtotal]);
+    if (displayCartSubtotal > 0) loadCoupon();
+  }, [displayCartSubtotal]);
 
 
 
@@ -152,17 +168,59 @@ export default function CheckoutPage() {
     return () => clearTimeout(timer);
   }, [cart, router, isLoading]);
 
+  useEffect(() => {
+    const email = shippingData.email.trim();
+    if (!email.includes('@')) {
+      setLoyaltyPoints(0);
+      setUseLoyaltyPoints(false);
+      return;
+    }
+    const timer = window.setTimeout(async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const headers: HeadersInit = {};
+        if (data.session?.access_token) {
+          headers.Authorization = `Bearer ${data.session.access_token}`;
+        }
+        const res = await fetch(`/api/loyalty/me?email=${encodeURIComponent(email)}`, { headers });
+        const json = await res.json();
+        setLoyaltyEnabled(Boolean(json.enabled));
+        setLoyaltyPoints(Number(json.account?.points || 0));
+        setLoyaltySettings(json.settings || null);
+      } catch {
+        setLoyaltyEnabled(false);
+      }
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [shippingData.email]);
+
   // Scroll to top when step changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
   // Calculate Totals
-  const subtotal = cartSubtotal;
+  const subtotal = displayCartSubtotal;
   const shippingCost = 0; // Delivery options temporarily disabled
   const tax = 0; // No Tax
   const couponDiscount = appliedCoupon?.discountAmount ?? 0;
-  const total = Math.max(0, subtotal - couponDiscount + shippingCost + tax);
+  const loyaltyDiscount = useLoyaltyPoints && loyaltySettings
+    ? Math.min(
+        quoteRedeemDiscount(loyaltyPoints, loyaltySettings),
+        Math.max(0, subtotal - couponDiscount)
+      )
+    : 0;
+  const totalDiscount = couponDiscount + loyaltyDiscount;
+  const total = Math.max(0, subtotal - totalDiscount + shippingCost + tax);
+
+  useEffect(() => {
+    if (checkoutTracked.current || cart.length === 0) return;
+    checkoutTracked.current = true;
+    trackCheckout(
+      cart.map((item) => ({ id: item.id, price: item.price, quantity: item.quantity })),
+      cartSubtotal
+    );
+  }, [cart, cartSubtotal]);
 
   const applyCoupon = (coupon: StoredAppliedCoupon) => {
     setAppliedCoupon(coupon);
@@ -218,127 +276,75 @@ export default function CheckoutPage() {
     }
 
     try {
-      const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      // Generate the order id client-side so we don't need to read the row back
-      // under RLS (guest orders are no longer publicly selectable).
-      const orderId = crypto.randomUUID();
-      // Generate tracking number: SLI-XXXXXX (6-char alphanumeric)
-      const trackingId = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
-      const trackingNumber = `SLI-${trackingId}`;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const authToken = sessionData.session?.access_token;
 
-      const affiliateCode = getAffiliateCodeFromCookie();
-      let affiliateMeta: Record<string, string | number> = {};
-      if (affiliateCode) {
-        const { data: affiliate } = await supabase.rpc('resolve_affiliate_code', {
-          p_code: affiliateCode,
-        });
-        if (affiliate?.id) {
-          affiliateMeta = {
-            affiliate_id: affiliate.id,
-            affiliate_code: affiliate.code,
-            affiliate_commission_rate: affiliate.commission_rate,
-          };
-        }
-      }
-
-      // 1. Create Order
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert([{
-          id: orderId,
-          order_number: orderNumber,
-          user_id: user?.id || null, // Capture user_id if logged in
-          email: shippingData.email,
-          phone: shippingData.phone,
-          status: 'pending',
-          payment_status: 'pending',
-          currency: 'GHS',
-          subtotal: subtotal,
-          tax_total: tax,
-          shipping_total: shippingCost,
-          discount_total: couponDiscount,
-          total: total,
-          shipping_method: deliveryMethod,
-          payment_method: paymentMethod,
-          payment_provider: paymentMethod,
-          shipping_address: shippingData,
-          billing_address: shippingData, // Using same for now
-          metadata: {
-            guest_checkout: !user,
-            first_name: shippingData.firstName,
-            last_name: shippingData.lastName,
-            tracking_number: trackingNumber,
-            payment_method: paymentMethod,
-            payment_provider: paymentMethod,
-            ...(appliedCoupon
-              ? {
-                  coupon_code: appliedCoupon.code,
-                  coupon_id: appliedCoupon.id,
-                  coupon_discount: couponDiscount,
-                }
-              : {}),
-            ...affiliateMeta,
-          }
-        }]);
-
-      if (orderError) throw orderError;
-
-      // 2. Create Order Items (with UUID validation)
-      // Helper to check if string is a valid UUID
-      const isValidUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-      
-      // Build order items, resolving slugs to UUIDs if needed
-      const orderItems = [];
-      
-      // Batch-fetch product metadata (for preorder_shipping etc.)
-      const productIds = cart.map(item => item.id).filter(id => isValidUUID(id));
-      const { data: productsData } = productIds.length > 0
-        ? await supabase.from('products').select('id, metadata').in('id', productIds)
-        : { data: [] };
-      const productMetaMap = new Map((productsData || []).map((p: any) => [p.id, p.metadata]));
-      
-      for (const item of cart) {
-        let productId = item.id;
-        
-        // If id is not a valid UUID, it might be a slug - try to resolve it
-        if (!isValidUUID(productId)) {
-          const { data: product } = await supabase
-            .from('products')
-            .select('id, metadata')
-            .or(`slug.eq.${productId},id.eq.${productId}`)
-            .single();
-          
-          if (product) {
-            productId = product.id;
-            productMetaMap.set(product.id, product.metadata);
-          } else {
-            throw new Error(`Product not found: ${item.name}. Please remove it from your cart and try again.`);
-          }
-        }
-        
-        const prodMeta = productMetaMap.get(productId);
-        
-        orderItems.push({
-          order_id: orderId,
-          product_id: productId,
-          product_name: item.name,
-          variant_name: item.variant,
-          quantity: item.quantity,
-          unit_price: item.price,
-          total_price: item.price * item.quantity,
-          metadata: {
-            image: item.image,
+      const createRes = await fetch('/api/checkout/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
+        body: JSON.stringify({
+          items: cart.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+            variant: item.variant || null,
             slug: item.slug,
-            preorder_shipping: prodMeta?.preorder_shipping || null
-          }
-        });
+            name: item.name,
+            image: item.image,
+          })),
+          shipping: shippingData,
+          deliveryMethod,
+          paymentMethod,
+          couponCode: appliedCoupon?.code || null,
+          useLoyaltyPoints: loyaltyDiscount > 0,
+          loyaltyPoints: loyaltyDiscount > 0 ? loyaltyPoints : 0,
+          attribution: getAttributionForOrder(),
+          marketingConsent: hasMarketingConsent(),
+        }),
+      });
+      const created = await createRes.json().catch(() => ({}));
+      if (!createRes.ok || !created.orderId) {
+        throw new Error(created.error || 'Could not create order');
       }
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+      const orderId = created.orderId as string;
+      const orderNumber = created.orderNumber as string;
+      const trackingNumber = created.trackingNumber as string;
+      const chargedTotal = Number(created.totals?.total ?? total);
+      const chargedSubtotal = Number(created.totals?.subtotal ?? subtotal);
+      const chargedDiscount = Number(created.totals?.discount ?? totalDiscount);
+      const orderItems = (created.items || []) as Array<{
+        product_id: string;
+        product_name: string;
+        variant_name?: string | null;
+        quantity: number;
+        unit_price: number;
+        metadata?: Record<string, unknown>;
+      }>;
 
-      if (itemsError) throw itemsError;
+      if (loyaltyDiscount > 0) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        const redeemRes = await fetch('/api/loyalty/redeem', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            email: shippingData.email,
+            points: loyaltyPoints,
+            orderId,
+            maxDiscount: loyaltyDiscount,
+          }),
+        });
+        const redeemJson = await redeemRes.json().catch(() => ({}));
+        if (!redeemRes.ok) {
+          throw new Error(redeemJson.error || 'Could not apply loyalty points');
+        }
+      }
 
       // Record coupon usage (best-effort — order is already created)
       if (appliedCoupon) {
@@ -366,9 +372,10 @@ export default function CheckoutPage() {
           payment_status: 'pending',
           email: shippingData.email,
           phone: shippingData.phone,
-          subtotal,
+          subtotal: chargedSubtotal,
           shipping_total: shippingCost,
-          total,
+          discount_total: chargedDiscount,
+          total: chargedTotal,
           currency: 'GHS',
           created_at: new Date().toISOString(),
           payment_method: paymentMethod,
@@ -452,9 +459,9 @@ export default function CheckoutPage() {
             order_number: orderNumber,
             email: shippingData.email,
             phone: shippingData.phone,
-            subtotal,
+            subtotal: chargedSubtotal,
             shipping_total: shippingCost,
-            total,
+            total: chargedTotal,
             currency: 'GHS',
             shipping_address: shippingData,
             payment_method: paymentMethod,
@@ -835,14 +842,44 @@ export default function CheckoutPage() {
 
           <div className="lg:col-span-1">
             <OrderSummary
-              items={cart}
+              items={cart.map((item) => ({
+                ...item,
+                price: sellingPrice(item.id, item.variant, item.price),
+              }))}
               subtotal={subtotal}
               shipping={shippingCost}
               tax={tax}
-              discount={couponDiscount}
-              couponCode={appliedCoupon?.code}
+              discount={totalDiscount}
+              couponCode={
+                loyaltyDiscount > 0 && appliedCoupon?.code
+                  ? `${appliedCoupon.code} + points`
+                  : loyaltyDiscount > 0
+                    ? 'Loyalty points'
+                    : appliedCoupon?.code
+              }
               total={total}
             />
+            {loyaltyEnabled && loyaltySettings && loyaltyPoints > 0 && (
+              <div className="mt-4 bg-white rounded-xl shadow-sm p-6">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useLoyaltyPoints}
+                    onChange={(e) => setUseLoyaltyPoints(e.target.checked)}
+                    className="mt-1"
+                  />
+                  <span>
+                    <span className="font-semibold text-gray-900">Use loyalty points</span>
+                    <span className="block text-sm text-gray-600">
+                      {loyaltyPoints} points on {shippingData.email}
+                      {loyaltyDiscount > 0
+                        ? ` · save GH₵ ${loyaltyDiscount.toFixed(2)}`
+                        : ` · need ${loyaltySettings.minRedeemPoints} points to redeem`}
+                    </span>
+                  </span>
+                </label>
+              </div>
+            )}
             <div className="mt-4 bg-white rounded-xl shadow-sm p-6">
               <AdvancedCouponSystem
                 subtotal={subtotal}

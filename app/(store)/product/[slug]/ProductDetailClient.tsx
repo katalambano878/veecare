@@ -12,6 +12,8 @@ import { SITE_URL } from '@/lib/seo';
 import { notFound } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { trackProductView } from '@/lib/analytics/events';
+import { useResellerPrices } from '@/hooks/useResellerPrices';
 
 // Map common color names to hex values for the swatch preview
 function colorNameToHex(name: string): string {
@@ -183,13 +185,27 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
     }
   }, [slug]);
 
+  useEffect(() => {
+    if (!product?.id) return;
+    trackProductView({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+    });
+  }, [product?.id, product?.name, product?.price]);
+
   const hasVariants = product?.variants?.length > 0;
   const hasColors = product?.colors?.length > 0;
   const needsVariantSelection = hasVariants && !selectedVariant;
   const needsColorSelection = hasColors && !selectedColor;
 
-  // Determine the active price: variant price if selected, otherwise base price
-  const activePrice = selectedVariant?.price ?? product?.price ?? 0;
+  const { sellingPrice } = useResellerPrices(
+    product?.id ? [{ id: product.id, quantity: 1, variant: selectedVariant?.name || null }] : []
+  );
+
+  // Catalog/base price is never authoritative for affiliate checkout — overlay selling price for display.
+  const catalogPrice = selectedVariant?.price ?? product?.price ?? 0;
+  const activePrice = sellingPrice(product?.id, selectedVariant?.name || null, catalogPrice) || catalogPrice;
   const activeStock = selectedVariant ? (selectedVariant.stock ?? selectedVariant.quantity ?? product?.stockCount ?? 0) : (product?.stockCount ?? 0);
 
   const handleAddToCart = () => {
@@ -211,7 +227,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
     addToCart({
       id: product.id,
       name: product.name,
-      price: activePrice,
+      price: catalogPrice,
       image: product.images[0],
       quantity: quantity,
       variant: variantLabel,
