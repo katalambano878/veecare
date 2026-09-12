@@ -195,22 +195,69 @@ export const SELF_CARE_BENEFITS = [
 
 export const TESTIMONIALS = [
   {
+    product: 'Aju mixture',
+    excerpt:
+      'At first I take contraceptives before I see my period. But now I see my periods regularly without taking contraceptives.',
     quote:
-      'It feels like a brand that actually understands women. Soft packaging, clear communication, and products I trust.',
-    name: 'Ama K.',
-    location: 'Accra',
+      "Hi ma'am good morning. I want to say a big thank you for introducing your Aju mixture. At first I take contraceptives before I see my period. But now I see my periods regularly without taking contraceptives. I've yet to go for checkup for the PCOS. I'll update you on that soon.",
+    name: 'Verified customer',
   },
   {
+    product: 'Cycle support',
+    excerpt: 'I can really see massive improvement in my entire body.',
     quote:
-      'Ordering on WhatsApp was easy and discreet. The whole experience felt warm, not clinical.',
-    name: 'Efua M.',
-    location: 'Tema',
+      "I'm here again oo. Now the color has changed to full blood color and the clotting errr. I have not seen such blood in the past five months. It has been that tiny dark brown. I'm not done with the medication though but I know I am definitely coming with a good results after everything. To be honest I can assure you that I'll definitely order for the second batch after this because I've not been really consistent for some few days because of work and academic related. I can really see massive improvement in my entire body.",
+    name: 'Verified customer',
   },
   {
+    product: "Women's wellness",
+    excerpt: "I'm not feeling the pelvic pain again.",
     quote:
-      'Finally a feminine care shop that feels modern and calming — not loud or overwhelming.',
-    name: 'Adwoa S.',
-    location: 'Kumasi',
+      "Auntie I am not done with the medicine but I am seeing improvement. My blood that has been like for like 2 weeks has stop. I'm not feeling the pelvic pain again. Now I am waiting for next month to see if my menstruation will come. And I will text tracking my cycle. Thank so much I really appreciate your effort and the good medicine you gave me. God will richly bless your work.",
+    name: 'Verified customer',
+  },
+  {
+    product: 'Infection care',
+    excerpt: 'Indeed your product is very good. I have seen massive improvement. From 0 to 85 percent.',
+    quote:
+      "Good morning madam. Please I'm from Sefwi Bekwai. I want some of your infection product together with the probiotic. Please how much will it cost? Please help me sis. I'm dying slowly with this infection. I'm begging you.\n\nMadam good morning. Hope you are doing well. Sorry for late testimony. Indeed your product is very good. My dad is not feeling well that's why you have not been hearing from me since. May God richly blessed you for me. I have seen massive improvement. I'm extremely glad. A rude one like that. From 0 to 85 percent. Thank you madam.",
+    name: 'Verified customer',
+  },
+  {
+    product: 'Restore Her',
+    excerpt: "The Restore Her is really restoring me oo. I'm gradually losing my fat arms and back folds.",
+    quote:
+      "The Restore Her is really restoring me oo. I'm gradually losing my fat arms and back folds. I'm not even consistent mpo o. Thank youuu sis. I'm doing great.",
+    name: 'Verified customer',
+  },
+  {
+    product: "Women's wellness",
+    excerpt: 'Please I went to the hospital and years of ovarian cyst is gone. I couldn\'t believe my eyes.',
+    quote:
+      "Hello. Please I am battling ovarian cyst, fibroids, PID, hormonal imbalance. Please I need your help.\n\nHello. Good evening. Please I went to the hospital and years of ovarian cyst is gone. Thank you so much. But my fibroid is still there so I will come for another set for it. Yesooo. Am so happy. I couldn't believe my eyes. Thank you so much.",
+    name: 'Verified customer',
+  },
+  {
+    product: 'Cycle support',
+    excerpt:
+      'I started menstruating yesterday without any pain. I was teary when I didn\'t see the stress I go through when menstruating.',
+    quote:
+      'I started menstruating yesterday without any pain, me breaking out and having pimples around my chest and shoulders. I was teary when I didn\'t see the stress I go through when menstruating. Thank you Vee Care.',
+    name: 'Verified customer',
+  },
+  {
+    product: 'Aju mixture & cranberry',
+    excerpt: 'I will complete my Aju mixture today and I can testify that it is a game changer.',
+    quote:
+      'I will complete my Aju mixture today and I can testify that it is a game changer. I was having some dark spotting for almost a week and when I checked, I was fine too so I started using it on the same Friday I received it and on Monday, the dark spotting has seized and I can feel so clean errr. I started with the cranberry too and I can see my urine is clean, and my stomach feels calm after taking it. I don\'t really like the taste of the Aju mixture but the cranberry taste is okay. So I take the Aju first then wait a little and take the diluted cranberry and I am all good to go. In fact the Aju has let me achieve the purpose why I purchased and it didn\'t disappoint koraa. Thank you. Am yet to use the libido booster and I will give you all the gist afterwards.',
+    name: 'Verified customer',
+  },
+  {
+    product: 'Wap tea & Desire Me',
+    excerpt: "It's about the Wap tea and Desire Me. My man couldn't contain the sweetness oo.",
+    quote:
+      "Hello dear. I get reviews ooo. I can't wait till tomorrow so kindly hear me out. It's about the Wap tea and Desire Me no oo kaiishhhh. I've been taking it from the time you asked me to but I wasn't even that consistent because I sometimes forget sake of my busy schedules. You remember I told you my man is not here with me. So he's on leave now and just got home today. The moment he got home and called that he would be with me shortly, I needed to activate my cells and tissue for the war ahead of me. I took the Wap tea and Desire Me an hour before he came. My man couldn't contain the sweetness oo. It was overload and he kept moaning and praising how my p*ssy is so sweet and wet wet. He wanted to control himself but he couldn't oo. The Cummings alone. I mean the Cummings were damn good. Thank you so much. Collect your two.",
+    name: 'Verified customer',
   },
 ] as const;
 
