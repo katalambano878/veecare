@@ -260,6 +260,11 @@ export default function AdminLayout({
       path: '/admin/test-sms'
     },
     {
+      title: 'Buy SMS',
+      icon: 'ri-bank-card-line',
+      path: '/admin/sms-credit'
+    },
+    {
       title: 'Email Debugger',
       icon: 'ri-mail-send-line',
       path: '/admin/test-email'
