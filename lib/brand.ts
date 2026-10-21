@@ -125,44 +125,20 @@ export const FOOTER_TAGLINE =
 /** Hero slider — images in /public/hero/ */
 export const HERO_IMAGE_VERSION = '7';
 
+/**
+ * Homepage hero — single brand photo (no rotation). The old lifestyle slides
+ * (hero-slide-1..3) are still used by PageHero on inner pages.
+ */
+const HERO_BRAND_ALT = 'Vee-Care founder holding a pink Vee-Care Hera shopping bag in a bright studio';
+
 /** Desktop / tablet (≥1024px) — 16:9 landscape */
 export const HERO_SLIDES = [
-  {
-    src: '/hero/hero-brand.jpg',
-    alt: 'Vee-Care founder holding a pink Vee-Care Hera shopping bag in a bright studio',
-  },
-  {
-    src: '/hero/hero-slide-1.jpg',
-    alt: 'Self-care moment with wellness essentials and feminine care',
-  },
-  {
-    src: '/hero/hero-slide-2.jpg',
-    alt: 'Feminine care products — wash, cup, and daily wellness',
-  },
-  {
-    src: '/hero/hero-slide-3.jpg',
-    alt: 'Morning wellness ritual — tea, journal, and self-care',
-  },
+  { src: '/hero/hero-brand.jpg', alt: HERO_BRAND_ALT },
 ] as const;
 
 /** Mobile only (<1024px) — 9:16 portrait */
 export const HERO_SLIDES_MOBILE = [
-  {
-    src: '/hero/hero-brand-mobile.jpg',
-    alt: 'Vee-Care founder holding a pink Vee-Care Hera shopping bag in a bright studio',
-  },
-  {
-    src: '/hero/hero-slide-1-mobile.jpg',
-    alt: 'Woman enjoying a gentle self-care moment with Vee Care essentials',
-  },
-  {
-    src: '/hero/hero-slide-2-mobile.jpg',
-    alt: 'Vee Care feminine wash, menstrual cup, and wellness products flat lay',
-  },
-  {
-    src: '/hero/hero-slide-3-mobile.jpg',
-    alt: 'Morning wellness ritual with journal, tea, and feminine care on soft pink bedding',
-  },
+  { src: '/hero/hero-brand-mobile.jpg', alt: HERO_BRAND_ALT },
 ] as const;
 
 export const HERO_IMAGE = HERO_SLIDES[0].src;

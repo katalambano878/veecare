@@ -52,8 +52,9 @@ export default function HomeHero() {
     return () => window.clearInterval(id);
   }, [paused, next]);
 
-  // Preload next slide after first paint
+  // Preload next slide after first paint (no-op with a single slide)
   useEffect(() => {
+    if (SLIDE_COUNT <= 1) return;
     const nextIndex = (active + 1) % SLIDE_COUNT;
     const mobileSrc = `${HERO_SLIDES_MOBILE[nextIndex].src}?v=${HERO_IMAGE_VERSION}`;
     const desktopSrc = `${HERO_SLIDES[nextIndex].src}?v=${HERO_IMAGE_VERSION}`;
@@ -91,7 +92,7 @@ export default function HomeHero() {
   return (
     <section
       className="relative w-full min-h-[100svh] lg:min-h-[min(100svh,880px)] overflow-hidden bg-[#F5E8E6]"
-      aria-roledescription="carousel"
+      {...(SLIDE_COUNT > 1 ? { 'aria-roledescription': 'carousel' } : {})}
       aria-label="Hero highlights"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
