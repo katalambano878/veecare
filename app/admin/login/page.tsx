@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
@@ -14,7 +14,7 @@ function setAuthCookies(accessToken: string, refreshToken: string) {
   document.cookie = `sb-refresh-token=${refreshToken}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax${secure}`;
 }
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
@@ -190,5 +190,14 @@ export default function AdminLoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** useSearchParams must sit under a Suspense boundary or the page can bail out of rendering. */
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <AdminLoginForm />
+    </Suspense>
   );
 }

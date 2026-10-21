@@ -100,7 +100,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ ok: result.ok, skipped: result.skipped ?? false });
-  } catch {
+  } catch (err) {
+    console.error('[Meta CAPI] event forwarding failed:', err instanceof Error ? err.message : err);
     return NextResponse.json({ ok: false }, { status: 200 });
   }
 }

@@ -357,7 +357,11 @@ export default function CheckoutPage() {
             subtotal,
             discountAmount: couponDiscount,
           }),
-        }).catch((err) => console.error('Coupon redeem error:', err));
+        })
+          .then(async (res) => {
+            if (!res.ok) console.error('Coupon redeem rejected:', res.status, await res.text().catch(() => ''));
+          })
+          .catch((err) => console.error('Coupon redeem error:', err));
         localStorage.removeItem(APPLIED_COUPON_STORAGE_KEY);
         setAppliedCoupon(null);
       }
@@ -399,16 +403,22 @@ export default function CheckoutPage() {
       // Note: Stock reduction happens in mark_order_paid when payment is confirmed
 
       // 3. Upsert Customer Record (for both guest and registered users)
+      // Best-effort: the order already exists, so a CRM failure must not surface as "order failed".
       const fullName = `${shippingData.firstName} ${shippingData.lastName}`.trim();
-      await supabase.rpc('upsert_customer_from_order', {
-        p_email: shippingData.email,
-        p_phone: shippingData.phone,
-        p_full_name: fullName,
-        p_first_name: shippingData.firstName,
-        p_last_name: shippingData.lastName,
-        p_user_id: user?.id || null,
-        p_address: shippingData
-      });
+      try {
+        const { error: customerError } = await supabase.rpc('upsert_customer_from_order', {
+          p_email: shippingData.email,
+          p_phone: shippingData.phone,
+          p_full_name: fullName,
+          p_first_name: shippingData.firstName,
+          p_last_name: shippingData.lastName,
+          p_user_id: user?.id || null,
+          p_address: shippingData
+        });
+        if (customerError) console.error('[Checkout] upsert_customer_from_order failed:', customerError.message);
+      } catch (customerErr) {
+        console.error('[Checkout] upsert_customer_from_order threw:', customerErr);
+      }
 
       // 4. Handle Payment Redirects or Completion
       if (paymentMethods.length === 0) {

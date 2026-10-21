@@ -39,6 +39,15 @@ const nextConfig: NextConfig = {
     // TypeScript checks enabled - type errors will fail build
     ignoreBuildErrors: false,
   },
+  // Legacy / intuitive paths that people type or old links point at.
+  async redirects() {
+    return [
+      { source: '/login', destination: '/auth/login', permanent: true },
+      { source: '/register', destination: '/auth/signup', permanent: true },
+      { source: '/signup', destination: '/auth/signup', permanent: true },
+      { source: '/faq', destination: '/faqs', permanent: true },
+    ];
+  },
   // Security + Caching headers
   async headers() {
     return [

@@ -28,7 +28,9 @@ export async function POST(req: Request) {
       })),
       customer_subtotal: quote.customer_subtotal,
     });
-  } catch {
+  } catch (err) {
+    // Falls back to base pricing; log so a silent affiliate-pricing outage is visible in container logs.
+    console.error('[Reseller Quote] quoteCheckoutCart failed:', err instanceof Error ? err.message : err);
     return NextResponse.json({ attributed: false, items: [] });
   }
 }

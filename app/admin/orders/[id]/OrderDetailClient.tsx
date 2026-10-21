@@ -140,14 +140,24 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
       if (error) throw error;
       if (statusToUpdate === 'cancelled' || statusToUpdate === 'refunded') {
         const { data: { session } } = await supabase.auth.getSession();
-        await fetch('/api/admin/affiliates', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-          },
-          body: JSON.stringify({ action: 'reverse-order-earning', orderId: order.id }),
-        }).catch(() => undefined);
+        try {
+          const reversal = await fetch('/api/admin/affiliates', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+            },
+            body: JSON.stringify({ action: 'reverse-order-earning', orderId: order.id }),
+          });
+          if (!reversal.ok) {
+            const detail = await reversal.text().catch(() => '');
+            console.error('[Order] affiliate reversal failed:', reversal.status, detail);
+            alert(`Order ${statusToUpdate}, but the affiliate commission could not be reversed automatically. Check Affiliates → Earnings.`);
+          }
+        } catch (reversalErr) {
+          console.error('[Order] affiliate reversal error:', reversalErr);
+          alert(`Order ${statusToUpdate}, but the affiliate commission could not be reversed automatically. Check Affiliates → Earnings.`);
+        }
       }
 
       // Update local state

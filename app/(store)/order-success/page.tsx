@@ -254,7 +254,7 @@ function OrderSuccessContent() {
                   </div>
                 </div>
                 <Link
-                  href="/register"
+                  href="/auth/signup"
                   className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
                 >
                   Join Now
@@ -304,7 +304,7 @@ function OrderSuccessContent() {
 
                 <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-200 pt-2">
                   <span>Total Paid</span>
-                  <span>GH₵{order.total.toFixed(2)}</span>
+                  <span>GH₵{(Number(order.total) || 0).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -374,7 +374,7 @@ function OrderSuccessContent() {
                 <i className="ri-customer-service-line mr-1"></i>
                 Contact Support
               </Link>
-              <Link href="/account/orders" className="text-brand-espresso hover:text-brand-espresso font-semibold whitespace-nowrap">
+              <Link href="/account?tab=orders" className="text-brand-espresso hover:text-brand-espresso font-semibold whitespace-nowrap">
                 <i className="ri-question-line mr-1"></i>
                 Order Help
               </Link>
