@@ -21,7 +21,7 @@ const PUBLIC_READ = new Set([
   "reviews",
   "review_images",
   "blog_posts",
-  "coupons",
+  // coupons intentionally NOT public: codes are validated via /api/coupons/* server routes
   "pages",
   "navigation_menus",
   "navigation_items",

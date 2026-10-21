@@ -67,12 +67,16 @@ export async function POST(request: Request) {
                 return NextResponse.json({ error: 'Missing order identifier' }, { status: 400 });
             }
 
-            const orderRef = payload.order_number || payload.id;
+            const orderRef = String(payload.order_number || payload.id || '').trim();
+            if (!/^[A-Za-z0-9-]{6,64}$/.test(orderRef)) {
+                return NextResponse.json({ error: 'Invalid order identifier' }, { status: 400 });
+            }
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderRef);
             const { data: order, error: orderError } = await supabaseAdmin
                 .from('orders')
-                .select('id, order_number, created_at')
-                .or(`order_number.eq.${orderRef},id.eq.${orderRef}`)
-                .single();
+                .select('id, order_number, created_at, metadata')
+                .eq(isUuid ? 'id' : 'order_number', orderRef)
+                .maybeSingle();
 
             if (orderError || !order) {
                 return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -84,7 +88,15 @@ export async function POST(request: Request) {
                 return NextResponse.json({ error: 'Order confirmation can only be sent for recent orders' }, { status: 400 });
             }
 
-            await sendOrderConfirmation(payload);
+            // One confirmation per order: the public caller cannot re-trigger SMS/email.
+            const sentMeta = (order.metadata ?? {}) as Record<string, unknown>;
+            if (sentMeta.customer_email_sent_at || sentMeta.customer_sms_sent_at) {
+                return NextResponse.json({ success: true, message: 'Order confirmation already sent' });
+            }
+
+            // Build everything from the stored order — never from the caller's payload —
+            // so this endpoint can't be used to send branded messages to arbitrary contacts.
+            await sendOrderConfirmation({ id: order.id, order_number: order.order_number });
             return NextResponse.json({ success: true, message: 'Order confirmation sent' });
         }
 
@@ -231,6 +243,14 @@ export async function POST(request: Request) {
             if (!subject || !message) {
                 return NextResponse.json({ error: 'Subject and message required' }, { status: 400 });
             }
+            if (typeof subject !== 'string' || typeof message !== 'string' || subject.length > 200 || message.length > 5000) {
+                return NextResponse.json({ error: 'Subject or message too long' }, { status: 400 });
+            }
+            if (recipients.length > 500) {
+                return NextResponse.json({ error: 'Too many recipients per campaign (max 500)' }, { status: 400 });
+            }
+            // Email header value: no CR/LF so the subject can't inject extra headers.
+            const headerSubject = subject.replace(/[\r\n]+/g, ' ').trim();
 
             // Deduplicate phone numbers and emails server-side
             const seenPhones = new Set<string>();
@@ -256,7 +276,7 @@ export async function POST(request: Request) {
 `, safeSubject);
                             await sendEmail({
                                 to: recipient.email,
-                                subject: subject, // Keep original for email subject header
+                                subject: headerSubject, // Plain-text header, CR/LF stripped
                                 html: brandedHtml
                             });
                             results.email++;

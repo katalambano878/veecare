@@ -78,7 +78,8 @@ export default function AdminLoginPage() {
       setAuthCookies(data.session.access_token, data.session.refresh_token);
 
       const redirect = searchParams.get('redirect') || '/admin';
-      router.push(redirect.startsWith('/admin') ? redirect : '/admin');
+      const safeRedirect = /^\/admin(\/[^\s]*)?$/.test(redirect) && !redirect.startsWith('//') ? redirect : '/admin';
+      router.push(safeRedirect);
       router.refresh();
     } catch (err: any) {
       const message = err.message || 'Login failed';

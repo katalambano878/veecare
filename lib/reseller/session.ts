@@ -3,6 +3,7 @@ import { createHash, randomInt } from 'crypto';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { authJwtSecret } from '@/lib/db/mode';
 
 export const AFFILIATE_SESSION_COOKIE = 'veecare_aff_session';
 const OTP_TTL_MS = 10 * 60 * 1000;
@@ -13,8 +14,8 @@ export type AffiliateSession = {
 };
 
 function secretKey() {
-  const secret = process.env.AUTH_JWT_SECRET || process.env.JWT_SECRET || '';
-  return new TextEncoder().encode(secret || 'veecare-affiliate-dev-secret');
+  // Shared with the admin/customer auth shim; throws in production when unset.
+  return new TextEncoder().encode(authJwtSecret());
 }
 
 export function hashOtp(email: string, otp: string): string {

@@ -140,8 +140,19 @@ export async function middleware(request: NextRequest) {
         response.headers.set('x-user-id', user.id);
         response.headers.set('x-user-role', profile.role);
       } catch (err) {
+        // Fail closed: an auth backend outage must never serve admin pages.
         console.error('[Middleware] Auth check error:', err);
+        const loginUrl = new URL('/admin/login', request.url);
+        loginUrl.searchParams.set('redirect', pathname);
+        loginUrl.searchParams.set('error', 'auth_unavailable');
+        return NextResponse.redirect(loginUrl);
       }
+    } else {
+      // No way to verify the session in this mode — do not let the request through.
+      console.error('[Middleware] SUPABASE_SERVICE_ROLE_KEY missing; refusing admin access');
+      const loginUrl = new URL('/admin/login', request.url);
+      loginUrl.searchParams.set('error', 'auth_unavailable');
+      return NextResponse.redirect(loginUrl);
     }
   }
 

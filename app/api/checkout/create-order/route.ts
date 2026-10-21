@@ -8,6 +8,22 @@ import { quoteCheckoutCart } from '@/lib/reseller/quote-order';
 
 const TRACK_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
+/** Marketing attribution keys the browser may attach to an order (see lib/analytics/attribution.ts). */
+const ATTRIBUTION_KEYS = new Set([
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+  'fbclid', 'fbc', 'fbp', 'landing_page', 'referrer', 'user_agent',
+]);
+const ATTRIBUTION_VALUE_MAX = 512;
+
+function pickAttribution(raw: unknown): Record<string, string> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  return Object.fromEntries(
+    Object.entries(raw as Record<string, unknown>)
+      .filter(([key, value]) => ATTRIBUTION_KEYS.has(key) && typeof value === 'string' && value.length > 0)
+      .map(([key, value]) => [key, String(value).slice(0, ATTRIBUTION_VALUE_MAX)])
+  );
+}
+
 function trackingNumber() {
   const bytes = randomBytes(6);
   let id = '';
@@ -98,6 +114,8 @@ export async function POST(req: Request) {
         shipping_address: shipping,
         billing_address: shipping,
         metadata: {
+          // Client attribution first so server-computed keys below always win.
+          ...pickAttribution(body.attribution),
           guest_checkout: !userId,
           first_name: shipping.firstName,
           last_name: shipping.lastName,
@@ -107,7 +125,6 @@ export async function POST(req: Request) {
           ...(body.couponCode ? { coupon_code: String(body.couponCode).toUpperCase() } : {}),
           ...(body.useLoyaltyPoints ? { loyalty_points_applied: true } : {}),
           ...resellerMeta,
-          ...(body.attribution && typeof body.attribution === 'object' ? body.attribution : {}),
           marketing_consent: Boolean(body.marketingConsent),
         },
       })

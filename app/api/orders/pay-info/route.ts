@@ -38,7 +38,21 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
         }
 
-        return NextResponse.json({ order });
+        // Only expose what the pay page needs; the order ref is guessable so no PII here.
+        const meta = (order.metadata ?? {}) as Record<string, unknown>;
+        return NextResponse.json({
+            order: {
+                id: order.id,
+                order_number: order.order_number,
+                payment_status: order.payment_status,
+                payment_method: order.payment_method,
+                total: order.total,
+                metadata: {
+                    payment_method: meta.payment_method ?? null,
+                    payment_provider: meta.payment_provider ?? null,
+                },
+            },
+        });
     } catch (err: unknown) {
         console.error('[Orders] Pay-info exception:', err);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

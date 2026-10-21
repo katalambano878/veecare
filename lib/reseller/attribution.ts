@@ -2,6 +2,7 @@ import 'server-only';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { authJwtSecret } from '@/lib/db/mode';
 import { normalizeAffiliateCode } from '@/lib/affiliate-client';
 import { getResellerSettings } from './settings';
 
@@ -16,8 +17,8 @@ export type AttributionPayload = {
 };
 
 function secretKey() {
-  const secret = process.env.AUTH_JWT_SECRET || process.env.JWT_SECRET || '';
-  return new TextEncoder().encode(secret || 'veecare-affiliate-dev-secret');
+  // Shared with the admin/customer auth shim; throws in production when unset.
+  return new TextEncoder().encode(authJwtSecret());
 }
 
 export async function signAttribution(payload: Omit<AttributionPayload, 'exp'>, days: number): Promise<string> {

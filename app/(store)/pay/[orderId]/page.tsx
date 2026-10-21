@@ -94,8 +94,7 @@ export default function PaymentPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId: order.order_number,
-          customerEmail: order.email
+          orderId: order.order_number
         })
       });
 
