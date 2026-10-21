@@ -179,7 +179,17 @@ export default function AdminLayout({
     );
   }
 
-  const menuItems = [
+  type MenuItem = {
+    title: string;
+    icon: string;
+    path: string;
+    exact?: boolean;
+    badge?: string;
+    moduleId?: string;
+    adminOnly?: boolean;
+  };
+
+  const menuItems: MenuItem[] = [
     {
       title: 'Dashboard',
       icon: 'ri-dashboard-line',
@@ -233,6 +243,22 @@ export default function AdminLayout({
       path: '/admin/analytics'
     },
     {
+      title: 'Live Shoppers',
+      icon: 'ri-pulse-line',
+      path: '/admin/live'
+    },
+    {
+      title: 'End of Day',
+      icon: 'ri-moon-clear-line',
+      path: '/admin/end-of-day'
+    },
+    {
+      title: 'Profit Margins',
+      icon: 'ri-line-chart-line',
+      path: '/admin/profit',
+      adminOnly: true
+    },
+    {
       title: 'Coupons',
       icon: 'ri-coupon-2-line',
       path: '/admin/coupons'
@@ -283,10 +309,9 @@ export default function AdminLayout({
     },
   ];
 
-  const visibleMenuItems = menuItems.filter(item => {
-    // @ts-ignore
+  const visibleMenuItems = menuItems.filter((item) => {
+    if (item.adminOnly && userRole !== 'admin') return false;
     if (!item.moduleId) return true;
-    // @ts-ignore
     return enabledModules.includes(item.moduleId);
   });
 

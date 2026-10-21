@@ -10,6 +10,7 @@ import IdleWidgets from '@/components/IdleWidgets';
 import { CMSProvider } from '@/context/CMSContext';
 import { ModulesProvider } from '@/context/ModulesContext';
 import AffiliateCapture from '@/components/AffiliateCapture';
+import LiveShopperPing from '@/components/LiveShopperPing';
 import AttributionCapture from '@/components/AttributionCapture';
 import MetaPixel from '@/components/MetaPixel';
 
@@ -37,6 +38,7 @@ export default function StoreLayoutClient({
       <Suspense fallback={null}>
         <NavigationProgress />
         <AffiliateCapture />
+        <LiveShopperPing />
         <AttributionCapture />
         <MetaPixel />
       </Suspense>
