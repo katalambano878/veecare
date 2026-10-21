@@ -123,10 +123,14 @@ export const FOOTER_TAGLINE =
   'Plant-based feminine care and a supportive community for women’s yoni health — herbal, honest, and empowering.';
 
 /** Hero slider — images in /public/hero/ */
-export const HERO_IMAGE_VERSION = '6';
+export const HERO_IMAGE_VERSION = '7';
 
 /** Desktop / tablet (≥1024px) — 16:9 landscape */
 export const HERO_SLIDES = [
+  {
+    src: '/hero/hero-brand.jpg',
+    alt: 'Vee-Care founder holding a pink Vee-Care Hera shopping bag in a bright studio',
+  },
   {
     src: '/hero/hero-slide-1.jpg',
     alt: 'Self-care moment with wellness essentials and feminine care',
@@ -143,6 +147,10 @@ export const HERO_SLIDES = [
 
 /** Mobile only (<1024px) — 9:16 portrait */
 export const HERO_SLIDES_MOBILE = [
+  {
+    src: '/hero/hero-brand-mobile.jpg',
+    alt: 'Vee-Care founder holding a pink Vee-Care Hera shopping bag in a bright studio',
+  },
   {
     src: '/hero/hero-slide-1-mobile.jpg',
     alt: 'Woman enjoying a gentle self-care moment with Vee Care essentials',
