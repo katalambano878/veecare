@@ -51,6 +51,12 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href={SEO_ASSETS.favicon32} />
         <link rel="apple-touch-icon" sizes="180x180" href={SEO_ASSETS.appleTouchIcon} />
         <link rel="manifest" href="/favicon/site.webmanifest" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
 
         {structuredData.map((schema) => (
           <script
