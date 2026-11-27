@@ -4,6 +4,8 @@ import { isPlainPostgres } from "@/lib/db/mode";
 import { resolveRestActor } from "@/lib/db/rest-auth";
 import { authorizeStorageWrite } from "@/lib/db/rest-acl";
 
+import { guardStorageWrite } from "@/lib/db/rest-guard";
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -43,7 +45,7 @@ async function readUploadBody(
   };
 }
 
-export async function POST(
+async function postUnguarded(
   req: NextRequest,
   ctx: { params: Promise<{ bucket: string; path: string[] }> }
 ) {
@@ -86,7 +88,7 @@ export async function POST(
   });
 }
 
-export async function DELETE(
+async function deleteUnguarded(
   req: NextRequest,
   ctx: { params: Promise<{ bucket: string; path: string[] }> }
 ) {
@@ -109,3 +111,6 @@ export async function DELETE(
   }
   return NextResponse.json({});
 }
+
+export const POST = guardStorageWrite(postUnguarded);
+export const DELETE = guardStorageWrite(deleteUnguarded);
